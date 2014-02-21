@@ -148,8 +148,10 @@
 //      j32=32'h1fc0; // m[32'h1fc]="something" will hang. Very tricky
     m[gp+16] = 8'h0;
     m[gp+16+1] = 8'h0;
-    m[gp+16+2] = 8'h0;
-    m[gp+16+3] = 8'h10;
+    i=pltAddr[0]+16;
+    m[gp+16+2] = i[15:8];   // .plt section addr + 16
+    m[gp+16+3] = i[7:0];
+
     j32=gpPlt+16;
     for (i=1; i < numDynEntry; i=i+1) begin
       m[gp+16+i*4] = j32[31:24];
@@ -205,10 +207,12 @@
     gp[23:16] = globalAddr[1];
     gp[15:8] = globalAddr[2];
     gp[7:0] = globalAddr[3];
+    $readmemh("plt_offset", pltAddr);
   `ifdef DEBUG_DLINKER
     $display("global address %8x", {m[`GPADDR], m[`GPADDR+1], 
              m[`GPADDR+2], m[`GPADDR+3]});
     $display("gp = %8x", gp);
+    $display("pltAddr = %8x", pltAddr[0]);
   `endif
 `endif
 `ifdef DLINKER

@@ -13,6 +13,8 @@
 
 #include <stdio.h>
 
+//#define ELF2HEX_DEBUG
+
 static cl::opt<bool>
 ConvertElf2Hex("elf2hex", 
 cl::desc("Display the hex content of verilog cpu0 needed sections"));
@@ -239,31 +241,16 @@ uint16_t Cpu0DynFunIndex::correctDynFunIndex(const char* pltName) {
 
 Cpu0DynFunIndex cpu0DynFunIndex;
 
-static void Fill0s(uint64_t& lastDumpAddr, uint64_t BaseAddr) {
-  std::size_t addr, end;
+// Fill /*address*/ 00 00 00 00 [startAddr..endAddr] from startAddr to endAddr. 
+// Include startAddr and endAddr.
+static void Fill0s(uint64_t startAddr, uint64_t endAddr) {
+  std::size_t addr;
 
-  // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
-  // end section + 1) and BaseAddr
-  uint64_t cellingLastAddr4 = ((BaseAddr + 3) / 4) * 4;
-  assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
+  assert((startAddr <= endAddr) && "startAddr must <= BaseAddr");
   // Fill /*address*/ bytes is odd for 4 by 00 
-  outs() << format("/*%8" PRIx64 " */", lastDumpAddr);
-/*  if (cellingLastAddr4 > BaseAddr) {
-    for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
-      outs() << "00 ";
-    }
-    outs() << "\n";
-    lastDumpAddr = BaseAddr;
-  }
-  else {
-    for (std::size_t i = lastDumpAddr; i < cellingLastAddr4; ++i) {
-      outs() << "00 ";
-    }
-    outs() << "\n";
-    lastDumpAddr = cellingLastAddr4;
-  }*/
-  // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
-  for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
+  outs() << format("/*%8" PRIx64 " */", startAddr);
+  // Fill /*address*/ 00 00 00 00 for 4 bytes alignment (1 Cpu0 word size)
+  for (addr = startAddr; addr < endAddr; addr += 4) {
     outs() << format("/*%8" PRIx64 " */", addr);
     outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
     << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
@@ -287,101 +274,45 @@ static void PrintDataSection(const ObjectFile *o, uint64_t& lastDumpAddr,
   if (error(si->isBSS(BSS))) return;
 
   size = (Contents.size()+3)/4*4;
-//  if (Name == ".rodata" || Name == ".rodata1" || Name == ".data" || 
-//    Name == ".data1" || Name == ".sdata") {
-    if (Contents.size() <= 0) {
-      return;
-    }
-
-    outs() << "/*Contents of section " << Name << ":*/\n";
-    // Dump out the content as hex and printable ascii characters.
-    for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-      outs() << format("/*%8" PRIx64 " */", BaseAddr + addr);
-      // Dump line of hex.
-      for (std::size_t i = 0; i < 16; ++i) {
-        if (i != 0 && i % 4 == 0)
-          outs() << ' ';
-        if (addr + i < end)
-          outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
-                 << hexdigit(Contents[addr + i] & 0xF, true) << " ";
-      }
-      // Print ascii.
-      outs() << "/*" << "  ";
-      for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
-        if (std::isprint(static_cast<unsigned char>(Contents[addr + i]) & 0xFF))
-          outs() << Contents[addr + i];
-        else
-          outs() << ".";
-      }
-      outs() << "*/" << "\n";
-    }
-    for (std::size_t i = Contents.size(); i < size; i++) {
-      outs() << "00 ";
-    }
-    outs() << "\n";
-    errs() << "Name " << Name << "  BaseAddr ";
-    errs() << format("%8" PRIx64 " Contents.size() ", BaseAddr);
-    errs() << format("%8" PRIx64 " size ", Contents.size());
-    errs() << format("%8" PRIx64 " \n", size);
-    // save the end address of this section to lastDumpAddr
-    lastDumpAddr = BaseAddr + size;
-//  }
-#if 0
-  else if (Name == ".bss" || Name == ".sbss") {
-    if (Contents.size() <= 0) {
-      return;
-    }
-    // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
-    // end section + 1) and BaseAddr
-    uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
-    assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
-    // Fill /*address*/ bytes is odd for 4 by 00 
-    outs() << format("/*%04" PRIx64 " */", lastDumpAddr);
-    if (cellingLastAddr4 > BaseAddr) {
-      for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
-        outs() << "00 ";
-      }
-      outs() << "\n";
-      lastDumpAddr = BaseAddr;
-    }
-    else {
-      for (std::size_t i = lastDumpAddr; i < cellingLastAddr4; ++i) {
-        outs() << "00 ";
-      }
-      outs() << "\n";
-      lastDumpAddr = cellingLastAddr4;
-    }
-    // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
-    for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
-      outs() << format("/*%04" PRIx64 " */", addr);
-      outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
-      << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
-    }
-
-    outs() << "/*Contents of section " << Name << ":*/\n";
-    // Dump out the content as hex and printable ascii characters.
-    for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-      outs() << format("/*%04" PRIx64 " */", BaseAddr + addr);
-      // Dump line of hex.
-      for (std::size_t i = 0; i < 16; ++i) {
-        if (i != 0 && i % 4 == 0)
-          outs() << ' ';
-        if (addr + i < end)
-          outs() << "00 ";
-      }
-      outs() << "\n";
-    }
-    for (std::size_t i = end; i < size; i++) {
-      outs() << "00 ";
-    }
-    outs() << "\n";
-    // save the end address of this section to lastDumpAddr
-    lastDumpAddr = BaseAddr + Contents.size();
+  if (Contents.size() <= 0) {
+    return;
   }
-#endif
-}
 
-bool havePrintRodata = false;
+  outs() << "/*Contents of section " << Name << ":*/\n";
+  // Dump out the content as hex and printable ascii characters.
+  for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
+    outs() << format("/*%8" PRIx64 " */", BaseAddr + addr);
+    // Dump line of hex.
+    for (std::size_t i = 0; i < 16; ++i) {
+      if (i != 0 && i % 4 == 0)
+        outs() << ' ';
+      if (addr + i < end)
+        outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
+               << hexdigit(Contents[addr + i] & 0xF, true) << " ";
+    }
+    // Print ascii.
+    outs() << "/*" << "  ";
+    for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
+      if (std::isprint(static_cast<unsigned char>(Contents[addr + i]) & 0xFF))
+        outs() << Contents[addr + i];
+      else
+        outs() << ".";
+    }
+    outs() << "*/" << "\n";
+  }
+  for (std::size_t i = Contents.size(); i < size; i++) {
+    outs() << "00 ";
+  }
+  outs() << "\n";
+#ifdef ELF2HEX_DEBUG
+  errs() << "Name " << Name << "  BaseAddr ";
+  errs() << format("%8" PRIx64 " Contents.size() ", BaseAddr);
+  errs() << format("%8" PRIx64 " size ", Contents.size());
+  errs() << format("%8" PRIx64 " \n", size);
+#endif
+  // save the end address of this section to lastDumpAddr
+  lastDumpAddr = BaseAddr + size;
+}
 
 // Modified from DisassembleObject()
 static void DisassembleObjectInHexFormat(const ObjectFile *Obj
@@ -391,13 +322,10 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
   uint64_t soLastPrintAddr = 0;
   FILE *fd_so_func_offset;
   int num_dyn_entry = 0;
-  if (LinkSo) {
-    cpu0DynFunIndex.createStrtab();
-  }
 
-
-
+#ifdef ELF2HEX_DEBUG
   errs() << format("!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+#endif
   error_code ec;
   for (section_iterator i = Obj->begin_sections(),
                         e = Obj->end_sections();
@@ -411,18 +339,20 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
     if (error(i->getAddress(BaseAddr))) continue;
     if (BaseAddr < 0x100)
       continue;
+  #ifdef ELF2HEX_DEBUG
     errs() << "Name " << Name << format("  BaseAddr %8" PRIx64 "\n", BaseAddr);
     errs() << format("!!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+  #endif
     bool text;
     if (error(i->isText(text))) break;
     if (!text) {
+    #ifdef ELF2HEX_DEBUG
       errs() << "!text\n";
-      if (lastDumpAddr < BaseAddr)
+    #endif
+      if (lastDumpAddr < BaseAddr) {
         Fill0s(lastDumpAddr, BaseAddr - 1);
-      PrintDataSection(Obj, lastDumpAddr, i);
-//      if (Name == ".rodata") {
-//        havePrintRodata = true;
-//      }
+        lastDumpAddr = BaseAddr;
+      }
       if (Name == ".got.plt") {
         uint64_t BaseAddr;
         if (error(i->getAddress(BaseAddr))) 
@@ -432,11 +362,25 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
         fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
         fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
         fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
+        PrintDataSection(Obj, lastDumpAddr, i);
+      }
+      else if ((Name == ".bss" || Name == ".sbss") && Contents.size() > 0) {
+        uint64_t size = (Contents.size() + 3)/4*4;
+        Fill0s(BaseAddr, BaseAddr + size - 1);
+        lastDumpAddr = BaseAddr + size;
+        continue;
+      }
+      else {
+        PrintDataSection(Obj, lastDumpAddr, i);
       }
       continue;
     }
-      if (lastDumpAddr < BaseAddr)
+    else {
+      if (lastDumpAddr < BaseAddr) {
         Fill0s(lastDumpAddr, BaseAddr - 1);
+        lastDumpAddr = BaseAddr;
+      }
+    }
     // It's .text section
     uint64_t SectionAddr;
     if (error(i->getAddress(SectionAddr))) break;
@@ -464,14 +408,6 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
 
     // Make a list of all the relocations for this section.
     std::vector<RelocationRef> Rels;
-/*    if (InlineRelocs) {
-      for (relocation_iterator ri = i->begin_relocations(),
-                               re = i->end_relocations();
-                               ri != re; ri.increment(ec)) {
-        if (error(ec)) break;
-        Rels.push_back(*ri);
-      }
-    }*/
 
     // Sort relocations by address.
     std::sort(Rels.begin(), Rels.end(), RelocAddressLess);
@@ -484,7 +420,6 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
     }
     StringRef name;
     if (error(i->getName(name))) break;
-    if (DumpSo && name == ".plt") continue;
     outs() << "/*" << "Disassembly of section ";
     if (!SegmentName.empty())
       outs() << SegmentName << ",";
@@ -520,57 +455,8 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
       else if (Symbols[si + 1].first != Start)
         End = Symbols[si + 1].first - 1;
       else {
-        // This symbol has the same address as the next symbol. Skip it.
-        if (DumpSo/* && Symbols[si].second != "__tls_get_addr"*/) {
-          fprintf(fd_so_func_offset, "%02x ", 
-                  (uint8_t)(Symbols[si].first >> 24));
-          fprintf(fd_so_func_offset, "%02x ", 
-                  (uint8_t)((Symbols[si].first >> 16) & 0xFF));
-          fprintf(fd_so_func_offset, "%02x ", 
-                  (uint8_t)((Symbols[si].first >> 8) & 0xFF));
-          fprintf(fd_so_func_offset, "%02x    ", 
-                  (uint8_t)((Symbols[si].first) & 0xFF));
-          std::string str = Symbols[si].second.str();
-          std::size_t idx = 0;
-          std::size_t strSize = 0;
-          for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
-            fprintf(fd_so_func_offset, "%c%c ", 
-                    hexdigit((str[idx] >> 4) & 0xF, true),
-                    hexdigit(str[idx] & 0xF, true));
-          }
-          for (idx = strSize; idx < 48; idx++) {
-            fprintf(fd_so_func_offset, "%02x ", 0);
-          }
-          fprintf(fd_so_func_offset, "/* %s */\n", Symbols[si].second.begin());
-          num_dyn_entry++;
-        }
-
         outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
         continue;
-      }
-
-      if (DumpSo) {
-        soLastPrintAddr = Symbols[si].first;
-        fprintf(fd_so_func_offset, "%02x ", (uint8_t)(Symbols[si].first >> 24));
-        fprintf(fd_so_func_offset, "%02x ", 
-                (uint8_t)((Symbols[si].first >> 16) & 0xFF));
-        fprintf(fd_so_func_offset, "%02x ", 
-                (uint8_t)((Symbols[si].first >> 8) & 0xFF));
-        fprintf(fd_so_func_offset, "%02x    ", 
-                (uint8_t)((Symbols[si].first) & 0xFF));
-        std::string str = Symbols[si].second.str();
-        std::size_t idx = 0;
-        std::size_t strSize = 0;
-        for (idx = 0, strSize = str.size(); idx < strSize; idx++) {
-          fprintf(fd_so_func_offset, "%c%c ", 
-                  hexdigit((str[idx] >> 4) & 0xF, true), 
-                  hexdigit(str[idx] & 0xF, true));
-        }
-        for (idx = strSize; idx < 48; idx++) {
-          fprintf(fd_so_func_offset, "%02x ", 0);
-        }
-        fprintf(fd_so_func_offset, "/* %s */\n", Symbols[si].second.begin());
-        num_dyn_entry++;
       }
 
       outs() << '\n' << "/*" << Symbols[si].second << ":*/\n";
@@ -643,13 +529,13 @@ static void DisassembleObjectInHexFormat(const ObjectFile *Obj
         skip_print_rel:
           ++rel_cur;
         }
-//        lastDumpAddr += Index;
       }
-      if (DumpSo)
-        soLastPrintAddr = End;
+    #ifdef ELF2HEX_DEBUG
       errs() << format("SectionAddr + Index = %8" PRIx64 "\n", SectionAddr + Index);
       errs() << format("lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+    #endif
     }
+    // In section .plt or .text, the Contents.size() maybe < (SectionAddr + Index)
     if (Contents.size() < (SectionAddr + Index))
       lastDumpAddr = SectionAddr + Index;
     else
@@ -664,14 +550,15 @@ static void DisassembleSoInHexFormat(const ObjectFile *Obj
   uint64_t soLastPrintAddr = 0;
   FILE *fd_so_func_offset;
   int num_dyn_entry = 0;
-  if (DumpSo) {
-    fd_so_func_offset = fopen("so_func_offset", "w");
-    if (fd_so_func_offset == NULL)
-      fclose(fd_so_func_offset);
-    assert(fd_so_func_offset != NULL && "fd_so_func_offset == NULL");
-  }
+  
+  fd_so_func_offset = fopen("so_func_offset", "w");
+  if (fd_so_func_offset == NULL)
+    fclose(fd_so_func_offset);
+  assert(fd_so_func_offset != NULL && "fd_so_func_offset == NULL");
 
+#ifdef ELF2HEX_DEBUG
   errs() << format("!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+#endif
   error_code ec;
   for (section_iterator i = Obj->begin_sections(),
                         e = Obj->end_sections();
@@ -683,8 +570,10 @@ static void DisassembleSoInHexFormat(const ObjectFile *Obj
     if (error(i->getName(Name))) continue;
     if (error(i->getContents(Contents))) continue;
     if (error(i->getAddress(BaseAddr))) continue;
+  #ifdef ELF2HEX_DEBUG
     errs() << "Name " << Name << format("  BaseAddr %8" PRIx64 "\n", BaseAddr);
     errs() << format("!!lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+  #endif
     bool text;
     if (error(i->isText(text))) break;
     if (!text) {
@@ -871,10 +760,11 @@ static void DisassembleSoInHexFormat(const ObjectFile *Obj
         }
         lastDumpAddr += Index;
       }
-      if (DumpSo)
-        soLastPrintAddr = End;
+      soLastPrintAddr = End;
+    #ifdef ELF2HEX_DEBUG
       errs() << format("SectionAddr + Index = %8" PRIx64 "\n", SectionAddr + Index);
       errs() << format("lastDumpAddr %8" PRIx64 "\n", lastDumpAddr);
+    #endif
     }
   }
 // Dump share obj or lib
@@ -904,189 +794,6 @@ static void DisassembleSoInHexFormat(const ObjectFile *Obj
     fprintf(fd_num_dyn_entry, "%d\n", num_dyn_entry);
   }
   fclose(fd_num_dyn_entry);
-}
-
-#define DYNSYM_LIB_OFFSET 9
-
-// Modified from PrintSectionContents()
-static void PrintDataSections(const ObjectFile *o, uint64_t lastDumpAddr) {
-  error_code ec;
-  std::size_t addr, end;
-  std::string Error;
-
-  for (section_iterator si = o->begin_sections(),
-                        se = o->end_sections();
-                        si != se; si.increment(ec)) {
-    if (error(ec)) return;
-    StringRef Name;
-    StringRef Contents;
-    uint64_t BaseAddr;
-    bool BSS;
-    if (error(si->getName(Name))) continue;
-    if (error(si->getContents(Contents))) continue;
-    if (error(si->getAddress(BaseAddr))) continue;
-    if (error(si->isBSS(BSS))) continue;
-
-    if (Name == ".rodata" && havePrintRodata)
-      continue;
-    if (Name == ".rodata" || Name == ".rodata1" || Name == ".data" || 
-      Name == ".data1" || Name == ".sdata") {
-      if (Contents.size() <= 0) {
-        continue;
-      }
-      // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
-      // end section + 1) and BaseAddr
-      uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
-      assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
-      // Fill /*address*/ bytes is odd for 4 by 00 
-      outs() << format("/*%04" PRIx64 " */", lastDumpAddr);
-      if (cellingLastAddr4 > BaseAddr) {
-        for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
-          outs() << "00 ";
-        }
-        outs() << "\n";
-        lastDumpAddr = BaseAddr;
-      }
-      else {
-        for (std::size_t i = lastDumpAddr; i < cellingLastAddr4; ++i) {
-          outs() << "00 ";
-        }
-        outs() << "\n";
-        lastDumpAddr = cellingLastAddr4;
-      }
-      // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
-      for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
-        outs() << format("/*%04" PRIx64 " */", addr);
-        outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
-        << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
-      }
-
-      outs() << "/*Contents of section " << Name << ":*/\n";
-      // Dump out the content as hex and printable ascii characters.
-      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-        outs() << format("/*%04" PRIx64 " */", BaseAddr + addr);
-        // Dump line of hex.
-        for (std::size_t i = 0; i < 16; ++i) {
-          if (i != 0 && i % 4 == 0)
-            outs() << ' ';
-          if (addr + i < end)
-            outs() << hexdigit((Contents[addr + i] >> 4) & 0xF, true)
-                   << hexdigit(Contents[addr + i] & 0xF, true) << " ";
-        }
-        // Print ascii.
-        outs() << "/*" << "  ";
-        for (std::size_t i = 0; i < 16 && addr + i < end; ++i) {
-          if (std::isprint(static_cast<unsigned char>(Contents[addr + i]) & 0xFF))
-            outs() << Contents[addr + i];
-          else
-            outs() << ".";
-        }
-        outs() << "*/" << "\n";
-      }
-      // save the end address of this section to lastDumpAddr
-      lastDumpAddr = BaseAddr + Contents.size();
-    }
-    else if (Name == ".bss" || Name == ".sbss") {
-      if (Contents.size() <= 0) {
-        continue;
-      }
-      // Fill /*address*/ 00 00 00 00 between lastDumpAddr( = the address of last
-      // end section + 1) and BaseAddr
-      uint64_t cellingLastAddr4 = ((lastDumpAddr + 3) / 4) * 4;
-      assert((lastDumpAddr <= BaseAddr) && "lastDumpAddr must <= BaseAddr");
-      // Fill /*address*/ bytes is odd for 4 by 00 
-      outs() << format("/*%04" PRIx64 " */", lastDumpAddr);
-      if (cellingLastAddr4 > BaseAddr) {
-        for (std::size_t i = lastDumpAddr; i < BaseAddr; ++i) {
-          outs() << "00 ";
-        }
-        outs() << "\n";
-        lastDumpAddr = BaseAddr;
-      }
-      else {
-        for (std::size_t i = lastDumpAddr; i < cellingLastAddr4; ++i) {
-          outs() << "00 ";
-        }
-        outs() << "\n";
-        lastDumpAddr = cellingLastAddr4;
-      }
-      // Fill /*address*/ 00 00 00 00 for 4 bytes (1 Cpu0 word size)
-      for (addr = lastDumpAddr, end = BaseAddr; addr < end; addr += 4) {
-        outs() << format("/*%04" PRIx64 " */", addr);
-        outs() << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) \
-        << format("%02" PRIx64 " ", 0) << format("%02" PRIx64 " ", 0) << '\n';
-      }
-
-      outs() << "/*Contents of section " << Name << ":*/\n";
-      // Dump out the content as hex and printable ascii characters.
-      for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-        outs() << format("/*%04" PRIx64 " */", BaseAddr + addr);
-        // Dump line of hex.
-        for (std::size_t i = 0; i < 16; ++i) {
-          if (i != 0 && i % 4 == 0)
-            outs() << ' ';
-          if (addr + i < end)
-            outs() << "00 ";
-        }
-        outs() << "\n";
-      }
-      // save the end address of this section to lastDumpAddr
-      lastDumpAddr = BaseAddr + Contents.size();
-    }
-    else if (DumpSo) {
-      if (Name == ".dynsym") {
-        int num_dyn_entry = 0;
-        FILE *fd_num_dyn_entry;
-        fd_num_dyn_entry = fopen("num_dyn_entry", "r");
-        if (fd_num_dyn_entry != NULL) {
-          fscanf(fd_num_dyn_entry, "%d", &num_dyn_entry);
-        }
-        fclose(fd_num_dyn_entry);
-        raw_fd_ostream fd_dynsym("dynsym", Error);
-        int count = 0;
-        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr += 16) {
-          fd_dynsym << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr] & 0xF, true) << " ";
-          fd_dynsym << hexdigit((Contents[addr+1] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr+1] & 0xF, true) << " ";
-          fd_dynsym << hexdigit((Contents[addr+2] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr+2] & 0xF, true) << " ";
-          fd_dynsym << hexdigit((Contents[addr+3] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr+3] & 0xF, true) << " ";
-          count++;
-        }
-        for (int i = count; i < num_dyn_entry; i++) {
-          fd_dynsym << "00 00 00 00 ";
-        }
-      }
-      else if (Name == ".dynstr") {
-        raw_fd_ostream fd_dynstr("dynstr", Error);
-        raw_fd_ostream fd_dynstrAscii("dynstrAscii", Error);
-        for (std::size_t addr = 0, end = Contents.size(); addr < end; addr++) {
-          fd_dynstr << hexdigit((Contents[addr] >> 4) & 0xF, true)
-                     << hexdigit(Contents[addr] & 0xF, true) << " ";
-          if (addr == 0)
-            continue;
-          if (Contents[addr] == '\0')
-            fd_dynstrAscii << "\n";
-          else
-            fd_dynstrAscii << Contents[addr];
-        }
-      }
-    }
-    else if (!DumpSo) {
-      if (Name == ".got.plt") {
-        uint64_t BaseAddr;
-        if (error(si->getAddress(BaseAddr))) 
-          assert(1 && "Cannot get BaseAddr of section .got.plt");
-        raw_fd_ostream fd_global_offset("global_offset", Error);
-        fd_global_offset << format("%02" PRIx64 " ", BaseAddr >> 24);
-        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 16) & 0xFF);
-        fd_global_offset << format("%02" PRIx64 " ", (BaseAddr >> 8) & 0xFF);
-        fd_global_offset << format("%02" PRIx64 "    ", BaseAddr & 0xFF);
-      }
-    }
-  }
 }
 
 static uint64_t SectionOffset(const ObjectFile *o, StringRef secName) {
@@ -1293,8 +1000,10 @@ static void Elf2Hex(const ObjectFile *o) {
 //  outs() << format("_start address:%08" PRIx64 "\n", startAddr);
   if (!DumpSo) {
     std::string Error;
-    if (LinkSo)
+    if (LinkSo) {
       cpu0DynFunIndex.createPltName(o);
+      cpu0DynFunIndex.createStrtab();
+    }
     uint64_t pltOffset = SectionOffset(o, ".plt");
     PrintBootSection(pltOffset);
     if (LinkSo) {
@@ -1310,6 +1019,4 @@ static void Elf2Hex(const ObjectFile *o) {
     DisassembleSoInHexFormat(o, DisAsm, IP, lastDumpAddr);
     PrintSoDataSections(o, lastDumpAddr);
   }
-//  outs() << format("lastDumpAddr:%08" PRIx64 "\n", lastDumpAddr);
-//  PrintDataSections(o, lastDumpAddr);
 }

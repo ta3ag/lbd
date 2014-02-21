@@ -54,5 +54,5 @@ ${TOOLDIR}/llvm-objdump -elf2hex -cpu0dumpso libfoobar.cpu0.so \
 > ../cpu0_verilog/libso.hex
 ${TOOLDIR}/llvm-objdump -elf2hex -cpu0linkso a.out \
 > ../cpu0_verilog/cpu0.hex
-cp dynstr dynsym so_func_offset global_offset ../cpu0_verilog/.
+cp dynstr dynsym so_func_offset global_offset plt_offset ../cpu0_verilog/.
 
