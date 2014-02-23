@@ -551,7 +551,7 @@ To support llvm-objdump, the following code added to Chapter10_1/
            InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
            bit isComm = 0>:
     FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+     !strconcat(instr_asm, "\t$sw, $ra, $rb"), [], itin> {
     ...
     let DecoderMethod = "DecodeCMPInstruction";
   }
@@ -608,15 +608,39 @@ LLVM will call these DecodeMethod when user use Disassembler job in tools, like
 ``llvm-objdump -d``.
 You can check the comments above these DecodeMethod functions to see how it 
 work.
-For the CMP instruction, since there are 3 operand $rc, $ra and $rb occurs in 
-CmpInstr<...>, and the assembler print $ra and $rb. 
-LLVM table generate system will print operand 1 and 2 
-($ra and $rb) in the table generated function printInstruction(). 
-The operand 0 ($rc) didn't be printed in printInstruction() since assembly 
-print $ra and $rb only. 
-In the CMP decode function, we didn't decode shamt field because we 
-don't want it to be displayed and it's not in the assembler print pattern of 
-Cpu0InstrInfo.td.
+For the CMP instruction, according the definiton of CmpInstr<...> in 
+Cpu0InstrInfo.td, the assembler will print as $sw, $ra, $rb. ($sw is a 
+fixed name operand and won't exists in instruction), and encode as "10230000" 
+in elf binary. Since $sw is a fixed operand, we choose assigning $rc to 0. 
+You can define the CmpInstr as follows,
+
+.. code-block:: c++
+
+  class CmpInstr<bits<8> op, string instr_asm, 
+                 InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
+                 bit isComm = 0>:
+    FA<op, (outs RD:$ra), (ins RC:$rb, RC:$rc),
+       !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
+    let shamt = 0;
+  }
+
+Above definition will encode this CMP example instruction to "10a23000" and 
+no need the DecoderMethod function. Just like other instruction the TablGen 
+take care everthing on them. We choose not to encode $sw to show how to take 
+care the implicit operand in binary form. The following code can set operand 
+$sw as implicit operand (not shown) in assembly form as follows,
+
+.. code-block:: c++
+
+  class CmpInstr<bits<8> op, string instr_asm, 
+                 InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
+                 bit isComm = 0>:
+    FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+       !strconcat(instr_asm, "\t$ra, $rb"), [], itin> { // without display $sw
+    ...
+  }
+
+It will display as "cmp $ra, $rb" in assembly form.
 
 The RET (Cpu0ISD::Ret) and JR (ISD::BRIND) are both for "ret" instruction. 
 The former is for instruction encode in assembly and obj while the latter is 
