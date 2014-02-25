@@ -18,7 +18,7 @@ class CPolygon {	// _ZTVN10__cxxabiv117__class_type_infoE for parent class
 //    virtual int area (void) { return 0;};
     void printarea (void)
     { printf("%d\n", this->area()); }
-//    { cout << this->area() << endl; }
+//    { cout << this->area() << endl; } // generate IR nvoke, resume and unreachable
   };
 
 class CRectangle: public CPolygon {	// _ZTVN10__cxxabiv120__si_class_type_infoE for derived class
