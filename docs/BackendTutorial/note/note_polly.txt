@@ -17,3 +17,7 @@ http://comments.gmane.org/gmane.comp.compilers.llvm.devel/60547
 Polly-basic:  clang -Xclang -load -Xclang LLVMPolly.so -O3  (! load polly but no use of polly optimization)
 Polly-optimize: clang -Xclang -load -Xclang LLVMPolly.so -mllvm -polly -O3 (use polly optimization)
 
+5. Run polly_cschen.sh to get llvm/clang/polly source and build it.
+6. Run example code for polly and compare the result with non-polly as the following commands
+  cd polly_ex && ./runtime.sh
+
