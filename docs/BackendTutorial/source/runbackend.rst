@@ -307,9 +307,13 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
               MCStreamer &Out, unsigned &ErrorInfo,
               bool MatchingInlineAsm) {
     MCInst Inst;
+  #ifndef ASM_EASY_PORTING
     unsigned MatchResult = MatchInstructionImpl_R(Operands, Inst, ErrorInfo,
-                          MatchingInlineAsm);
-  
+                                                MatchingInlineAsm);
+  #else
+    unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
+                                                MatchingInlineAsm);
+  #endif
     switch (MatchResult) {
     default: break;
     case Match_Success: {
