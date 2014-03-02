@@ -1,0 +1,527 @@
+diff -Naur Chapter11_1/Cpu0AsmPrinter.cpp Chapter11_2/Cpu0AsmPrinter.cpp
+--- Chapter11_1/Cpu0AsmPrinter.cpp	2014-02-10 19:39:53.967441724 +0800
++++ Chapter11_2/Cpu0AsmPrinter.cpp	2014-02-10 19:39:53.979441724 +0800
+@@ -289,6 +289,140 @@
+     OutStreamer.EmitRawText(StringRef("\t.previous"));
+ }
+ 
++// Print out an operand for an inline asm expression.
++bool Cpu0AsmPrinter::PrintAsmOperand(const MachineInstr *MI, unsigned OpNum,
++                                     unsigned AsmVariant,const char *ExtraCode,
++                                     raw_ostream &O) {
++  // Does this asm operand have a single letter operand modifier?
++  if (ExtraCode && ExtraCode[0]) {
++    if (ExtraCode[1] != 0) return true; // Unknown modifier.
++
++    const MachineOperand &MO = MI->getOperand(OpNum);
++    switch (ExtraCode[0]) {
++    default:
++      // See if this is a generic print operand
++      return AsmPrinter::PrintAsmOperand(MI,OpNum,AsmVariant,ExtraCode,O);
++    case 'X': // hex const int
++      if ((MO.getType()) != MachineOperand::MO_Immediate)
++        return true;
++      O << "0x" << StringRef(utohexstr(MO.getImm())).lower();
++      return false;
++    case 'x': // hex const int (low 16 bits)
++      if ((MO.getType()) != MachineOperand::MO_Immediate)
++        return true;
++      O << "0x" << StringRef(utohexstr(MO.getImm() & 0xffff)).lower();
++      return false;
++    case 'd': // decimal const int
++      if ((MO.getType()) != MachineOperand::MO_Immediate)
++        return true;
++      O << MO.getImm();
++      return false;
++    case 'm': // decimal const int minus 1
++      if ((MO.getType()) != MachineOperand::MO_Immediate)
++        return true;
++      O << MO.getImm() - 1;
++      return false;
++    case 'z': {
++      // $0 if zero, regular printing otherwise
++      if (MO.getType() != MachineOperand::MO_Immediate)
++        return true;
++      int64_t Val = MO.getImm();
++      if (Val)
++        O << Val;
++      else
++        O << "$0";
++      return false;
++    }
++    }
++  }
++
++  printOperand(MI, OpNum, O);
++  return false;
++}
++
++bool Cpu0AsmPrinter::PrintAsmMemoryOperand(const MachineInstr *MI,
++                                           unsigned OpNum, unsigned AsmVariant,
++                                           const char *ExtraCode,
++                                           raw_ostream &O) {
++  int Offset = 0;
++  // Currently we are expecting either no ExtraCode or 'D'
++  if (ExtraCode) {
++    return true; // Unknown modifier.
++  }
++
++  const MachineOperand &MO = MI->getOperand(OpNum);
++  assert(MO.isReg() && "unexpected inline asm memory operand");
++  O << Offset << "($" << Cpu0InstPrinter::getRegisterName(MO.getReg()) << ")";
++
++  return false;
++}
++
++void Cpu0AsmPrinter::printOperand(const MachineInstr *MI, int opNum,
++                                  raw_ostream &O) {
++  const MachineOperand &MO = MI->getOperand(opNum);
++  bool closeP = false;
++
++  if (MO.getTargetFlags())
++    closeP = true;
++
++  switch(MO.getTargetFlags()) {
++  case Cpu0II::MO_GPREL:    O << "%gp_rel("; break;
++  case Cpu0II::MO_GOT_CALL: O << "%call16("; break;
++  case Cpu0II::MO_GOT16:    O << "%got16(";  break;
++  case Cpu0II::MO_GOT:      O << "%got(";    break;
++  case Cpu0II::MO_ABS_HI:   O << "%hi(";     break;
++  case Cpu0II::MO_ABS_LO:   O << "%lo(";     break;
++  case Cpu0II::MO_GOT_HI16: O << "%got_hi16("; break;
++  case Cpu0II::MO_GOT_LO16: O << "%got_lo16("; break;
++  }
++
++  switch (MO.getType()) {
++    case MachineOperand::MO_Register:
++      O << '$'
++        << StringRef(Cpu0InstPrinter::getRegisterName(MO.getReg())).lower();
++      break;
++
++    case MachineOperand::MO_Immediate:
++      O << MO.getImm();
++      break;
++
++    case MachineOperand::MO_MachineBasicBlock:
++      O << *MO.getMBB()->getSymbol();
++      return;
++
++    case MachineOperand::MO_GlobalAddress:
++      O << *getSymbol(MO.getGlobal());
++      break;
++
++    case MachineOperand::MO_BlockAddress: {
++      MCSymbol *BA = GetBlockAddressSymbol(MO.getBlockAddress());
++      O << BA->getName();
++      break;
++    }
++
++    case MachineOperand::MO_ExternalSymbol:
++      O << *GetExternalSymbolSymbol(MO.getSymbolName());
++      break;
++
++    case MachineOperand::MO_JumpTableIndex:
++      O << MAI->getPrivateGlobalPrefix() << "JTI" << getFunctionNumber()
++        << '_' << MO.getIndex();
++      break;
++
++    case MachineOperand::MO_ConstantPoolIndex:
++      O << MAI->getPrivateGlobalPrefix() << "CPI"
++        << getFunctionNumber() << "_" << MO.getIndex();
++      if (MO.getOffset())
++        O << "+" << MO.getOffset();
++      break;
++
++    default:
++      llvm_unreachable("<unknown operand type>");
++  }
++
++  if (closeP) O << ")";
++}
++
+ MachineLocation
+ Cpu0AsmPrinter::getDebugValueLocation(const MachineInstr *MI) const {
+   // Handles frame addresses emitted in Cpu0InstrInfo::emitFrameIndexDebugValue.
+diff -Naur Chapter11_1/Cpu0AsmPrinter.h Chapter11_2/Cpu0AsmPrinter.h
+--- Chapter11_1/Cpu0AsmPrinter.h	2014-02-10 19:39:53.967441724 +0800
++++ Chapter11_2/Cpu0AsmPrinter.h	2014-02-10 19:39:53.979441724 +0800
+@@ -58,6 +58,13 @@
+   virtual void EmitFunctionEntryLabel();
+   virtual void EmitFunctionBodyStart();
+   virtual void EmitFunctionBodyEnd();
++  bool PrintAsmOperand(const MachineInstr *MI, unsigned OpNo,
++                       unsigned AsmVariant, const char *ExtraCode,
++                       raw_ostream &O);
++  bool PrintAsmMemoryOperand(const MachineInstr *MI, unsigned OpNum,
++                             unsigned AsmVariant, const char *ExtraCode,
++                             raw_ostream &O);
++  void printOperand(const MachineInstr *MI, int opNum, raw_ostream &O);
+   void EmitStartOfAsmFile(Module &M);
+   virtual MachineLocation getDebugValueLocation(const MachineInstr *MI) const;
+   void PrintDebugValueComment(const MachineInstr *MI, raw_ostream &OS);
+diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
+--- Chapter11_1/Cpu0InstrInfo.cpp	2014-02-10 19:39:53.967441724 +0800
++++ Chapter11_2/Cpu0InstrInfo.cpp	2014-02-10 19:39:53.979441724 +0800
+@@ -142,3 +142,17 @@
+                                 unsigned Opc) const {
+   BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
+ }
++
++/// Return the number of bytes of code the specified instruction may be.
++unsigned Cpu0InstrInfo::GetInstSizeInBytes(const MachineInstr *MI) const {
++  switch (MI->getOpcode()) {
++  default:
++    return MI->getDesc().getSize();
++  case  TargetOpcode::INLINEASM: {       // Inline Asm: Variable size.
++    const MachineFunction *MF = MI->getParent()->getParent();
++    const char *AsmStr = MI->getOperand(0).getSymbolName();
++    return getInlineAsmLength(AsmStr, *MF->getTarget().getMCAsmInfo());
++  }
++  }
++}
++
+diff -Naur Chapter11_1/Cpu0InstrInfo.h Chapter11_2/Cpu0InstrInfo.h
+--- Chapter11_1/Cpu0InstrInfo.h	2014-02-10 19:39:53.967441724 +0800
++++ Chapter11_2/Cpu0InstrInfo.h	2014-02-10 19:39:53.979441724 +0800
+@@ -41,6 +41,9 @@
+                            unsigned DestReg, unsigned SrcReg,
+                            bool KillSrc) const;
+ 
++  /// Return the number of bytes of code the specified instruction may be.
++  unsigned GetInstSizeInBytes(const MachineInstr *MI) const;
++
+   virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
+                                    MachineBasicBlock::iterator MBBI,
+                                    unsigned SrcReg, bool isKill, int FrameIndex,
+diff -Naur Chapter11_1/Cpu0ISelDAGToDAG.cpp Chapter11_2/Cpu0ISelDAGToDAG.cpp
+--- Chapter11_1/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:39:53.967441724 +0800
++++ Chapter11_2/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:39:53.979441724 +0800
+@@ -96,6 +96,10 @@
+     return CurDAG->getTargetConstant(Imm, Node->getValueType(0));
+   }
+   void InitGlobalBaseReg(MachineFunction &MF);
++
++  virtual bool SelectInlineAsmMemoryOperand(const SDValue &Op,
++                                            char ConstraintCode,
++                                            std::vector<SDValue> &OutOps);
+ };
+ }
+ 
+@@ -310,6 +314,15 @@
+   return ResNode;
+ }
+ 
++// lbd document - mark - inlineasm begin
++bool Cpu0DAGToDAGISel::
++SelectInlineAsmMemoryOperand(const SDValue &Op, char ConstraintCode,
++                             std::vector<SDValue> &OutOps) {
++  assert(ConstraintCode == 'm' && "unexpected asm memory constraint");
++  OutOps.push_back(Op);
++  return false;
++}
++
+ /// createCpu0ISelDag - This pass converts a legalized DAG into a
+ /// CPU0-specific DAG, ready for instruction scheduling.
+ FunctionPass *llvm::createCpu0ISelDag(Cpu0TargetMachine &TM) {
+diff -Naur Chapter11_1/Cpu0ISelLowering.cpp Chapter11_2/Cpu0ISelLowering.cpp
+--- Chapter11_1/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.967441724 +0800
++++ Chapter11_2/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.979441724 +0800
+@@ -821,6 +821,260 @@
+   // Return on Cpu0 is always a "ret $lr"
+   return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());
+ }
++// lbd document - mark - inlineasm begin
++//===----------------------------------------------------------------------===//
++//                           Cpu0 Inline Assembly Support
++//===----------------------------------------------------------------------===//
++
++/// getConstraintType - Given a constraint letter, return the type of
++/// constraint it is for this target.
++Cpu0TargetLowering::ConstraintType Cpu0TargetLowering::
++getConstraintType(const std::string &Constraint) const
++{
++  if (Constraint.size() == 1) {
++    switch (Constraint[0]) {
++      default : break;
++      case 'c':
++        return C_RegisterClass;
++      case 'R':
++        return C_Memory;
++    }
++  }
++  return TargetLowering::getConstraintType(Constraint);
++}
++
++/// Examine constraint type and operand type and determine a weight value.
++/// This object must already have been set up with the operand type
++/// and the current alternative constraint selected.
++TargetLowering::ConstraintWeight
++Cpu0TargetLowering::getSingleConstraintMatchWeight(
++    AsmOperandInfo &info, const char *constraint) const {
++  ConstraintWeight weight = CW_Invalid;
++  Value *CallOperandVal = info.CallOperandVal;
++    // If we don't have a value, we can't do a match,
++    // but allow it at the lowest weight.
++  if (CallOperandVal == NULL)
++    return CW_Default;
++  Type *type = CallOperandVal->getType();
++  // Look at the constraint type.
++  switch (*constraint) {
++  default:
++    weight = TargetLowering::getSingleConstraintMatchWeight(info, constraint);
++    break;
++  case 'c': // $25 for indirect jumps
++    if (type->isIntegerTy())
++      weight = CW_SpecificReg;
++    break;
++  case 'I': // signed 16 bit immediate
++  case 'J': // integer zero
++  case 'K': // unsigned 16 bit immediate
++  case 'L': // signed 32 bit immediate where lower 16 bits are 0
++  case 'N': // immediate in the range of -65535 to -1 (inclusive)
++  case 'O': // signed 15 bit immediate (+- 16383)
++  case 'P': // immediate in the range of 65535 to 1 (inclusive)
++    if (isa<ConstantInt>(CallOperandVal))
++      weight = CW_Constant;
++    break;
++  case 'R':
++    weight = CW_Memory;
++    break;
++  }
++  return weight;
++}
++
++/// This is a helper function to parse a physical register string and split it
++/// into non-numeric and numeric parts (Prefix and Reg). The first boolean flag
++/// that is returned indicates whether parsing was successful. The second flag
++/// is true if the numeric part exists.
++static std::pair<bool, bool>
++parsePhysicalReg(const StringRef &C, std::string &Prefix,
++                 unsigned long long &Reg) {
++  if (C.front() != '{' || C.back() != '}')
++    return std::make_pair(false, false);
++
++  // Search for the first numeric character.
++  StringRef::const_iterator I, B = C.begin() + 1, E = C.end() - 1;
++  I = std::find_if(B, E, std::ptr_fun(isdigit));
++
++  Prefix.assign(B, I - B);
++
++  // The second flag is set to false if no numeric characters were found.
++  if (I == E)
++    return std::make_pair(true, false);
++
++  // Parse the numeric characters.
++  return std::make_pair(!getAsUnsignedInteger(StringRef(I, E - I), 10, Reg),
++                        true);
++}
++
++std::pair<unsigned, const TargetRegisterClass *> Cpu0TargetLowering::
++parseRegForInlineAsmConstraint(const StringRef &C, MVT VT) const {
++  const TargetRegisterInfo *TRI = getTargetMachine().getRegisterInfo();
++  const TargetRegisterClass *RC;
++  std::string Prefix;
++  unsigned long long Reg;
++
++  std::pair<bool, bool> R = parsePhysicalReg(C, Prefix, Reg);
++
++  if (!R.first)
++    return std::make_pair((unsigned)0, (const TargetRegisterClass*)0);
++  if (!R.second)
++    return std::make_pair((unsigned)0, (const TargetRegisterClass*)0);
++
++ // Parse $0-$15.
++  assert(Prefix == "$");
++  RC = getRegClassFor((VT == MVT::Other) ? MVT::i32 : VT);
++
++  assert(Reg < RC->getNumRegs());
++  return std::make_pair(*(RC->begin() + Reg), RC);
++}
++
++/// Given a register class constraint, like 'r', if this corresponds directly
++/// to an LLVM register class, return a register of 0 and the register class
++/// pointer.
++std::pair<unsigned, const TargetRegisterClass*> Cpu0TargetLowering::
++getRegForInlineAsmConstraint(const std::string &Constraint, MVT VT) const
++{
++  if (Constraint.size() == 1) {
++    switch (Constraint[0]) {
++    case 'r':
++      if (VT == MVT::i32 || VT == MVT::i16 || VT == MVT::i8) {
++        return std::make_pair(0U, &Cpu0::CPURegsRegClass);
++      }
++      if (VT == MVT::i64)
++        return std::make_pair(0U, &Cpu0::CPURegsRegClass);
++      // This will generate an error message
++      return std::make_pair(0u, static_cast<const TargetRegisterClass*>(0));
++    case 'c': // register suitable for indirect jump
++      if (VT == MVT::i32)
++        return std::make_pair((unsigned)Cpu0::T9, &Cpu0::CPURegsRegClass);
++      assert("Unexpected type.");
++    }
++  }
++
++  std::pair<unsigned, const TargetRegisterClass *> R;
++  R = parseRegForInlineAsmConstraint(Constraint, VT);
++
++  if (R.second)
++    return R;
++
++  return TargetLowering::getRegForInlineAsmConstraint(Constraint, VT);
++}
++
++/// LowerAsmOperandForConstraint - Lower the specified operand into the Ops
++/// vector.  If it is invalid, don't add anything to Ops.
++void Cpu0TargetLowering::LowerAsmOperandForConstraint(SDValue Op,
++                                                     std::string &Constraint,
++                                                     std::vector<SDValue>&Ops,
++                                                     SelectionDAG &DAG) const {
++  SDValue Result(0, 0);
++
++  // Only support length 1 constraints for now.
++  if (Constraint.length() > 1) return;
++
++  char ConstraintLetter = Constraint[0];
++  switch (ConstraintLetter) {
++  default: break; // This will fall through to the generic implementation
++  case 'I': // Signed 16 bit constant
++    // If this fails, the parent routine will give an error
++    if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
++      EVT Type = Op.getValueType();
++      int64_t Val = C->getSExtValue();
++      if (isInt<16>(Val)) {
++        Result = DAG.getTargetConstant(Val, Type);
++        break;
++      }
++    }
++    return;
++  case 'J': // integer zero
++    if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
++      EVT Type = Op.getValueType();
++      int64_t Val = C->getZExtValue();
++      if (Val == 0) {
++        Result = DAG.getTargetConstant(0, Type);
++        break;
++      }
++    }
++    return;
++  case 'K': // unsigned 16 bit immediate
++    if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
++      EVT Type = Op.getValueType();
++      uint64_t Val = (uint64_t)C->getZExtValue();
++      if (isUInt<16>(Val)) {
++        Result = DAG.getTargetConstant(Val, Type);
++        break;
++      }
++    }
++    return;
++  case 'L': // signed 32 bit immediate where lower 16 bits are 0
++    if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
++      EVT Type = Op.getValueType();
++      int64_t Val = C->getSExtValue();
++      if ((isInt<32>(Val)) && ((Val & 0xffff) == 0)){
++        Result = DAG.getTargetConstant(Val, Type);
++        break;
++      }
++    }
++    return;
++  case 'N': // immediate in the range of -65535 to -1 (inclusive)
++    if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
++      EVT Type = Op.getValueType();
++      int64_t Val = C->getSExtValue();
++      if ((Val >= -65535) && (Val <= -1)) {
++        Result = DAG.getTargetConstant(Val, Type);
++        break;
++      }
++    }
++    return;
++  case 'O': // signed 15 bit immediate
++    if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
++      EVT Type = Op.getValueType();
++      int64_t Val = C->getSExtValue();
++      if ((isInt<15>(Val))) {
++        Result = DAG.getTargetConstant(Val, Type);
++        break;
++      }
++    }
++    return;
++  case 'P': // immediate in the range of 1 to 65535 (inclusive)
++    if (ConstantSDNode *C = dyn_cast<ConstantSDNode>(Op)) {
++      EVT Type = Op.getValueType();
++      int64_t Val = C->getSExtValue();
++      if ((Val <= 65535) && (Val >= 1)) {
++        Result = DAG.getTargetConstant(Val, Type);
++        break;
++      }
++    }
++    return;
++  }
++
++  if (Result.getNode()) {
++    Ops.push_back(Result);
++    return;
++  }
++
++  TargetLowering::LowerAsmOperandForConstraint(Op, Constraint, Ops, DAG);
++}
++
++bool Cpu0TargetLowering::isLegalAddressingMode(const AddrMode &AM,
++                                               Type *Ty) const {
++  // No global is ever allowed as a base.
++  if (AM.BaseGV)
++    return false;
++
++  switch (AM.Scale) {
++  case 0: // "r+i" or just "i", depending on HasBaseReg.
++    break;
++  case 1:
++    if (!AM.HasBaseReg) // allow "r+i".
++      break;
++    return false; // disallow "r+r" or "r+r+i".
++  default:
++    return false;
++  }
++
++  return true;
++}
+ 
+ bool // lbd document - mark - isOffsetFoldingLegal
+ Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
+diff -Naur Chapter11_1/Cpu0ISelLowering.h Chapter11_2/Cpu0ISelLowering.h
+--- Chapter11_1/Cpu0ISelLowering.h	2014-02-10 19:39:53.967441724 +0800
++++ Chapter11_2/Cpu0ISelLowering.h	2014-02-10 19:39:53.979441724 +0800
+@@ -120,6 +120,34 @@
+                   const SmallVectorImpl<SDValue> &OutVals,
+                   SDLoc DL, SelectionDAG &DAG) const;
+ 
++    // Inline asm support
++    ConstraintType getConstraintType(const std::string &Constraint) const;
++
++    /// Examine constraint string and operand type and determine a weight value.
++    /// The operand object must already have been set up with the operand type.
++    ConstraintWeight getSingleConstraintMatchWeight(
++      AsmOperandInfo &info, const char *constraint) const;
++
++    /// This function parses registers that appear in inline-asm constraints.
++    /// It returns pair (0, 0) on failure.
++    std::pair<unsigned, const TargetRegisterClass *>
++    parseRegForInlineAsmConstraint(const StringRef &C, MVT VT) const;
++
++    std::pair<unsigned, const TargetRegisterClass*>
++              getRegForInlineAsmConstraint(const std::string &Constraint,
++                                           MVT VT) const;
++
++    /// LowerAsmOperandForConstraint - Lower the specified operand into the Ops
++    /// vector.  If it is invalid, don't add anything to Ops. If hasMemory is
++    /// true it means one of the asm constraint of the inline asm instruction
++    /// being processed is 'm'.
++    virtual void LowerAsmOperandForConstraint(SDValue Op,
++                                              std::string &Constraint,
++                                              std::vector<SDValue> &Ops,
++                                              SelectionDAG &DAG) const;
++
++    virtual bool isLegalAddressingMode(const AddrMode &AM, Type *Ty) const;
++
+     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
+   };
+ }
