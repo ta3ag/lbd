@@ -408,7 +408,9 @@ According bench mark information, every 7 instructions will meet 1 branch
 instruction in average. 
 The cpu032I take 2 instructions for conditional branch, (jne(cmp...)), while 
 cpu032II use one instruction (bne) as follws,
-  
+
+.. code-block:: bash
+
   JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
   cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
   -filetype=asm ch8_1_1.bc -o -
@@ -1174,7 +1176,7 @@ professional.
 .. code-block:: bash
 
   114-37-150-209:InputFiles Jonathan$ clang -O0 -target mips-unknown-linux-gnu 
-  -c ch12_4.cpp -emit-llvm -o ch12_4.bc
+  -c ch8_3.cpp -emit-llvm -o ch8_3.bc
   
   114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
   llvm-dis ch8_3.bc -o -

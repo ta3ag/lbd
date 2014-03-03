@@ -2,7 +2,6 @@
 /// start
 
 extern int test_alloc();
-extern int test_select(int a, int b);
 
 int test_select()
 {
@@ -54,12 +53,6 @@ int test_staticlink()
   a = test_inlineasm();
   printf("test_inlineasm() = %d", a); // a = 53
   if (a == 53)
-    printf(", PASS\n");
-  else
-    printf(", FAIL\n");
-  a = test_select(1, 2); // 2
-  printf("test_select() = %d", a); // a = 2
-  if (a == 2)
     printf(", PASS\n");
   else
     printf(", FAIL\n");

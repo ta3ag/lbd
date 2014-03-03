@@ -583,12 +583,6 @@ To support llvm-objdump, the following code added to Chapter10_1/
 
 .. rubric:: lbdex/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
-    :end-before: // lbd document - mark - declare DecodeCMPInstruction
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
-    :start-after: // lbd document - mark - declare DecodeBranch16Target
-    :end-before: static DecodeStatus DecodeBranch16Target(MCInst &Inst,
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
-    :start-after: // lbd document - mark - DecodeBranch16Target
   
 
 As above code, it add directory Disassembler for handling the obj to assembly 

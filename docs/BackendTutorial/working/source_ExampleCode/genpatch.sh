@@ -3,7 +3,8 @@ diff -Naur Chapter3_1/ Chapter3_2/ > 3-2.patch
 diff -Naur Chapter3_2/ Chapter3_3/ > 3-3.patch
 diff -Naur Chapter3_3/ Chapter3_4/ > 3-4.patch
 diff -Naur Chapter3_4/ Chapter3_5/ > 3-5.patch
-diff -Naur Chapter3_5/ Chapter4_1/ > 4-1.patch
+diff -Naur Chapter3_5/ Chapter3_6/ > 3-6.patch
+diff -Naur Chapter3_6/ Chapter4_1/ > 4-1.patch
 diff -Naur Chapter4_1/ Chapter4_2 > 4-2.patch
 diff -Naur Chapter4_2/ Chapter5_1 > 5-1.patch
 diff -Naur Chapter5_1/ Chapter6_1/ > 6-1.patch
@@ -17,7 +18,4 @@ diff -Naur Chapter9_3/ Chapter9_4/ > 9-4.patch
 diff -Naur Chapter9_4/ Chapter10_1/ > 10-1.patch
 diff -Naur Chapter10_1/ Chapter11_1/ > 11-1.patch
 diff -Naur Chapter11_1/ Chapter11_2/ > 11-2.patch
-diff -Naur Chapter11_2/ Chapter12_1/ > 12-1.patch
-diff -Naur Chapter12_1/ Chapter12_2/ > 12-2.patch
-diff -Naur Chapter12_2/ Chapter12_3/ > 12-3.patch
 

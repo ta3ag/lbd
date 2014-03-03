@@ -22,6 +22,7 @@ Table of Contents
    ctrlflow
    funccall
    elf
+   asm
    runbackend
    lld
    install

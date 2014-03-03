@@ -1852,10 +1852,10 @@ cmp use $sw dedicate register.
 .. code-block:: bash
 
   118-165-78-10:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -O2 
-  -c ch12_2.cpp -emit-llvm -o ch12_2.bc
+  -c ch4_6.cpp -emit-llvm -o ch4_6.bc
   118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch12_2.bc -o -
+  ch4_6.bc -o -
     ...
     ld  $3, 20($sp)
     cmp $sw, $3, $2
@@ -1870,7 +1870,7 @@ cmp use $sw dedicate register.
     ...
   118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
-  ch12_2.bc -o -
+  ch4_6.bc -o -
     ...
     ld  $2, 20($sp)
     slti  $2, $2, 1
@@ -1882,7 +1882,7 @@ cmp use $sw dedicate register.
     st  $2, 8($sp)
     ...
 
-Run these two `llc -mcpu` option for Chapter12_2 with ch12_2.cpp get the 
+Run these two `llc -mcpu` option for Chapter4_2 with ch4_6.cpp get the 
 above result. Ignore the move between \$sw and general purpose register in 
 `llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
 instruction reorder since both of them use \$sw register while  
@@ -1966,4 +1966,7 @@ this chapter and spend 431 lines of source code.
 .. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
 
 .. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase
+
+.. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
+       Kaufmann Series in Computer Architecture and Design) 
 

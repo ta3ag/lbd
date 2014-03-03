@@ -1,6 +1,6 @@
 diff -Naur Chapter8_1/CMakeLists.txt Chapter8_2/CMakeLists.txt
---- Chapter8_1/CMakeLists.txt	2014-03-01 22:28:58.000000000 +0800
-+++ Chapter8_2/CMakeLists.txt	2014-03-01 23:15:26.000000000 +0800
+--- Chapter8_1/CMakeLists.txt	2014-03-03 13:45:06.800086862 +0800
++++ Chapter8_2/CMakeLists.txt	2014-03-03 13:45:06.792086862 +0800
 @@ -25,6 +25,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AnalyzeImmediate.cpp
@@ -9,20 +9,9 @@ diff -Naur Chapter8_1/CMakeLists.txt Chapter8_2/CMakeLists.txt
    Cpu0InstrInfo.cpp
    Cpu0ISelDAGToDAG.cpp
    Cpu0ISelLowering.cpp
-diff -Naur Chapter8_1/Cpu0.h Chapter8_2/Cpu0.h
---- Chapter8_1/Cpu0.h	2014-03-01 22:28:58.000000000 +0800
-+++ Chapter8_2/Cpu0.h	2014-03-01 23:11:47.000000000 +0800
-@@ -23,6 +23,7 @@
-   class FunctionPass;
- 
-   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
-+  FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
- 
- } // end namespace llvm;
- 
 diff -Naur Chapter8_1/Cpu0CondMov.td Chapter8_2/Cpu0CondMov.td
 --- Chapter8_1/Cpu0CondMov.td	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_2/Cpu0CondMov.td	2014-03-01 22:28:58.000000000 +0800
++++ Chapter8_2/Cpu0CondMov.td	2014-03-03 13:45:06.796086862 +0800
 @@ -0,0 +1,77 @@
 +//===-- Cpu0CondMov.td - Describe Cpu0 Conditional Moves --*- tablegen -*--===//
 +//
@@ -103,7 +92,7 @@ diff -Naur Chapter8_1/Cpu0CondMov.td Chapter8_2/Cpu0CondMov.td
 +
 diff -Naur Chapter8_1/Cpu0DelUselessJMP.cpp Chapter8_2/Cpu0DelUselessJMP.cpp
 --- Chapter8_1/Cpu0DelUselessJMP.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_2/Cpu0DelUselessJMP.cpp	2014-02-28 18:53:41.000000000 +0800
++++ Chapter8_2/Cpu0DelUselessJMP.cpp	2014-03-03 13:45:06.796086862 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//
 +//
@@ -204,9 +193,29 @@ diff -Naur Chapter8_1/Cpu0DelUselessJMP.cpp Chapter8_2/Cpu0DelUselessJMP.cpp
 +FunctionPass *llvm::createCpu0DelJmpPass(Cpu0TargetMachine &tm) {
 +  return new DelJmp(tm);
 +}
+diff -Naur Chapter8_1/Cpu0.h Chapter8_2/Cpu0.h
+--- Chapter8_1/Cpu0.h	2014-03-03 13:45:06.800086862 +0800
++++ Chapter8_2/Cpu0.h	2014-03-03 13:45:06.796086862 +0800
+@@ -23,6 +23,7 @@
+   class FunctionPass;
+ 
+   FunctionPass *createCpu0ISelDag(Cpu0TargetMachine &TM);
++  FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
+ 
+ } // end namespace llvm;
+ 
+diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter8_2/Cpu0InstrInfo.td
+--- Chapter8_1/Cpu0InstrInfo.td	2014-03-03 13:45:06.800086862 +0800
++++ Chapter8_2/Cpu0InstrInfo.td	2014-03-03 13:45:06.796086862 +0800
+@@ -736,3 +736,5 @@
+ defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
+ defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
+ }
++
++include "Cpu0CondMov.td"
 diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter8_2/Cpu0ISelLowering.cpp
---- Chapter8_1/Cpu0ISelLowering.cpp	2014-03-01 22:28:58.000000000 +0800
-+++ Chapter8_2/Cpu0ISelLowering.cpp	2014-03-01 22:28:58.000000000 +0800
+--- Chapter8_1/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.800086862 +0800
++++ Chapter8_2/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.792086862 +0800
 @@ -141,6 +141,7 @@
  
    // Cpu0 Custom Operations
@@ -245,8 +254,8 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter8_2/Cpu0ISelLowering.cpp
                                                 SelectionDAG &DAG) const {
    // FIXME there isn't actually debug info here
 diff -Naur Chapter8_1/Cpu0ISelLowering.h Chapter8_2/Cpu0ISelLowering.h
---- Chapter8_1/Cpu0ISelLowering.h	2014-03-01 22:28:58.000000000 +0800
-+++ Chapter8_2/Cpu0ISelLowering.h	2014-03-01 22:28:58.000000000 +0800
+--- Chapter8_1/Cpu0ISelLowering.h	2014-03-03 13:45:06.800086862 +0800
++++ Chapter8_2/Cpu0ISelLowering.h	2014-03-03 13:45:06.796086862 +0800
 @@ -88,6 +88,7 @@
  
      // Lower Operand specifics
@@ -255,18 +264,9 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.h Chapter8_2/Cpu0ISelLowering.h
      SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
  
  	//- must be exist without function all
-diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter8_2/Cpu0InstrInfo.td
---- Chapter8_1/Cpu0InstrInfo.td	2014-03-01 22:28:58.000000000 +0800
-+++ Chapter8_2/Cpu0InstrInfo.td	2014-03-01 22:28:58.000000000 +0800
-@@ -736,3 +736,5 @@
- defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
- defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
- }
-+
-+include "Cpu0CondMov.td"
 diff -Naur Chapter8_1/Cpu0TargetMachine.cpp Chapter8_2/Cpu0TargetMachine.cpp
---- Chapter8_1/Cpu0TargetMachine.cpp	2014-03-01 22:28:58.000000000 +0800
-+++ Chapter8_2/Cpu0TargetMachine.cpp	2014-03-01 23:14:15.000000000 +0800
+--- Chapter8_1/Cpu0TargetMachine.cpp	2014-03-03 13:45:06.800086862 +0800
++++ Chapter8_2/Cpu0TargetMachine.cpp	2014-03-03 13:45:06.796086862 +0800
 @@ -83,6 +83,7 @@
      return *getCpu0TargetMachine().getSubtargetImpl();
    } // lbd document - mark - getCpu0Subtarget()
