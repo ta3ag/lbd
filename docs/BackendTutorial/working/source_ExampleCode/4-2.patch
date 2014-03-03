@@ -1,7 +1,20 @@
+diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
+--- Chapter4_1/Cpu0ISelLowering.cpp	2014-03-04 00:38:32.000000000 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2014-03-04 00:38:32.000000000 +0800
+@@ -44,6 +44,9 @@
+   // Set up the register classes
+   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+ 
++  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
++  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
++
+   setOperationAction(ISD::SDIV, MVT::i32, Expand);
+   setOperationAction(ISD::SREM, MVT::i32, Expand);
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2014-03-03 13:45:06.808086862 +0800
-@@ -140,6 +140,17 @@
+--- Chapter4_1/Cpu0InstrInfo.td	2014-03-04 00:38:32.000000000 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2014-03-04 00:38:32.000000000 +0800
+@@ -144,6 +144,17 @@
    let isReMaterializable = 1;
  }
  
@@ -13,13 +26,13 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +  let rc = 0;
 +  let shamt = 0;
 +  let isCommutable = isComm;
-+  let Predicates = [IsCpu032I];
++  let Predicates = [HasCmp];
 +} // lbd document - mark - class CmpInstr
 +
  // Arithmetic and logical instructions with 2 register operands.
  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
-@@ -220,6 +231,24 @@
+@@ -224,6 +235,24 @@
    def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
  }
  
@@ -29,7 +42,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
 +     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
 +     [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
-+     IIAlu>, Requires<[IsCpu032II]> {
++     IIAlu>, Requires<[HasSlt]> {
 +  let shamt = 0;
 +}
 +
@@ -38,13 +51,13 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +  FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
 +     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
 +     [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
-+     IIAlu>, Requires<[IsCpu032II]> {
++     IIAlu>, Requires<[HasSlt]> {
 +}
 +
  let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
      isIndirectBranch = 1 in
  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-@@ -285,6 +314,28 @@
+@@ -289,6 +318,28 @@
    let neverHasSideEffects = 1;
  }
  
@@ -73,7 +86,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-@@ -301,15 +352,21 @@
+@@ -305,15 +356,21 @@
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
@@ -95,7 +108,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
-@@ -323,6 +380,11 @@
+@@ -327,6 +384,11 @@
  def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
  def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
  
@@ -107,7 +120,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
  
-@@ -338,6 +400,8 @@
+@@ -342,6 +404,8 @@
  def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
  def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
  def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
@@ -116,7 +129,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  
  /// No operation
  let addr=0 in
-@@ -359,3 +423,118 @@
+@@ -363,3 +427,118 @@
  def : Pat<(i32 imm:$imm),
            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
  
@@ -220,7 +233,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +                (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
 +}
 +
-+let Predicates = [IsCpu032I] in {
++let Predicates = [HasCmp] in {
 +defm : SeteqPatsCmp<CPURegs>;
 +defm : SetltPatsCmp<CPURegs>;
 +defm : SetlePatsCmp<CPURegs>;
@@ -228,23 +241,10 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +defm : SetgePatsCmp<CPURegs>;
 +}
 +
-+let Predicates = [IsCpu032II] in {
++let Predicates = [HasSlt] in {
 +defm : SeteqPatsSlt<CPURegs, SLTiu, XOR, SLTu, ZERO>;
 +defm : SetlePatsSlt<CPURegs, SLT, SLTu>;
 +defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;
 +defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
 +defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
 +}
-diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.808086862 +0800
-@@ -44,6 +44,9 @@
-   // Set up the register classes
-   addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
- 
-+  // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
-+  setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-+
-   setOperationAction(ISD::SDIV, MVT::i32, Expand);
-   setOperationAction(ISD::SREM, MVT::i32, Expand);
-   setOperationAction(ISD::UDIV, MVT::i32, Expand);

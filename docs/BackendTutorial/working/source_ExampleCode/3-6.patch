@@ -1,6 +1,6 @@
 diff -Naur Chapter3_5/Cpu0CallingConv.td Chapter3_6/Cpu0CallingConv.td
---- Chapter3_5/Cpu0CallingConv.td	2014-03-03 13:47:01.808086849 +0800
-+++ Chapter3_6/Cpu0CallingConv.td	2014-03-03 13:47:01.824086851 +0800
+--- Chapter3_5/Cpu0CallingConv.td	2014-03-04 00:38:32.000000000 +0800
++++ Chapter3_6/Cpu0CallingConv.td	2014-03-04 00:38:32.000000000 +0800
 @@ -13,6 +13,15 @@
  class CCIfSubtarget<string F, CCAction A>:
    CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
@@ -17,57 +17,9 @@ diff -Naur Chapter3_5/Cpu0CallingConv.td Chapter3_6/Cpu0CallingConv.td
  def CSR_O32 : CalleeSavedRegs<(add LR, FP,
                                     (sequence "S%u", 1, 0))>;
  
-diff -Naur Chapter3_5/Cpu0InstrInfo.cpp Chapter3_6/Cpu0InstrInfo.cpp
---- Chapter3_5/Cpu0InstrInfo.cpp	2014-03-03 13:47:01.808086849 +0800
-+++ Chapter3_6/Cpu0InstrInfo.cpp	2014-03-03 13:59:21.676086760 +0800
-@@ -28,6 +28,22 @@
-   return RI;
- } // lbd document - mark - getRegisterInfo()
- 
-+//- st SrcReg, MMO(FI)
-+void Cpu0InstrInfo::
-+storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-+                    unsigned SrcReg, bool isKill, int FI,
-+                    const TargetRegisterClass *RC,
-+                    const TargetRegisterInfo *TRI) const {
-+} // lbd document - mark - storeRegToStackSlot
-+
-+void Cpu0InstrInfo:: // lbd document - mark - before loadRegFromStackSlot
-+loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
-+                     unsigned DestReg, int FI,
-+                     const TargetRegisterClass *RC,
-+                     const TargetRegisterInfo *TRI) const
-+{
-+} // lbd document - mark - loadRegFromStackSlot
-+
- MachineInstr*
- Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
-                                         uint64_t Offset, const MDNode *MDPtr,
-diff -Naur Chapter3_5/Cpu0InstrInfo.h Chapter3_6/Cpu0InstrInfo.h
---- Chapter3_5/Cpu0InstrInfo.h	2014-03-03 13:47:01.808086849 +0800
-+++ Chapter3_6/Cpu0InstrInfo.h	2014-03-03 13:59:37.080086759 +0800
-@@ -36,6 +36,18 @@
-   ///
-   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
- 
-+  virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
-+                                   MachineBasicBlock::iterator MBBI,
-+                                   unsigned SrcReg, bool isKill, int FrameIndex,
-+                                   const TargetRegisterClass *RC,
-+                                   const TargetRegisterInfo *TRI) const;
-+
-+  virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
-+                                    MachineBasicBlock::iterator MBBI,
-+                                    unsigned DestReg, int FrameIndex,
-+                                    const TargetRegisterClass *RC,
-+                                    const TargetRegisterInfo *TRI) const;
-+
-   virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
-                                                  int FrameIx, uint64_t Offset,
-                                                  const MDNode *MDPtr,
 diff -Naur Chapter3_5/Cpu0ISelLowering.cpp Chapter3_6/Cpu0ISelLowering.cpp
---- Chapter3_5/Cpu0ISelLowering.cpp	2014-03-03 13:47:01.808086849 +0800
-+++ Chapter3_6/Cpu0ISelLowering.cpp	2014-03-03 13:47:01.824086851 +0800
+--- Chapter3_5/Cpu0ISelLowering.cpp	2014-03-04 00:38:32.000000000 +0800
++++ Chapter3_6/Cpu0ISelLowering.cpp	2014-03-04 00:38:32.000000000 +0800
 @@ -14,6 +14,7 @@
  
  #define DEBUG_TYPE "cpu0-lower"
@@ -137,9 +89,57 @@ diff -Naur Chapter3_5/Cpu0ISelLowering.cpp Chapter3_6/Cpu0ISelLowering.cpp
 +  // Return on Cpu0 is always a "ret $lr"
 +  return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());
  }
+diff -Naur Chapter3_5/Cpu0InstrInfo.cpp Chapter3_6/Cpu0InstrInfo.cpp
+--- Chapter3_5/Cpu0InstrInfo.cpp	2014-03-04 00:38:32.000000000 +0800
++++ Chapter3_6/Cpu0InstrInfo.cpp	2014-03-04 00:38:32.000000000 +0800
+@@ -28,6 +28,22 @@
+   return RI;
+ } // lbd document - mark - getRegisterInfo()
+ 
++//- st SrcReg, MMO(FI)
++void Cpu0InstrInfo::
++storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
++                    unsigned SrcReg, bool isKill, int FI,
++                    const TargetRegisterClass *RC,
++                    const TargetRegisterInfo *TRI) const {
++} // lbd document - mark - storeRegToStackSlot
++
++void Cpu0InstrInfo:: // lbd document - mark - before loadRegFromStackSlot
++loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
++                     unsigned DestReg, int FI,
++                     const TargetRegisterClass *RC,
++                     const TargetRegisterInfo *TRI) const
++{
++} // lbd document - mark - loadRegFromStackSlot
++
+ MachineInstr*
+ Cpu0InstrInfo::emitFrameIndexDebugValue(MachineFunction &MF, int FrameIx,
+                                         uint64_t Offset, const MDNode *MDPtr,
+diff -Naur Chapter3_5/Cpu0InstrInfo.h Chapter3_6/Cpu0InstrInfo.h
+--- Chapter3_5/Cpu0InstrInfo.h	2014-03-04 00:38:32.000000000 +0800
++++ Chapter3_6/Cpu0InstrInfo.h	2014-03-04 00:38:32.000000000 +0800
+@@ -36,6 +36,18 @@
+   ///
+   virtual const Cpu0RegisterInfo &getRegisterInfo() const;
+ 
++  virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
++                                   MachineBasicBlock::iterator MBBI,
++                                   unsigned SrcReg, bool isKill, int FrameIndex,
++                                   const TargetRegisterClass *RC,
++                                   const TargetRegisterInfo *TRI) const;
++
++  virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
++                                    MachineBasicBlock::iterator MBBI,
++                                    unsigned DestReg, int FrameIndex,
++                                    const TargetRegisterClass *RC,
++                                    const TargetRegisterInfo *TRI) const;
++
+   virtual MachineInstr* emitFrameIndexDebugValue(MachineFunction &MF,
+                                                  int FrameIx, uint64_t Offset,
+                                                  const MDNode *MDPtr,
 diff -Naur Chapter3_5/Cpu0MachineFunction.h Chapter3_6/Cpu0MachineFunction.h
---- Chapter3_5/Cpu0MachineFunction.h	2014-03-03 13:47:01.808086849 +0800
-+++ Chapter3_6/Cpu0MachineFunction.h	2014-03-03 13:47:01.824086851 +0800
+--- Chapter3_5/Cpu0MachineFunction.h	2014-03-04 00:38:32.000000000 +0800
++++ Chapter3_6/Cpu0MachineFunction.h	2014-03-04 00:38:32.000000000 +0800
 @@ -24,16 +24,26 @@
  /// Cpu0 target-specific information for each MachineFunction.
  class Cpu0FunctionInfo : public MachineFunctionInfo {

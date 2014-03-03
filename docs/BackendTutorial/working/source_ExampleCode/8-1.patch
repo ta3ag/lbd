@@ -1,7 +1,67 @@
+diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
+--- Chapter7_1/Cpu0ISelLowering.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/Cpu0ISelLowering.cpp	2014-03-04 00:38:33.000000000 +0800
+@@ -133,8 +133,15 @@
+   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
+   setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
+ 
++  // Used by legalize types to correctly generate the setcc result.
++  // Without this, every float setcc comes with a AND/OR with the result,
++  // we don't want this, since the fpcmp result goes to a flag register,
++  // which is used implicitly by brcond and select operations.
++  AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
++
+   // Cpu0 Custom Operations
+   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
++  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
+ 
+   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
+   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+@@ -144,6 +151,9 @@
+   setOperationAction(ISD::UDIV, MVT::i32, Expand);
+   setOperationAction(ISD::UREM, MVT::i32, Expand);
+ 
++  // Operations not directly supported by Cpu0.
++  setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
++
+   setTargetDAGCombine(ISD::SDIVREM);
+   setTargetDAGCombine(ISD::UDIVREM);
+ 
+@@ -214,6 +224,7 @@
+ {
+   switch (Op.getOpcode())
+   {
++    case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
+     case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
+   }
+   return SDValue();
+@@ -226,6 +237,11 @@
+ //===----------------------------------------------------------------------===//
+ //  Misc Lower Operation implementation
+ //===----------------------------------------------------------------------===//
++SDValue Cpu0TargetLowering::
++LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
++{
++  return Op;
++}
+ 
+ SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
+                                                SelectionDAG &DAG) const {
+diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
+--- Chapter7_1/Cpu0ISelLowering.h	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/Cpu0ISelLowering.h	2014-03-04 00:38:33.000000000 +0800
+@@ -87,6 +87,7 @@
+     const Cpu0Subtarget *Subtarget;
+ 
+     // Lower Operand specifics
++    SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
+     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
+ 
+ 	//- must be exist without function all
 diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
---- Chapter7_1/Cpu0InstrInfo.td	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/Cpu0InstrInfo.td	2014-03-03 13:45:06.800086862 +0800
-@@ -55,6 +55,28 @@
+--- Chapter7_1/Cpu0InstrInfo.td	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/Cpu0InstrInfo.td	2014-03-04 00:38:33.000000000 +0800
+@@ -59,6 +59,28 @@
  //===----------------------------------------------------------------------===//
  // Cpu0 Operand, Complex Patterns and Transformations Definitions.
  //===----------------------------------------------------------------------===//
@@ -30,7 +90,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  
  // Signed Operand
  def simm16      : Operand<i32> {
-@@ -249,6 +271,31 @@
+@@ -253,6 +275,31 @@
    def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
  }
  
@@ -39,12 +99,12 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
 +                   list<Register> UseRegs>:
 +  FJ<op, (outs), (ins RC:$ra, brtarget24:$addr),
 +             !strconcat(instr_asm, "\t$ra, $addr"),
-+             [], IIBranch>, Requires<[IsCpu032I]> {
++             [], IIBranch>, Requires<[HasCmp]> {
 +  let isBranch = 1;
 +  let isTerminator = 1;
 +  let hasDelaySlot = 0;
 +  let neverHasSideEffects = 1;
-+//  let Predicates = [IsCpu032I]; // same effect as Requires
++//  let Predicates = [HasCmp]; // same effect as Requires
 +}
 +
 +// Conditional Branch, e.g. BEQ $r1, $r2, brtarget16
@@ -52,7 +112,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
 +  FL<op, (outs), (ins RC:$ra, RC:$rb, brtarget16:$imm16),
 +             !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
 +             [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch>, 
-+             Requires<[IsCpu032II]> {
++             Requires<[HasSlt]> {
 +  let isBranch = 1;
 +  let isTerminator = 1;
 +  let hasDelaySlot = 1;
@@ -62,8 +122,8 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  // SetCC
  class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
                RegisterClass RC>:
-@@ -267,6 +314,16 @@
-      IIAlu>, Requires<[IsCpu032II]> {
+@@ -271,6 +318,16 @@
+      IIAlu>, Requires<[HasSlt]> {
  }
  
 +// Unconditional branch, such as JMP
@@ -79,7 +139,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
      isIndirectBranch = 1 in
  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-@@ -413,6 +470,19 @@
+@@ -417,6 +474,19 @@
  def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
  def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
  
@@ -99,7 +159,7 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
  let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
  
-@@ -486,6 +556,75 @@
+@@ -490,6 +560,75 @@
  def : Pat<(i32 (extloadi8  addr:$src)), (LBu addr:$src)>;
  def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
  
@@ -164,80 +224,20 @@ diff -Naur Chapter7_1/Cpu0InstrInfo.td Chapter8_1/Cpu0InstrInfo.td
 +              (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
 +}
 +
-+let Predicates = [IsCpu032I] in {
++let Predicates = [HasCmp] in {
 +defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
 +}
 +
-+let Predicates = [IsCpu032II] in {
++let Predicates = [HasSlt] in {
 +defm : BrcondPatsSlt<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
 +}
 +
  // setcc patterns
  
  // setcc for cmp instruction
-diff -Naur Chapter7_1/Cpu0ISelLowering.cpp Chapter8_1/Cpu0ISelLowering.cpp
---- Chapter7_1/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.800086862 +0800
-@@ -133,8 +133,15 @@
-   setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
-   setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
- 
-+  // Used by legalize types to correctly generate the setcc result.
-+  // Without this, every float setcc comes with a AND/OR with the result,
-+  // we don't want this, since the fpcmp result goes to a flag register,
-+  // which is used implicitly by brcond and select operations.
-+  AddPromotedToType(ISD::SETCC, MVT::i1, MVT::i32);
-+
-   // Cpu0 Custom Operations
-   setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
-+  setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
- 
-   // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
-   setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-@@ -144,6 +151,9 @@
-   setOperationAction(ISD::UDIV, MVT::i32, Expand);
-   setOperationAction(ISD::UREM, MVT::i32, Expand);
- 
-+  // Operations not directly supported by Cpu0.
-+  setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
-+
-   setTargetDAGCombine(ISD::SDIVREM);
-   setTargetDAGCombine(ISD::UDIVREM);
- 
-@@ -214,6 +224,7 @@
- {
-   switch (Op.getOpcode())
-   {
-+    case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
-     case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
-   }
-   return SDValue();
-@@ -226,6 +237,11 @@
- //===----------------------------------------------------------------------===//
- //  Misc Lower Operation implementation
- //===----------------------------------------------------------------------===//
-+SDValue Cpu0TargetLowering::
-+LowerBRCOND(SDValue Op, SelectionDAG &DAG) const
-+{
-+  return Op;
-+}
- 
- SDValue Cpu0TargetLowering::LowerGlobalAddress(SDValue Op,
-                                                SelectionDAG &DAG) const {
-diff -Naur Chapter7_1/Cpu0ISelLowering.h Chapter8_1/Cpu0ISelLowering.h
---- Chapter7_1/Cpu0ISelLowering.h	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/Cpu0ISelLowering.h	2014-03-03 13:45:06.800086862 +0800
-@@ -87,6 +87,7 @@
-     const Cpu0Subtarget *Subtarget;
- 
-     // Lower Operand specifics
-+    SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
-     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
- 
- 	//- must be exist without function all
 diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
---- Chapter7_1/Cpu0MCInstLower.cpp	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/Cpu0MCInstLower.cpp	2014-03-03 13:45:06.800086862 +0800
+--- Chapter7_1/Cpu0MCInstLower.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/Cpu0MCInstLower.cpp	2014-03-04 00:38:33.000000000 +0800
 @@ -62,6 +62,15 @@
      Symbol = AsmPrinter.getSymbol(MO.getGlobal());
      break;
@@ -265,8 +265,8 @@ diff -Naur Chapter7_1/Cpu0MCInstLower.cpp Chapter8_1/Cpu0MCInstLower.cpp
    case MachineOperand::MO_RegisterMask:
      break;
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter7_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-03 13:45:06.800086862 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-04 00:38:33.000000000 +0800
 @@ -38,6 +38,7 @@
    case Cpu0::fixup_Cpu0_LO16:
    case Cpu0::fixup_Cpu0_GOT_LO16:
@@ -284,8 +284,8 @@ diff -Naur Chapter7_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter8_1/MCTargetDesc/Cp
        { "fixup_Cpu0_GOT_HI16",       0,     16,   0 },
        { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter8_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-03 13:45:06.800086862 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-04 00:38:33.000000000 +0800
 @@ -117,6 +117,9 @@
    case Cpu0::fixup_Cpu0_GOT_Local:
      Type = ELF::R_CPU0_GOT16;
@@ -297,8 +297,8 @@ diff -Naur Chapter7_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter8_1/MCTargetDe
      Type = ELF::R_CPU0_PC24;
      break;
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0FixupKinds.h Chapter8_1/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter7_1/MCTargetDesc/Cpu0FixupKinds.h	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0FixupKinds.h	2014-03-03 13:45:06.800086862 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0FixupKinds.h	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0FixupKinds.h	2014-03-04 00:38:33.000000000 +0800
 @@ -43,7 +43,11 @@
  
      // Local symbol fixup resulting in - R_CPU0_GOT16.
@@ -313,8 +313,8 @@ diff -Naur Chapter7_1/MCTargetDesc/Cpu0FixupKinds.h Chapter8_1/MCTargetDesc/Cpu0
      // cpu0 PC24, e.g. jeq, jmp
      fixup_Cpu0_PC24,
 diff -Naur Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-03 13:45:06.812086862 +0800
-+++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-03 13:45:06.800086862 +0800
+--- Chapter7_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-04 00:38:33.000000000 +0800
 @@ -71,6 +71,28 @@
    // binary encoding for an instruction.
    uint64_t getBinaryCodeForInstr(const MCInst &MI,

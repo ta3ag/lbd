@@ -1,6 +1,6 @@
 diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
---- Chapter9_3/Cpu0FrameLowering.cpp	2014-03-03 13:45:06.804086862 +0800
-+++ Chapter9_4/Cpu0FrameLowering.cpp	2014-03-03 13:45:06.800086862 +0800
+--- Chapter9_3/Cpu0FrameLowering.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter9_4/Cpu0FrameLowering.cpp	2014-03-04 00:38:33.000000000 +0800
 @@ -133,6 +133,10 @@
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
    unsigned SP = Cpu0::SP;
@@ -116,8 +116,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
    // FIXME: remove this code if register allocator can correctly mark
    //        $fp and $ra used or unused.
 diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
---- Chapter9_3/Cpu0FrameLowering.h	2014-03-03 13:45:06.804086862 +0800
-+++ Chapter9_4/Cpu0FrameLowering.h	2014-03-03 13:45:06.800086862 +0800
+--- Chapter9_3/Cpu0FrameLowering.h	2014-03-04 00:38:33.000000000 +0800
++++ Chapter9_4/Cpu0FrameLowering.h	2014-03-04 00:38:33.000000000 +0800
 @@ -38,6 +38,10 @@
    void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                       MachineBasicBlock &MBB,
@@ -130,8 +130,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
---- Chapter9_3/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.804086862 +0800
-+++ Chapter9_4/Cpu0ISelLowering.cpp	2014-03-03 13:45:06.800086862 +0800
+--- Chapter9_3/Cpu0ISelLowering.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter9_4/Cpu0ISelLowering.cpp	2014-03-04 00:38:33.000000000 +0800
 @@ -143,6 +143,7 @@
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
    setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
@@ -355,8 +355,8 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
    // All stores are grouped in one node to allow the matching between
    // the size of Ins and InVals. This only happens when on varg functions
 diff -Naur Chapter9_3/Cpu0ISelLowering.h Chapter9_4/Cpu0ISelLowering.h
---- Chapter9_3/Cpu0ISelLowering.h	2014-03-03 13:45:06.804086862 +0800
-+++ Chapter9_4/Cpu0ISelLowering.h	2014-03-03 13:45:06.800086862 +0800
+--- Chapter9_3/Cpu0ISelLowering.h	2014-03-04 00:38:33.000000000 +0800
++++ Chapter9_4/Cpu0ISelLowering.h	2014-03-04 00:38:33.000000000 +0800
 @@ -97,6 +97,7 @@
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
      SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
@@ -366,8 +366,8 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.h Chapter9_4/Cpu0ISelLowering.h
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter9_3/Cpu0RegisterInfo.cpp Chapter9_4/Cpu0RegisterInfo.cpp
---- Chapter9_3/Cpu0RegisterInfo.cpp	2014-03-03 13:45:06.804086862 +0800
-+++ Chapter9_4/Cpu0RegisterInfo.cpp	2014-03-03 13:45:06.800086862 +0800
+--- Chapter9_3/Cpu0RegisterInfo.cpp	2014-03-04 00:38:33.000000000 +0800
++++ Chapter9_4/Cpu0RegisterInfo.cpp	2014-03-04 00:38:33.000000000 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
