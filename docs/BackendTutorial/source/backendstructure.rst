@@ -118,6 +118,9 @@ The Cpu0TargetMachine contents and it's own class as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
     :start-after: include "Cpu0InstrInfo.td"
     :end-before: def Cpu0InstrInfo : InstrInfo;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
+    :start-after: def Cpu0InstrInfo : InstrInfo;
+    :end-before: def Cpu0AsmWriter : AsmWriter {
 
 .. rubric:: lbdex/Chapter3_1/Cpu0CallingConv.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
@@ -162,6 +165,21 @@ The Cpu0TargetMachine contents and it's own class as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
     :start-after: Cpu0GenInstrInfo(Cpu0::ADJCALLSTACKDOWN, Cpu0::ADJCALLSTACKUP),
     :end-before: void Cpu0InstrInfo::
+
+.. rubric:: lbdex/Chapter3_1/Cpu0InstrInfo.td
+.. code-block:: c++
+  
+  //===----------------------------------------------------------------------===//
+  // Cpu0 Instruction Predicate Definitions.
+  //===----------------------------------------------------------------------===//
+  def HasCmp      :     Predicate<"Subtarget.hasCmp()">,
+                        AssemblerPredicate<"FeatureCmp">;
+  def HasSlt      :     Predicate<"Subtarget.hasSlt()">,
+                        AssemblerPredicate<"FeatureSlt">;
+  def IsCpu032I   :     Predicate<"Subtarget.hasCpu032I()">,
+                        AssemblerPredicate<"FeatureCpu032I">;
+  def IsCpu032II  :     Predicate<"Subtarget.hasCpu032II()">,
+                        AssemblerPredicate<"FeatureCpu032II">;
 
 .. rubric:: lbdex/Chapter3_1/Cpu0ISelLowering.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.h
@@ -244,16 +262,10 @@ The Cpu0TargetMachine contents and it's own class as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
     :end-before: extern bool Cpu0NoCpload;
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
-    :start-after: extern bool Cpu0NoCpload;
-    :end-before: , Cpu032II,
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
-    :start-after: Cpu032III
-    :end-before: // UseSmallSection - Small section is used.
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
     :start-after: bool UseSmallSection;
-    :end-before: bool hasCpu032I()
+    :end-before:  bool useSmallSection()
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.h
-    :start-after:  bool useSmallSection()
+    :start-after: bool useSmallSection()
 
 .. rubric:: lbdex/Chapter3_1/Cpu0Subtarget.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Subtarget.cpp
@@ -440,6 +452,39 @@ With Chapter3_1 implementation, the Chapter2 error message
 The new errors say that we have not Target AsmPrinter. 
 We will add it in next section.
 
+Chapter3_1 create cpu032I and cpu032II two CPU and define two features with the 
+same name of CPU. With the added code of cpu032I and cpu32II in Cpu0.td and 
+Cpu0InstrInfo.td of Chapter3_1, the command `llc -march=cpu0 -mcpu=help` can 
+display message as follows,
+
+.. code-block:: bash
+  
+  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
+  cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=help
+  Available CPUs for this target:
+
+    cpu032I  - Select the cpu032I processor.
+    cpu032II - Select the cpu032II processor.
+
+  Available features for this target:
+
+    cmp      - Enable 'cmp' instructions..
+    cpu032I  - Cpu032I ISA Support.
+    cpu032II - Cpu032II ISA Support (slt).
+    slt      - Enable 'slt' instructions..
+
+  Use +feature to enable a feature, or -feature to disable it.
+  For example, llc -mcpu=mycpu -mattr=+feature1,-feature2
+
+
+When user input -mcpu=cpu032I, the IsCpu032I of Cpu0InstrInfo.td is true since 
+function isCpu032I() defined in Cpu0Subtarget.h is true by check CPU variable 
+in constructor function.
+Please notify the Cpu0ArchVersion must be initialized as Cpu0Subtarget.cpp, 
+otherwise the Cpu0ArchVersion can be any value and the functions 
+isCpu032I() and isCpu032II() which support `llc -mcpu=cpu032I` and 
+`llc -mcpu=cpu032II` will have trouble.
+
 
 Add AsmPrinter
 --------------
@@ -450,13 +495,7 @@ Cpu0.td is added with the following fragment,
 
 .. rubric:: lbdex/Chapter3_2/Cpu0.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
-    :start-after: def Cpu0InstrInfo : InstrInfo;
-    :end-before: def FeatureCpu032II
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
-    :start-after: "Cpu032III", "Cpu032III ISA Support (use instruction slt)">;
-    :end-before: def : Proc<"cpu032II", [FeatureCpu032II]>;
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
-    :start-after: def : Proc<"cpu032III", [FeatureCpu032III]>;
+    :start-after: // };
     :end-before: def Cpu0AsmParser : AsmParser {
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
     :start-after: } // def Cpu0AsmParserVariant
@@ -571,9 +610,6 @@ follows,
     :end-before: #include "llvm/MC/MachineLocation.h"
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: using namespace llvm;
-    :end-before: } else if (CPU == "cpu032II") {
-.. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
-    :start-after: Cpu0ArchFeature = "+cpu032II";
     :end-before: static MCStreamer *createMCStreamer
 .. literalinclude:: ../../../lib/Target/Cpu0/MCTargetDesc/Cpu0MCTargetDesc.cpp
     :start-after: // lbd document - mark - createMCStreamer
@@ -1307,7 +1343,10 @@ following code,
     :start-after: def JR
     :end-before: def RET
 
-2. After instruction selection, the Cpu0::Ret is replaced by Cpu0::RetLR 
+2. Create Cpu0ISD::Ret node in LowerReturn() which is called when meet function
+   return as code in function LowerReturn() of Cpu0ISelLowering.cpp.
+
+3. After instruction selection, the Cpu0::Ret is replaced by Cpu0::RetLR 
    as below. This effect came from "def RetLR" as step 1.
 
 .. code-block:: bash
@@ -1334,12 +1373,12 @@ following code,
     0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
 
 
-3. Expand the Cpu0::RetLR into instruction **ret $lr** in "Post-RA pseudo 
+4. Expand the Cpu0::RetLR into instruction **ret $lr** in "Post-RA pseudo 
    instruction expansion pass" stage by the code in Chapter3_4/Cpu0InstrInfo.cpp 
    as above. This stage is after the register allocation, so we can replace the
    V0 ($r2) by LR ($lr) without any side effect.
 
-4. Print assembly or obj according the information (those \*.inc generated by 
+5. Print assembly or obj according the information (those \*.inc generated by 
    TableGen from \*.td) generated by the following code at "Cpu0 Assembly 
    Printer" stage.
 
@@ -1358,6 +1397,7 @@ following code,
   ===================================================  ========================================
   Write Code                                           Declare a pseudo node Cpu0::RetLR
   -                                                    for IR Cpu0::Ret;
+  Before CPU0 DAG->DAG Pattern Instruction Selection   Create Cpu0ISD::Ret DAG
   Instruction selection                                Cpu0::Ret is replaced by Cpu0::RetLR
   Post-RA pseudo instruction expansion pass            Cpu0::RetLR -> ret $lr
   Cpu0 Assembly Printer                                Print according "def RET"
@@ -1377,6 +1417,7 @@ gone. The new error message for Chapter3_4 as follows,
   1.  Running pass 'Function Pass Manager' on module 'ch3.bc'.
   2.  Running pass 'Prologue/Epilogue Insertion & Frame Finalization' on function 
   '@main' ...
+
 
 Add Prologue/Epilogue functions
 -------------------------------
@@ -1685,7 +1726,7 @@ functions.
     )
 
 
-After add these Prologue and Epilogue functions, and build with Chapter3_5/Cpu0. 
+After add these Prologue and Epilogue functions, and build with Chapter3_5/. 
 Now we are ready to compile our example code ch3.bc into cpu0 assembly code. 
 Following is the command and output file ch3.cpu0.s,
 
@@ -1693,9 +1734,7 @@ Following is the command and output file ch3.cpu0.s,
 
   118-165-78-12:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3.bc -o -
-  Args: /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 
-  -relocation-model=pic -filetype=asm -debug ch3.bc -o ch3.cpu0.s 
-  118-165-78-12:InputFiles Jonathan$ cat ch3.cpu0.s 
+    ...
     .section .mdebug.abi32
     .previous
     .file "ch3.bc"
@@ -2041,6 +2080,187 @@ Verify with the Cpu0 Epilogue instructions with sp = 0x10000000 and stack size =
 1. "lui	$1, 36865" => $1 = 0x90010000.
 2. "addiu $1, $1, -32768" => $1 = (0x90010000 + 0xffff8000) => $1 = 0x90008000.
 3. "addu $sp, $sp, $1" => $sp = (0x10000000 + 0x90008000) => $sp = 0xa0008000.
+
+
+LowerReturn
+---------------
+
+.. rubric:: lbdex/InputFiles/ch3_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch3_2.cpp
+    :start-after: /// start
+
+Run Chapter3_5 with ch3_2.cpp will get the following incorrect result.
+
+.. code-block:: bash
+
+  118-165-78-12:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
+  ch3_2.cpp -emit-llvm -o ch3_2.bc
+  118-165-78-12:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3_2.bc 
+  -o -
+    ...
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch3_2.bc"
+	  .text
+	  .globl	main
+	  .align	2
+	  .type	main,@function
+	  .ent	main                    # @main
+  main:
+	  .frame	$fp,24,$lr
+	  .mask 	0x00000000,0
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:
+	  addiu	$sp, $sp, -24
+	  addiu	$2, $zero, 0
+	  st	$2, 20($fp)
+	  addiu	$2, $zero, 5
+	  st	$2, 16($fp)
+	  addiu	$2, $zero, 2
+	  st	$2, 12($fp)
+	  ld	$2, 16($fp)
+	  addiu	$2, $2, 2
+	  st	$2, 8($fp)
+	  ld	$2, 12($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 4($fp)  // $2 is 1
+	  addiu	$sp, $sp, 24
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	main
+  $tmp1:
+	  .size	main, ($tmp1)-main
+
+To correct the return value, the following code add to Chapter3_6.
+
+.. rubric:: lbdex/Chapter3_6/Cpu0CallingConv.td
+.. code-block:: c++
+  
+  def RetCC_Cpu0EABI : CallingConv<[
+    // i32 are returned in registers V0, V1, A0, A1
+    CCIfType<[i32], CCAssignToReg<[V0, V1, A0, A1]>>
+  ]>;
+  
+  def RetCC_Cpu0 : CallingConv<[
+    CCDelegateTo<RetCC_Cpu0EABI>
+  ]>; // lbd document - mark - def RetCC_Cpu0
+
+
+.. rubric:: lbdex/Chapter3_6/Cpu0InstrInfo.h
+.. code-block:: c++
+
+    virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
+                                     MachineBasicBlock::iterator MBBI,
+                                     unsigned SrcReg, bool isKill, int FrameIndex,
+                                     const TargetRegisterClass *RC,
+                                     const TargetRegisterInfo *TRI) const;
+
+    virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
+                                      MachineBasicBlock::iterator MBBI,
+                                      unsigned DestReg, int FrameIndex,
+                                      const TargetRegisterClass *RC,
+                                      const TargetRegisterInfo *TRI) const;
+
+
+.. rubric:: lbdex/Chapter3_6/Cpu0InstrInfo.cpp
+.. code-block:: c++
+
+  //- st SrcReg, MMO(FI)
+  void Cpu0InstrInfo::
+  storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                      unsigned SrcReg, bool isKill, int FI,
+                      const TargetRegisterClass *RC,
+                      const TargetRegisterInfo *TRI) const {
+  } // lbd document - mark - storeRegToStackSlot
+
+  void Cpu0InstrInfo:: // lbd document - mark - before loadRegFromStackSlot
+  loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                       unsigned DestReg, int FI,
+                       const TargetRegisterClass *RC,
+                       const TargetRegisterInfo *TRI) const
+  {
+  } // lbd document - mark - loadRegFromStackSlot
+
+
+.. rubric:: lbdex/Chapter3_6/Cpu0ISelLowering.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: //               Return Value Calling Convention Implementation
+    :end-before: // lbd document - mark - inlineasm begin
+
+.. rubric:: lbdex/Chapter3_6/Cpu0MachineFunction.h
+.. code-block:: c++
+  
+    /// SRetReturnReg - Some subtargets require that sret lowering includes
+    /// returning the value of the returned struct in a register. This field
+    /// holds the virtual register into which the sret argument is passed.
+    unsigned SRetReturnReg;
+    ...
+      SRetReturnReg(0),
+    ...
+    unsigned getSRetReturnReg() const { return SRetReturnReg; }
+    void setSRetReturnReg(unsigned Reg) { SRetReturnReg = Reg; }
+
+
+Function LowerReturn() of Cpu0ISelLowering.cpp handle return variable correctly.
+Create Cpu0ISD::Ret node in LowerReturn() which is called when meet function
+return as above code in Chapter3_6/Cpu0ISelLowering.cpp. More specific, it 
+create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the 
+V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
+with V0 register will live out and won't be removed in any later optimization
+step. Remember, if use "return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, 
+Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
+(Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());" the V0 register
+won't be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
+in later optimization stage. Then the result is same with Chapter3_5
+which the return value is error. 
+
+Run Chapter3_6 with ch3_2.cpp, to get the following correct result.
+
+.. code-block:: bash
+
+  118-165-78-12:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm -debug ch3_2.bc 
+  -o -
+    ...
+	  .section .mdebug.abi32
+	  .previous
+	  .file	"ch3_2.bc"
+	  .text
+	  .globl	main
+	  .align	2
+	  .type	main,@function
+	  .ent	main                    # @main
+  main:
+	  .frame	$fp,24,$lr
+	  .mask 	0x00000000,0
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:
+	  addiu	$sp, $sp, -24
+	  addiu	$2, $zero, 0
+	  st	$2, 20($fp)
+	  addiu	$2, $zero, 5
+	  st	$2, 16($fp)
+	  addiu	$2, $zero, 2
+	  st	$2, 12($fp)
+	  ld	$2, 16($fp)
+	  addiu	$2, $2, 2
+	  st	$2, 8($fp)
+	  ld	$2, 12($fp)
+	  addiu	$2, $2, 1
+	  st	$2, 4($fp) // $2 = 3
+	  ld	$3, 8($fp) // $3 = 7
+	  addu	$2, $3, $2 // $2 = 7+3
+	  addiu	$sp, $sp, 24
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	main
+  $tmp1:
+	  .size	main, ($tmp1)-main
 
 
 Data operands DAGs

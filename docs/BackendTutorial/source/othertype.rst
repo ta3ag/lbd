@@ -403,10 +403,17 @@ Chapter7_1/.
       SDValue RHS = Node->getOperand(1);
   
       EVT VT = LHS.getValueType();
-      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
-      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-      SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
-                                             SDValue(StatusWord,0), Constant1);
+      const Cpu0TargetMachine &TM = getTargetMachine();
+      const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+      SDNode *Carry;
+      if (Subtarget.hasCpu032II())
+        Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
+      else {
+        SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
+        SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+        Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
+                                               SDValue(StatusWord,0), Constant1);
+      }
       SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
                                                 SDValue(Carry,0), RHS);
   
@@ -446,7 +453,8 @@ Run Chapter7_1 with ch7_4.cpp to get the result as follows,
   1-160-134-62:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_4.cpp -emit-llvm -o ch7_4.bc
   1-160-134-62:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_4.bc -o -
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
+  ch7_4.bc -o -
     .section .mdebug.abi32
     .previous
     .file "ch7_4.bc"

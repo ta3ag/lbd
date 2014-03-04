@@ -1,20 +1,6 @@
-diff -Naur Chapter9_3/Cpu0CallingConv.td Chapter9_4/Cpu0CallingConv.td
---- Chapter9_3/Cpu0CallingConv.td	2014-02-11 14:03:42.462933945 +0800
-+++ Chapter9_4/Cpu0CallingConv.td	2014-02-11 14:03:42.458933945 +0800
-@@ -14,8 +14,8 @@
-   CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
- 
- def RetCC_Cpu0EABI : CallingConv<[
--  // i32 are returned in registers V0, V1
--  CCIfType<[i32], CCAssignToReg<[V0, V1]>>
-+  // i32 are returned in registers V0, V1, A0, A1
-+  CCIfType<[i32], CCAssignToReg<[V0, V1, A0, A1]>>
- ]>;
- 
- //===----------------------------------------------------------------------===//
 diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
---- Chapter9_3/Cpu0FrameLowering.cpp	2014-02-11 14:03:42.462933945 +0800
-+++ Chapter9_4/Cpu0FrameLowering.cpp	2014-02-11 14:03:42.458933945 +0800
+--- Chapter9_3/Cpu0FrameLowering.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter9_4/Cpu0FrameLowering.cpp	2014-03-04 14:32:39.404076212 +0800
 @@ -133,6 +133,10 @@
    DebugLoc dl = MBBI != MBB.end() ? MBBI->getDebugLoc() : DebugLoc();
    unsigned SP = Cpu0::SP;
@@ -130,8 +116,8 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.cpp Chapter9_4/Cpu0FrameLowering.cpp
    // FIXME: remove this code if register allocator can correctly mark
    //        $fp and $ra used or unused.
 diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
---- Chapter9_3/Cpu0FrameLowering.h	2014-02-11 14:03:42.462933945 +0800
-+++ Chapter9_4/Cpu0FrameLowering.h	2014-02-11 14:03:42.458933945 +0800
+--- Chapter9_3/Cpu0FrameLowering.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter9_4/Cpu0FrameLowering.h	2014-03-04 14:32:39.404076212 +0800
 @@ -38,6 +38,10 @@
    void eliminateCallFramePseudoInstr(MachineFunction &MF,
                                       MachineBasicBlock &MBB,
@@ -144,20 +130,20 @@ diff -Naur Chapter9_3/Cpu0FrameLowering.h Chapter9_4/Cpu0FrameLowering.h
                                              RegScavenger *RS) const;
  };
 diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
---- Chapter9_3/Cpu0ISelLowering.cpp	2014-02-11 14:03:42.462933945 +0800
-+++ Chapter9_4/Cpu0ISelLowering.cpp	2014-02-11 14:08:35.158933910 +0800
-@@ -142,6 +142,7 @@
-   // Cpu0 Custom Operations
+--- Chapter9_3/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter9_4/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.404076212 +0800
+@@ -143,6 +143,7 @@
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
+   setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
    setOperationAction(ISD::BRCOND,             MVT::Other, Custom);
 +  setOperationAction(ISD::VASTART,            MVT::Other, Custom);
  
    // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-@@ -153,6 +154,13 @@
- 
+@@ -155,6 +156,13 @@
    // Operations not directly supported by Cpu0.
    setOperationAction(ISD::BR_CC,             MVT::i32, Expand);
+   setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
 +  setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32,  Expand);
 +
 +  // Support va_arg(): variable numbers (not fixed numbers) of arguments 
@@ -168,7 +154,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  
    setTargetDAGCombine(ISD::SDIVREM);
    setTargetDAGCombine(ISD::UDIVREM);
-@@ -161,6 +169,8 @@
+@@ -163,6 +171,8 @@
  // It will emit .align 2 later
    setMinFunctionAlignment(2);
  
@@ -177,15 +163,15 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  // must, computeRegisterProperties - Once all of the register classes are 
  //  added, this allows us to compute derived properties we expose.
    computeRegisterProperties();
-@@ -226,6 +236,7 @@
-   {
+@@ -229,6 +239,7 @@
      case ISD::BRCOND:             return LowerBRCOND(Op, DAG);
      case ISD::GlobalAddress:      return LowerGlobalAddress(Op, DAG);
+     case ISD::SELECT:             return lowerSELECT(Op, DAG);
 +    case ISD::VASTART:            return LowerVASTART(Op, DAG);
    }
    return SDValue();
  }
-@@ -234,6 +245,18 @@
+@@ -237,6 +248,18 @@
  //  Lower helper functions
  //===----------------------------------------------------------------------===//
  
@@ -204,7 +190,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  //===----------------------------------------------------------------------===//
  //  Misc Lower Operation implementation
  //===----------------------------------------------------------------------===//
-@@ -282,8 +305,63 @@
+@@ -291,8 +314,63 @@
                                   Cpu0II::MO_GOT_LO16);
  }
  
@@ -268,7 +254,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                SmallVectorImpl<SDValue> &InVals) const {
-@@ -366,6 +444,9 @@
+@@ -375,6 +453,9 @@
        assert("!!!Error!!!, Flags.isByVal()==true");
        assert(Flags.getByValSize() &&
               "ByVal args of size 0 should have been ignored by front-end.");
@@ -278,7 +264,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
        continue;
      }
  
-@@ -543,6 +624,34 @@
+@@ -552,6 +633,34 @@
    return Chain;
  }
  
@@ -313,7 +299,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
  /// LowerFormalArguments - transform physical registers into virtual registers
  /// and generate load operations for arguments places on the stack.
  SDValue
-@@ -581,8 +690,16 @@
+@@ -590,8 +699,16 @@
      if (Flags.isByVal()) {
        assert(Flags.getByValSize() &&
               "ByVal args of size 0 should have been ignored by front-end."); 
@@ -330,7 +316,7 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
      // sanity check
      assert(VA.isMemLoc());
  
-@@ -596,6 +713,37 @@
+@@ -605,6 +722,37 @@
                                   MachinePointerInfo::getFixedStack(LastFI),
                                   false, false, false, 0));
    }
@@ -368,49 +354,20 @@ diff -Naur Chapter9_3/Cpu0ISelLowering.cpp Chapter9_4/Cpu0ISelLowering.cpp
    Cpu0FI->setLastInArgFI(LastFI);
    // All stores are grouped in one node to allow the matching between
    // the size of Ins and InVals. This only happens when on varg functions
-@@ -643,7 +791,27 @@
-     Flag = Chain.getValue(1);
-     RetOps.push_back(DAG.getRegister(VA.getLocReg(), VA.getLocVT()));
-   }
--  
-+
-+#if 1 // structure return begin. Without this, it will use $3 instead of $2 
-+  // as return register. The cpu0 ABIs for returning structs by value requires 
-+  // that we copy the sret argument into $v0 for the return. We saved the 
-+  // argument into a virtual register in the entry block, so now we copy the 
-+  // value out and into $v0.
-+  if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
-+    MachineFunction &MF      = DAG.getMachineFunction();
-+    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
-+    unsigned Reg = Cpu0FI->getSRetReturnReg();
-+
-+    if (!Reg)
-+      llvm_unreachable("sret virtual register not created in the entry block");
-+    SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, getPointerTy());
-+
-+    Chain = DAG.getCopyToReg(Chain, DL, Cpu0::V0, Val, Flag);
-+    Flag = Chain.getValue(1);
-+    RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
-+  }
-+#endif // structure return end
-+
-   RetOps[0] = Chain;  // Update chain.
- 
-   // Add the flag if we have it.
 diff -Naur Chapter9_3/Cpu0ISelLowering.h Chapter9_4/Cpu0ISelLowering.h
---- Chapter9_3/Cpu0ISelLowering.h	2014-02-11 14:03:42.462933945 +0800
-+++ Chapter9_4/Cpu0ISelLowering.h	2014-02-11 14:03:42.458933945 +0800
-@@ -96,6 +96,7 @@
-     // Lower Operand specifics
+--- Chapter9_3/Cpu0ISelLowering.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter9_4/Cpu0ISelLowering.h	2014-03-04 14:32:39.404076212 +0800
+@@ -97,6 +97,7 @@
      SDValue LowerBRCOND(SDValue Op, SelectionDAG &DAG) const;
+     SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
      SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
 +    SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
  
  	//- must be exist without function all
      virtual SDValue
 diff -Naur Chapter9_3/Cpu0RegisterInfo.cpp Chapter9_4/Cpu0RegisterInfo.cpp
---- Chapter9_3/Cpu0RegisterInfo.cpp	2014-02-11 14:03:42.462933945 +0800
-+++ Chapter9_4/Cpu0RegisterInfo.cpp	2014-02-11 14:03:42.458933945 +0800
+--- Chapter9_3/Cpu0RegisterInfo.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter9_4/Cpu0RegisterInfo.cpp	2014-03-04 14:32:39.404076212 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);

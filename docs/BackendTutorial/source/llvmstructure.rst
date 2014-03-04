@@ -85,11 +85,17 @@ down for each type of instruction.
 
   Cpu0's three instruction formats
 
-The following table details the Cpu0 instruction set:
+The Cpu0 has two ISA, the first ISA-I is cpu032I which hired CMP instruction 
+from ARM; the second ISA-II is cpu032II which hire SLT instruction from Mips. 
+The cpu032II include all cpu032I instruction set and add SLT, BEQ, ..., 
+instructions. The main purpose to add cpu032II is for instruction set design 
+explanation. As you will see in later chapter, the SLT instruction will has 
+better performance than CMP old style instruction.
+The following table details the cpu032I instruction set:
 
 - First column F\.: meaning Format.
 
-.. list-table:: Cpu0 Instruction Set
+.. list-table:: cpu032I Instruction Set
   :widths: 1 4 3 11 7 10
   :header-rows: 1
 
@@ -417,6 +423,56 @@ The following table details the Cpu0 instruction set:
     - Move GPR to SW
     - MTSW Ra
     - SW <= Ra
+
+
+The following table details the cpu032II instruction set added:
+
+.. list-table:: cpu032II Instruction Set
+  :widths: 1 4 3 11 7 10
+  :header-rows: 1
+
+  * - F\.
+    - Mnemonic
+    - Opcode
+    - Meaning
+    - Syntax
+    - Operation
+  * - L
+    - SLTi
+    - 26
+    - Set less Then
+    - SLTi Ra, Rb, Cx
+    - Ra <= (Rb < Cx)
+  * - L
+    - SLTiu
+    - 27
+    - SLTi unsigned 
+    - SLTiu Ra, Rb, Cx
+    - Ra <= (Rb < Cx)
+  * - A
+    - SLT
+    - 28
+    - Set less Then
+    - SLT Ra, Rb, Rc
+    - Ra <= (Rb < Rc)
+  * - A
+    - SLTu
+    - 29
+    - SLT unsigned
+    - SLTu Ra, Rb, Rc
+    - Ra <= (Rb < Rc)
+  * - L
+    - BEQ
+    - 37
+    - Jump if equal
+    - BEQ Ra, Rb, Cx
+    - if (Ra==Rb), PC <= PC + Cx
+  * - L
+    - BNE
+    - 38
+    - Jump if not equal
+    - BNE Ra, Rb, Cx
+    - if (Ra!=Rb), PC <= PC + Cx
 
 .. note:: **Cpu0 unsigned instructions**
 
@@ -783,7 +839,7 @@ The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
     :end-before: // These are target-independent nodes, but have target-specific formats.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: disassembler for expectation. */
+    :start-after: def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
     :end-before: // Instruction operand types
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: // lbd document - mark - def calltarget

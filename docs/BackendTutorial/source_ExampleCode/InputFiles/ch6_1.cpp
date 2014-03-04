@@ -22,4 +22,3 @@ int test_global()
 
   return c;
 }
-

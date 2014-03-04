@@ -1,7 +1,7 @@
 diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
---- Chapter4_1/Cpu0InstrInfo.td	2014-02-10 19:39:53.983441724 +0800
-+++ Chapter4_2/Cpu0InstrInfo.td	2014-02-10 19:39:53.979441724 +0800
-@@ -132,6 +132,16 @@
+--- Chapter4_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.416076212 +0800
++++ Chapter4_2/Cpu0InstrInfo.td	2014-03-04 14:32:39.412076212 +0800
+@@ -144,6 +144,17 @@
    let isReMaterializable = 1;
  }
  
@@ -13,12 +13,38 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +  let rc = 0;
 +  let shamt = 0;
 +  let isCommutable = isComm;
++  let Predicates = [HasCmp];
 +} // lbd document - mark - class CmpInstr
 +
  // Arithmetic and logical instructions with 2 register operands.
  class ArithLogicI<bits<8> op, string instr_asm, SDNode OpNode,
                    Operand Od, PatLeaf imm_type, RegisterClass RC> :
-@@ -276,6 +286,28 @@
+@@ -224,6 +235,24 @@
+   def #NAME# : StoreM<op, instr_asm, OpNode, CPURegs, mem, Pseudo>;
+ }
+ 
++// SetCC
++class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
++              RegisterClass RC>:
++  FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
++     !strconcat(instr_asm, "\t$ra, $rb, $rc"),
++     [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
++     IIAlu>, Requires<[HasSlt]> {
++  let shamt = 0;
++}
++
++class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
++              PatLeaf imm_type, RegisterClass RC>:
++  FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
++     !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
++     [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
++     IIAlu>, Requires<[HasSlt]> {
++}
++
+ let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
+     isIndirectBranch = 1 in
+ class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
+@@ -289,6 +318,28 @@
    let neverHasSideEffects = 1;
  }
  
@@ -47,7 +73,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-@@ -292,15 +324,21 @@
+@@ -305,15 +356,21 @@
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
  def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
@@ -61,7 +87,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  def ADDu    : ArithLogicR<0x11, "addu", add, IIAlu, CPURegs, 1>;
  def SUBu    : ArithLogicR<0x12, "subu", sub, IIAlu, CPURegs>;
  def ADD     : ArithLogicR<0x13, "add", add, IIAlu, CPURegs, 1>;
- def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs, 1>;
+ def SUB     : ArithLogicR<0x14, "sub", sub, IIAlu, CPURegs>;
  def MUL     : ArithLogicR<0x17, "mul", mul, IIImul, CPURegs, 1>;
 +def AND     : ArithLogicR<0x18, "and", and, IIAlu, CPURegs, 1>;
 +def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
@@ -69,7 +95,19 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  
  /// Shift Instructions
  // sra is IR node for ashr llvm IR instruction of .bc
-@@ -329,6 +367,8 @@
+@@ -327,6 +384,11 @@
+ def SHLV    : shift_rotate_reg<0x21, 0x00, "shlv", shl, CPURegs>;
+ def SHRV    : shift_rotate_reg<0x22, 0x00, "shrv", srl, CPURegs>;
+ 
++def SLTi    : SetCC_I<0x26, "slti", setlt, simm16, immSExt16, CPURegs>;
++def SLTiu   : SetCC_I<0x27, "sltiu", setult, simm16, immSExt16, CPURegs>;
++def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
++def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
++
+ let isReturn=1, isTerminator=1, hasDelaySlot=1, isBarrier=1, hasCtrlDep=1 in
+   def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
+ 
+@@ -342,6 +404,8 @@
  def MFLO    : MoveFromLOHI<0x47, "mflo", CPURegs, [LO]>;
  def MTHI    : MoveToLOHI<0x48, "mthi", CPURegs, [HI]>;
  def MTLO    : MoveToLOHI<0x49, "mtlo", CPURegs, [LO]>;
@@ -78,7 +116,7 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
  
  /// No operation
  let addr=0 in
-@@ -350,3 +390,60 @@
+@@ -363,3 +427,118 @@
  def : Pat<(i32 imm:$imm),
            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
  
@@ -87,6 +125,8 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +          (XORi CPURegs:$in, 1)>;
 +
 +// setcc patterns
++
++// setcc for cmp instruction
 +multiclass SeteqPatsCmp<RegisterClass RC> {
 +// a == b
 +  def : Pat<(seteq RC:$lhs, RC:$rhs),
@@ -134,15 +174,71 @@ diff -Naur Chapter4_1/Cpu0InstrInfo.td Chapter4_2/Cpu0InstrInfo.td
 +            (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
 +}
 +
++// setcc for slt instruction
++multiclass SeteqPatsSlt<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
++                     Instruction SLTuOp, Register ZEROReg> {
++// a == b
++  def : Pat<(seteq RC:$lhs, RC:$rhs),
++                (SLTiuOp (XOROp RC:$lhs, RC:$rhs), 1)>;
++// a != b
++  def : Pat<(setne RC:$lhs, RC:$rhs),
++                (SLTuOp ZEROReg, (XOROp RC:$lhs, RC:$rhs))>;
++}
++
++// a <= b
++multiclass SetlePatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
++  def : Pat<(setle RC:$lhs, RC:$rhs),
++// a <= b is equal to (XORi (b < a), 1)
++                (XORi (SLTOp RC:$rhs, RC:$lhs), 1)>;
++  def : Pat<(setule RC:$lhs, RC:$rhs),
++                (XORi (SLTuOp RC:$rhs, RC:$lhs), 1)>;
++}
++
++// a > b
++multiclass SetgtPatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
++  def : Pat<(setgt RC:$lhs, RC:$rhs),
++// a > b is equal to b < a is equal to setlt(b, a)
++                (SLTOp RC:$rhs, RC:$lhs)>;
++  def : Pat<(setugt RC:$lhs, RC:$rhs),
++                (SLTuOp RC:$rhs, RC:$lhs)>;
++}
++
++// a >= b
++multiclass SetgePatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
++  def : Pat<(setge RC:$lhs, RC:$rhs),
++// a >= b is equal to b <= a
++                (XORi (SLTOp RC:$lhs, RC:$rhs), 1)>;
++  def : Pat<(setuge RC:$lhs, RC:$rhs),
++                (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)>;
++}
++
++multiclass SetgeImmPatsSlt<RegisterClass RC, Instruction SLTiOp,
++                        Instruction SLTiuOp> {
++  def : Pat<(setge RC:$lhs, immSExt16:$rhs),
++                (XORi (SLTiOp RC:$lhs, immSExt16:$rhs), 1)>;
++  def : Pat<(setuge RC:$lhs, immSExt16:$rhs),
++                (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
++}
++
++let Predicates = [HasCmp] in {
 +defm : SeteqPatsCmp<CPURegs>;
 +defm : SetltPatsCmp<CPURegs>;
 +defm : SetlePatsCmp<CPURegs>;
 +defm : SetgtPatsCmp<CPURegs>;
 +defm : SetgePatsCmp<CPURegs>;
++}
++
++let Predicates = [HasSlt] in {
++defm : SeteqPatsSlt<CPURegs, SLTiu, XOR, SLTu, ZERO>;
++defm : SetlePatsSlt<CPURegs, SLT, SLTu>;
++defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;
++defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
++defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
++}
 diff -Naur Chapter4_1/Cpu0ISelLowering.cpp Chapter4_2/Cpu0ISelLowering.cpp
---- Chapter4_1/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.983441724 +0800
-+++ Chapter4_2/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.979441724 +0800
-@@ -43,6 +43,9 @@
+--- Chapter4_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.412076212 +0800
++++ Chapter4_2/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.412076212 +0800
+@@ -44,6 +44,9 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
  

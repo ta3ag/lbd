@@ -37,7 +37,6 @@ copyPhysReg(MachineBasicBlock &MBB,
             bool KillSrc) const {
   unsigned Opc = 0, ZeroReg = 0;
 
-  const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
   if (Cpu0::CPURegsRegClass.contains(DestReg)) { // Copy to CPU Reg.
     if (Cpu0::CPURegsRegClass.contains(SrcReg))
       Opc = Cpu0::ADD, ZeroReg = Cpu0::ZERO;

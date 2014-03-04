@@ -1,5 +1,5 @@
 // clang -target mips-unknown-linux-gnu -c ch7_4.cpp -emit-llvm -o ch7_4.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_4.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch7_4.bc -o -
 
 /// start
 long long test_longlong()

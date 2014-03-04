@@ -56,10 +56,10 @@ static std::string ParseCpu0Triple(StringRef TT, StringRef CPU) {
   }
 
   if (TheTriple == "cpu0" || TheTriple == "cpu0el") {
-    if (CPU.empty() || CPU == "cpu032I") {
-      Cpu0ArchFeature = "+cpu032I";
-    } else if (CPU == "cpu032II") {
+    if (CPU.empty() || CPU == "cpu032II") {
       Cpu0ArchFeature = "+cpu032II";
+    } else if (CPU == "cpu032I") {
+      Cpu0ArchFeature = "+cpu032I";
     }
   }
   return Cpu0ArchFeature;

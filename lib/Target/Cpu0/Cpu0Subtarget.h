@@ -37,9 +37,8 @@ public:
 
 protected:
   enum Cpu0ArchEnum {
-    Cpu032I
-    , Cpu032II,
-    Cpu032III
+    Cpu032I,
+    Cpu032II
   };
 
   // Cpu0 architecture version
@@ -50,6 +49,12 @@ protected:
 
   // IsLittle - The target is Little Endian
   bool IsLittle;
+
+  // HasCmp - cmp instructions.
+  bool HasCmp;
+
+  // HasSlt - slt instructions.
+  bool HasSlt;
 
   InstrItineraryData InstrItins;
 
@@ -74,7 +79,14 @@ public:
 
   bool isLittle() const { return IsLittle; }
   bool hasCpu032I() const { return Cpu0ArchVersion >= Cpu032I; }
-  bool hasCpu032II() const { return Cpu0ArchVersion == Cpu032II; }
+  bool isCpu032I() const { return Cpu0ArchVersion == Cpu032I; }
+  bool hasCpu032II() const { return Cpu0ArchVersion >= Cpu032II; }
+  bool isCpu032II() const { return Cpu0ArchVersion == Cpu032II; }
+
+  /// Features related to the presence of specific instructions.
+  bool hasCmp()   const { return HasCmp; }
+  bool hasSlt()   const { return HasSlt; }
+
   bool useSmallSection() const { return UseSmallSection; }
 };
 } // End llvm namespace

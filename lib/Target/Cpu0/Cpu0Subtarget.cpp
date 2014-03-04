@@ -46,11 +46,15 @@ Cpu0Subtarget::Cpu0Subtarget(const std::string &TT, const std::string &CPU,
                              const std::string &FS, bool little, 
                              Reloc::Model _RM) :
   Cpu0GenSubtargetInfo(TT, CPU, FS),
-  Cpu0ArchVersion(Cpu032I), Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
+  Cpu0ABI(UnknownABI), IsLittle(little), RM(_RM)
 {
   std::string CPUName = CPU;
   if (CPUName.empty())
-    CPUName = "cpu032I";
+    CPUName = "cpu032II";
+  if (CPUName == "cpu032I")
+    Cpu0ArchVersion = Cpu032I;
+  else if (CPUName == "cpu032II")
+    Cpu0ArchVersion = Cpu032II;
 
   // Parse features string.
   ParseSubtargetFeatures(CPUName, FS);

@@ -36,9 +36,6 @@ The code added in Chapter4_1/ to support arithmetic instructions as follows,
 .. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
   :start-after: // lbd document - mark - getRegisterInfo()
-  :end-before: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-  :start-after: const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
   :end-before: static MachineMemOperand* GetMemOperand
 
 .. rubric:: lbdex/Chapter4_1/Cpu0InstrInfo.h
@@ -1342,6 +1339,46 @@ run result of bc and asm instructions for ch4_5.cpp as below.
     let isCommutable = isComm;
   }
   ...
+  // SetCC
+  class SetCC_R<bits<8> op, string instr_asm, PatFrag cond_op,
+                RegisterClass RC>:
+    FA<op, (outs GPROut:$ra), (ins RC:$rb, RC:$rc),
+       !strconcat(instr_asm, "\t$ra, $rb, $rc"),
+       [(set GPROut:$ra, (cond_op RC:$rb, RC:$rc))],
+       IIAlu>, Requires<[HasSlt]> {
+    let shamt = 0;
+  }
+  
+  class SetCC_I<bits<8> op, string instr_asm, PatFrag cond_op, Operand Od,
+                PatLeaf imm_type, RegisterClass RC>:
+    FL<op, (outs GPROut:$ra), (ins RC:$rb, Od:$imm16),
+       !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+       [(set GPROut:$ra, (cond_op RC:$rb, imm_type:$imm16))],
+       IIAlu>, Requires<[HasSlt]> {
+  }
+  ...
+  // Move from SW
+  class MoveFromSW<bits<8> op, string instr_asm, RegisterClass RC,
+                     list<Register> UseRegs>:
+    FL<op, (outs RC:$ra), (ins),
+       !strconcat(instr_asm, "\t$ra"), [], IIAlu> {
+    let rb = 0;
+    let imm16 = 0;
+    let Uses = UseRegs;
+    let neverHasSideEffects = 1;
+  }
+  
+  // Move to SW
+  class MoveToSW<bits<8> op, string instr_asm, RegisterClass RC,
+                   list<Register> DefRegs>:
+    FL<op, (outs), (ins RC:$ra),
+       !strconcat(instr_asm, "\t$ra"), [], IIAlu> {
+    let rb = 0;
+    let imm16 = 0;
+    let Defs = DefRegs;
+    let neverHasSideEffects = 1;
+  }
+  ...
   /// Arithmetic Instructions (ALU Immediate)
   ...
   def ANDi    : ArithLogicI<0x0c, "andi", and, uimm16, immZExt16, CPURegs>;
@@ -1355,12 +1392,22 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   def OR      : ArithLogicR<0x19, "or", or, IIAlu, CPURegs, 1>;
   def XOR     : ArithLogicR<0x1a, "xor", xor, IIAlu, CPURegs, 1>;
   ...
+  def SLTi    : SetCC_I<0x26, "slti", setlt, simm16, immSExt16, CPURegs>;
+  def SLTiu   : SetCC_I<0x27, "sltiu", setult, simm16, immSExt16, CPURegs>;
+  def SLT     : SetCC_R<0x28, "slt", setlt, CPURegs>;
+  def SLTu    : SetCC_R<0x29, "sltu", setult, CPURegs>;
+  ...
+  def MFSW    : MoveFromSW<0x50, "mfsw", CPURegs, [SW]>;
+  def MTSW    : MoveToSW<0x51, "mtsw", CPURegs, [SW]>;
+  ...
   def : Pat<(not CPURegs:$in),
   // 1: in == 0; 0: in != 0
             (XORi CPURegs:$in, 1)>;
-    
+  
   // setcc patterns
-  multiclass SeteqPats<RegisterClass RC> {
+  
+  // setcc for cmp instruction
+  multiclass SeteqPatsCmp<RegisterClass RC> {
   // a == b
     def : Pat<(seteq RC:$lhs, RC:$rhs),
               (SHR (ANDi (CMP RC:$lhs, RC:$rhs), 2), 1)>;
@@ -1370,7 +1417,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   }
   
   // a < b
-  multiclass SetltPats<RegisterClass RC> {
+  multiclass SetltPatsCmp<RegisterClass RC> {
     def : Pat<(setlt RC:$lhs, RC:$rhs),
               (ANDi (CMP RC:$lhs, RC:$rhs), 1)>;
   // if cpu0  `define N    `SW[31]  instead of `SW[0] // Negative flag, then need
@@ -1381,7 +1428,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   }
   
   // a <= b
-  multiclass SetlePats<RegisterClass RC> {
+  multiclass SetlePatsCmp<RegisterClass RC> {
     def : Pat<(setle RC:$lhs, RC:$rhs),
   // a <= b is equal to (XORi (b < a), 1)
               (XORi (ANDi (CMP RC:$rhs, RC:$lhs), 1), 1)>;
@@ -1390,7 +1437,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   }
   
   // a > b
-  multiclass SetgtPats<RegisterClass RC> {
+  multiclass SetgtPatsCmp<RegisterClass RC> {
     def : Pat<(setgt RC:$lhs, RC:$rhs),
   // a > b is equal to b < a is equal to setlt(b, a)
               (ANDi (CMP RC:$rhs, RC:$lhs), 1)>;
@@ -1399,7 +1446,7 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   }
   
   // a >= b
-  multiclass SetgePats<RegisterClass RC> {
+  multiclass SetgePatsCmp<RegisterClass RC> {
     def : Pat<(setge RC:$lhs, RC:$rhs),
   // a >= b is equal to b <= a
               (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
@@ -1407,11 +1454,68 @@ run result of bc and asm instructions for ch4_5.cpp as below.
               (XORi (ANDi (CMP RC:$lhs, RC:$rhs), 1), 1)>;
   }
   
-  defm : SeteqPats<CPURegs>;
-  defm : SetltPats<CPURegs>;
-  defm : SetlePats<CPURegs>;
-  defm : SetgtPats<CPURegs>;
-  defm : SetgePats<CPURegs>;
+  // setcc for slt instruction
+  multiclass SeteqPatsSlt<RegisterClass RC, Instruction SLTiuOp, Instruction XOROp,
+                       Instruction SLTuOp, Register ZEROReg> {
+  // a == b
+    def : Pat<(seteq RC:$lhs, RC:$rhs),
+                  (SLTiuOp (XOROp RC:$lhs, RC:$rhs), 1)>;
+  // a != b
+    def : Pat<(setne RC:$lhs, RC:$rhs),
+                  (SLTuOp ZEROReg, (XOROp RC:$lhs, RC:$rhs))>;
+  }
+  
+  // a <= b
+  multiclass SetlePatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+    def : Pat<(setle RC:$lhs, RC:$rhs),
+  // a <= b is equal to (XORi (b < a), 1)
+                  (XORi (SLTOp RC:$rhs, RC:$lhs), 1)>;
+    def : Pat<(setule RC:$lhs, RC:$rhs),
+                  (XORi (SLTuOp RC:$rhs, RC:$lhs), 1)>;
+  }
+  
+  // a > b
+  multiclass SetgtPatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+    def : Pat<(setgt RC:$lhs, RC:$rhs),
+  // a > b is equal to b < a is equal to setlt(b, a)
+                  (SLTOp RC:$rhs, RC:$lhs)>;
+    def : Pat<(setugt RC:$lhs, RC:$rhs),
+                  (SLTuOp RC:$rhs, RC:$lhs)>;
+  }
+  
+  // a >= b
+  multiclass SetgePatsSlt<RegisterClass RC, Instruction SLTOp, Instruction SLTuOp> {
+    def : Pat<(setge RC:$lhs, RC:$rhs),
+  // a >= b is equal to b <= a
+                  (XORi (SLTOp RC:$lhs, RC:$rhs), 1)>;
+    def : Pat<(setuge RC:$lhs, RC:$rhs),
+                  (XORi (SLTuOp RC:$lhs, RC:$rhs), 1)>;
+  }
+  
+  multiclass SetgeImmPatsSlt<RegisterClass RC, Instruction SLTiOp,
+                          Instruction SLTiuOp> {
+    def : Pat<(setge RC:$lhs, immSExt16:$rhs),
+                  (XORi (SLTiOp RC:$lhs, immSExt16:$rhs), 1)>;
+    def : Pat<(setuge RC:$lhs, immSExt16:$rhs),
+                  (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
+  }
+  
+  let Predicates = [HasCmp] in {
+  defm : SeteqPatsCmp<CPURegs>;
+  defm : SetltPatsCmp<CPURegs>;
+  defm : SetlePatsCmp<CPURegs>;
+  defm : SetgtPatsCmp<CPURegs>;
+  defm : SetgePatsCmp<CPURegs>;
+  }
+  
+  let Predicates = [HasSlt] in {
+  defm : SeteqPatsSlt<CPURegs, SLTiu, XOR, SLTu, ZERO>;
+  defm : SetlePatsSlt<CPURegs, SLT, SLTu>;
+  defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;
+  defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
+  defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
+  }
+
 
 .. rubric:: lbdex/Chapter4_2/Cpu0ISelLowering.cpp
 .. code-block:: c++
@@ -1534,8 +1638,8 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   }
   
   114-43-204-152:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch4_5.bc -o -
- -filetype=asm ch4_5.bc -o -
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
+  ch4_5.bc -o -
     .section .mdebug.abi32
     .previous
     .file "ch4_5.bc"
@@ -1657,11 +1761,18 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   $tmp3:
     .size _Z10test_setxxv, ($tmp3)-_Z10test_setxxv
 
+  114-43-204-152:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm 
+  ch4_5.bc -o -
+    ...
+	sltiu	$2, $2, 1
+	andi	$2, $2, 1
+	...
 
-.. table:: Logic operators
+.. table:: Logic operators for cpu032I
 
   ==========  =================================  ====================================  =======================
-  C           .bc                                Optimized legalized selection DAG     Cpu0
+  C           .bc                                Optimized legalized selection DAG     cpu032I
   ==========  =================================  ====================================  =======================
   &, &&       and                                and                                   and
   \|, \|\|    or                                 or                                    or
@@ -1669,22 +1780,59 @@ run result of bc and asm instructions for ch4_5.cpp as below.
   !           - %tobool = icmp ne i32 %6, 0      - %lnot = (setcc %tobool, 0, seteq)   - xor $3, $4, $3
               - %lnot = xor i1 %tobool, true     - %conv = (and %lnot, 1)
               - %conv = zext i1 %lnot to i32     - 
-  ==          - %cmp = icmp eq i32 %0, %1        - (setcc %0, %1, seteq)               - cmp $sw, $3, $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
+  ==          - %cmp = icmp eq i32 %0, %1        - %cmp = (setcc %0, %1, seteq)        - cmp $sw, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $sw, 2
                                                                                        - shr $2, $2, 1
-  !=          - %cmp = icmp ne i32 %0, %1        - (setcc %0, %1, setne)               - cmp $sw, $3, $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
+                                                                                       - andi $2, $2, 1
+  !=          - %cmp = icmp ne i32 %0, %1        - %cmp = (setcc %0, %1, setne)        - cmp $sw, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $sw, 2
                                                                                        - shr $2, $2, 1
+                                                                                       - andi $2, $2, 1
   <           - %cmp = icmp lt i32 %0, %1        - (setcc %0, %1, setlt)               - cmp $sw, $3, $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $sw, 2
+                                                                                       - andi $2, $2, 1
+                                                                                       - andi $2, $2, 1
   <=          - %cmp = icmp le i32 %0, %1        - (setcc %0, %1, setle)               - cmp $sw, $2, $3
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 1
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $sw, 1
                                                                                        - xori  $2, $2, 1
+                                                                                       - andi $2, $2, 1
   >           - %cmp = icmp gt i32 %0, %1        - (setcc %0, %1, setgt)               - cmp $sw, $2, $3
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $sw, 2
+                                                                                       - andi $2, $2, 1
   >=          - %cmp = icmp le i32 %0, %1        - (setcc %0, %1, setle)               - cmp $sw, $3, $2
-              - %conv = zext i1 %cmp to i32                                            - andi  $2, $sw, 1
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $sw, 1
                                                                                        - xori  $2, $2, 1
+                                                                                       - andi $2, $2, 1
+  ==========  =================================  ====================================  =======================
+
+.. table:: Logic operators for cpu032II
+
+  ==========  =================================  ====================================  =======================
+  C           .bc                                Optimized legalized selection DAG     cpu032I
+  ==========  =================================  ====================================  =======================
+  &, &&       and                                and                                   and
+  \|, \|\|    or                                 or                                    or
+  ^           xor                                xor                                   xor
+  !           - %tobool = icmp ne i32 %6, 0      - %lnot = (setcc %tobool, 0, seteq)   - xor $3, $4, $3
+              - %lnot = xor i1 %tobool, true     - %conv = (and %lnot, 1)
+              - %conv = zext i1 %lnot to i32     - 
+  ==          - %cmp = icmp eq i32 %0, %1        - %cmp = (setcc %0, %1, seteq)        - xor $2, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - sltiu  $2, $2, 1
+                                                                                       - andi $2, $2, 1
+  !=          - %cmp = icmp ne i32 %0, %1        - %cmp = (setcc %0, %1, setne)        - xor $2, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - sltu  $2, $zero, 2
+                                                                                       - shr $2, $2, 1
+                                                                                       - andi $2, $2, 1
+  <           - %cmp = icmp lt i32 %0, %1        - (setcc %0, %1, setlt)               - slt $2, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $2, 1
+  <=          - %cmp = icmp le i32 %0, %1        - (setcc %0, %1, setle)               - slt $2, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - xori  $2, $2, 1
+                                                                                       - andi $2, $2, 1
+  >           - %cmp = icmp gt i32 %0, %1        - (setcc %0, %1, setgt)               - slt $2, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - andi  $2, $2, 1
+  >=          - %cmp = icmp le i32 %0, %1        - (setcc %0, %1, setle)               - slt $2, $3, $2
+              - %conv = zext i1 %cmp to i32      - and %cmp, 1                         - xori  $2, $2, 1
+                                                                                       - andi $2, $2, 1
   ==========  =================================  ====================================  =======================
 
 In relation operators ==, !=, ..., %0 = $3 = 5, %1 = $2 = 3 for ch4_5.cpp.
@@ -1693,7 +1841,65 @@ The "Optimized legalized selection DAG" is the last DAG stage just before the
 "instruction selection" as the section mentioned in this chapter. You can see 
 the whole DAG stages by ``llc -debug`` option.
 
+From above result, the slt spend less instructions than cmp for relation 
+operators translation. Beside that, the slt use general purpose register while 
+cmp use $sw dedicate register.
 
+.. rubric:: lbdex/InputFiles/ch4_6.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch4_6.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  118-165-78-10:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -O2 
+  -c ch4_6.cpp -emit-llvm -o ch4_6.bc
+  118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch4_6.bc -o -
+    ...
+    ld  $3, 20($sp)
+    cmp $sw, $3, $2
+    andi  $2, $sw, 1
+    andi  $2, $2, 1
+    st  $2, 12($sp)
+    addiu $2, $zero, 2
+    ld  $3, 16($sp)
+    cmp $sw, $3, $2
+    andi  $2, $sw, 1
+    andi  $2, $2, 1
+    ...
+  118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm 
+  ch4_6.bc -o -
+    ...
+    ld  $2, 20($sp)
+    slti  $2, $2, 1
+    andi  $2, $2, 1
+    st  $2, 12($sp)
+    ld  $2, 16($sp)
+    slti  $2, $2, 2
+    andi  $2, $2, 1
+    st  $2, 8($sp)
+    ...
+
+Run these two `llc -mcpu` option for Chapter4_2 with ch4_6.cpp get the 
+above result. Ignore the move between \$sw and general purpose register in 
+`llc -mcpu=cpu032I`, the two cmp instructions in it will has hazard in 
+instruction reorder since both of them use \$sw register while  
+`llc -mcpu=cpu032II` has not [#Quantitative]_. The slti version can reorder as follows,
+
+.. code-block:: bash
+
+    ...
+    ld  $2, 16($sp)
+    slti  $2, $2, 2
+    andi  $2, $2, 1
+    st  $2, 8($sp)
+    ld  $2, 20($sp)
+    slti  $2, $2, 1
+    andi  $2, $2, 1
+    st  $2, 12($sp)
+    ...
 
 Summary
 --------
@@ -1701,7 +1907,7 @@ Summary
 List C operators, IR of .bc, Optimized legalized selection DAG and Cpu0 
 instructions implemented in this chapter in Table: Chapter 4 mathmetic 
 operators. There are 20 operators totally in mathmetic and logic support in
-this chapter and spend 360 lines of source code. 
+this chapter and spend 431 lines of source code. 
 
 .. table:: Chapter 4 mathmetic operators
 
@@ -1760,4 +1966,7 @@ this chapter and spend 360 lines of source code.
 .. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
 
 .. [#] http://llvm.org/docs/CodeGenerator.html#selectiondag-legalizetypes-phase
+
+.. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
+       Kaufmann Series in Computer Architecture and Design) 
 

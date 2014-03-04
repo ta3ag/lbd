@@ -1,6 +1,6 @@
 diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
---- Chapter5_1/CMakeLists.txt	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/CMakeLists.txt	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/CMakeLists.txt	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/CMakeLists.txt	2014-03-04 14:32:39.396076212 +0800
 @@ -30,6 +30,7 @@
    Cpu0ISelLowering.cpp
    Cpu0FrameLowering.cpp
@@ -10,8 +10,8 @@ diff -Naur Chapter5_1/CMakeLists.txt Chapter6_1/CMakeLists.txt
    Cpu0Subtarget.cpp
    Cpu0TargetMachine.cpp
 diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
---- Chapter5_1/Cpu0AsmPrinter.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0AsmPrinter.cpp	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/Cpu0AsmPrinter.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0AsmPrinter.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -185,6 +185,11 @@
    MCInstLowering.Initialize(&MF->getContext());
  
@@ -46,8 +46,8 @@ diff -Naur Chapter5_1/Cpu0AsmPrinter.cpp Chapter6_1/Cpu0AsmPrinter.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
---- Chapter5_1/Cpu0InstrInfo.td	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0InstrInfo.td	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.400076212 +0800
 @@ -26,6 +26,13 @@
                                           [SDTCisInt<0>,
                                            SDTCisSameAs<0, 1>]>;
@@ -62,19 +62,15 @@ diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
  // Return
  def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
-@@ -37,6 +44,11 @@
-                            [SDNPOutGlue]>;
- 
- //===----------------------------------------------------------------------===//
-+// Cpu0 Instruction Predicate Definitions.
-+//===----------------------------------------------------------------------===//
+@@ -47,6 +54,7 @@
+                       AssemblerPredicate<"FeatureCpu032I">;
+ def IsCpu032II  :     Predicate<"Subtarget.hasCpu032II()">,
+                       AssemblerPredicate<"FeatureCpu032II">;
 +def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
-+
-+//===----------------------------------------------------------------------===//
- // Cpu0 Operand, Complex Patterns and Transformations Definitions.
- //===----------------------------------------------------------------------===//
  
-@@ -390,6 +402,17 @@
+ //===----------------------------------------------------------------------===//
+ // Cpu0 Operand, Complex Patterns and Transformations Definitions.
+@@ -427,6 +435,17 @@
  def : Pat<(i32 imm:$imm),
            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
  
@@ -93,8 +89,8 @@ diff -Naur Chapter5_1/Cpu0InstrInfo.td Chapter6_1/Cpu0InstrInfo.td
  // 1: in == 0; 0: in != 0
            (XORi CPURegs:$in, 1)>;
 diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
---- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:46:19.963448970 +0800
+--- Chapter5_1/Cpu0ISelDAGToDAG.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0ISelDAGToDAG.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -13,6 +13,7 @@
  
  #define DEBUG_TYPE "cpu0-isel"
@@ -163,13 +159,9 @@ diff -Naur Chapter5_1/Cpu0ISelDAGToDAG.cpp Chapter6_1/Cpu0ISelDAGToDAG.cpp
      const ConstantSDNode *CN = dyn_cast<ConstantSDNode>(Node);
      unsigned Size = CN->getValueSizeInBits(0);
 diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
---- Chapter5_1/Cpu0ISelLowering.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0ISelLowering.cpp	2014-02-10 19:46:19.959448970 +0800
-@@ -14,9 +14,11 @@
- 
- #define DEBUG_TYPE "cpu0-lower"
- #include "Cpu0ISelLowering.h"
-+#include "Cpu0MachineFunction.h"
+--- Chapter5_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.396076212 +0800
+@@ -18,6 +18,7 @@
  #include "Cpu0TargetMachine.h"
  #include "Cpu0TargetObjectFile.h"
  #include "Cpu0Subtarget.h"
@@ -177,7 +169,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
  #include "llvm/IR/DerivedTypes.h"
  #include "llvm/IR/Function.h"
  #include "llvm/IR/GlobalVariable.h"
-@@ -29,12 +31,90 @@
+@@ -30,12 +31,90 @@
  #include "llvm/CodeGen/MachineRegisterInfo.h"
  #include "llvm/CodeGen/SelectionDAGISel.h"
  #include "llvm/CodeGen/ValueTypes.h"
@@ -268,7 +260,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
  Cpu0TargetLowering::
  Cpu0TargetLowering(Cpu0TargetMachine &TM)
    : TargetLowering(TM, new Cpu0TargetObjectFile()),
-@@ -43,6 +123,9 @@
+@@ -44,6 +123,9 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
  
@@ -278,7 +270,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
    // Cpu0 doesn't have sext_inreg, replace them with shl/sra.
    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
  
-@@ -115,6 +198,64 @@
+@@ -116,6 +198,64 @@
    return SDValue();
  }
  
@@ -344,8 +336,8 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.cpp Chapter6_1/Cpu0ISelLowering.cpp
  
  /// LowerFormalArguments - transform physical registers into virtual registers
 diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
---- Chapter5_1/Cpu0ISelLowering.h	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0ISelLowering.h	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.400076212 +0800
 @@ -25,10 +25,32 @@
      enum NodeType {
        // Start the numbering from where ISD NodeType finishes.
@@ -416,7 +408,7 @@ diff -Naur Chapter5_1/Cpu0ISelLowering.h Chapter6_1/Cpu0ISelLowering.h
        LowerFormalArguments(SDValue Chain,
 diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 --- Chapter5_1/Cpu0MachineFunction.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter6_1/Cpu0MachineFunction.cpp	2014-02-10 19:46:19.963448970 +0800
++++ Chapter6_1/Cpu0MachineFunction.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -0,0 +1,44 @@
 +//===-- Cpu0MachineFunctionInfo.cpp - Private data used for Cpu0 ----------===//
 +//
@@ -463,30 +455,40 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.cpp Chapter6_1/Cpu0MachineFunction.cpp
 +
 +void Cpu0FunctionInfo::anchor() { }
 diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
---- Chapter5_1/Cpu0MachineFunction.h	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0MachineFunction.h	2014-02-10 19:46:19.959448970 +0800
-@@ -23,17 +23,29 @@
+--- Chapter5_1/Cpu0MachineFunction.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0MachineFunction.h	2014-03-04 14:32:39.400076212 +0800
+@@ -23,6 +23,7 @@
  /// Cpu0FunctionInfo - This class is derived from MachineFunction private
  /// Cpu0 target-specific information for each MachineFunction.
  class Cpu0FunctionInfo : public MachineFunctionInfo {
 +  virtual void anchor();
    MachineFunction& MF;
-+
+ 
+   /// SRetReturnReg - Some subtargets require that sret lowering includes
+@@ -30,6 +31,12 @@
+   /// holds the virtual register into which the sret argument is passed.
+   unsigned SRetReturnReg;
+ 
 +  /// GlobalBaseReg - keeps track of the virtual register initialized for
 +  /// use as the global base register. This is used for PIC in some PIC
 +  /// relocation models.
 +  unsigned GlobalBaseReg;
++
 +  int GPFI; // Index of the frame object for restoring $gp
    unsigned MaxCallFrameSize;
    bool EmitNOAT;
  
- public:
+@@ -37,6 +44,7 @@
    Cpu0FunctionInfo(MachineFunction& MF)
    : MF(MF), 
+     SRetReturnReg(0),
 +    GlobalBaseReg(0),
      EmitNOAT(false), 
      MaxCallFrameSize(0)
      {}
+@@ -44,6 +52,10 @@
+   unsigned getSRetReturnReg() const { return SRetReturnReg; }
+   void setSRetReturnReg(unsigned Reg) { SRetReturnReg = Reg; }
  
 +  bool globalBaseRegFixed() const;
 +  bool globalBaseRegSet() const;
@@ -496,8 +498,8 @@ diff -Naur Chapter5_1/Cpu0MachineFunction.h Chapter6_1/Cpu0MachineFunction.h
    void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
    bool getEmitNOAT() const { return EmitNOAT; }
 diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
---- Chapter5_1/Cpu0MCInstLower.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0MCInstLower.cpp	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/Cpu0MCInstLower.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0MCInstLower.cpp	2014-03-04 14:32:39.396076212 +0800
 @@ -33,6 +33,85 @@
    Ctx = C;
  } // lbd document - mark - Initialize
@@ -594,8 +596,8 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.cpp Chapter6_1/Cpu0MCInstLower.cpp
      break;
   }
 diff -Naur Chapter5_1/Cpu0MCInstLower.h Chapter6_1/Cpu0MCInstLower.h
---- Chapter5_1/Cpu0MCInstLower.h	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0MCInstLower.h	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/Cpu0MCInstLower.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0MCInstLower.h	2014-03-04 14:32:39.400076212 +0800
 @@ -31,7 +31,10 @@
    Cpu0MCInstLower(Cpu0AsmPrinter &asmprinter);
    void Initialize(MCContext* C);
@@ -608,8 +610,8 @@ diff -Naur Chapter5_1/Cpu0MCInstLower.h Chapter6_1/Cpu0MCInstLower.h
  };
  }
 diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
---- Chapter5_1/Cpu0RegisterInfo.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0RegisterInfo.cpp	2014-02-10 19:46:19.963448970 +0800
+--- Chapter5_1/Cpu0RegisterInfo.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0RegisterInfo.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -77,6 +77,11 @@
    for (unsigned I = 0; I < array_lengthof(ReservedCPURegs); ++I)
      Reserved.set(ReservedCPURegs[I]);
@@ -623,8 +625,8 @@ diff -Naur Chapter5_1/Cpu0RegisterInfo.cpp Chapter6_1/Cpu0RegisterInfo.cpp
  } // lbd document - mark - getReservedRegs
  
 diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
---- Chapter5_1/Cpu0Subtarget.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0Subtarget.cpp	2014-02-10 19:46:19.963448970 +0800
+--- Chapter5_1/Cpu0Subtarget.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0Subtarget.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -14,12 +14,31 @@
  #include "Cpu0Subtarget.h"
  #include "Cpu0.h"
@@ -657,7 +659,7 @@ diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
  
  void Cpu0Subtarget::anchor() { }
  
-@@ -42,5 +61,14 @@
+@@ -46,5 +65,14 @@
    // Set Cpu0ABI if it hasn't been set yet.
    if (Cpu0ABI == UnknownABI)
      Cpu0ABI = O32;
@@ -673,8 +675,8 @@ diff -Naur Chapter5_1/Cpu0Subtarget.cpp Chapter6_1/Cpu0Subtarget.cpp
  }
  
 diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
---- Chapter5_1/Cpu0Subtarget.h	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0Subtarget.h	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/Cpu0Subtarget.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0Subtarget.h	2014-03-04 14:32:39.400076212 +0800
 @@ -21,6 +21,8 @@
  #define GET_SUBTARGETINFO_HEADER
  #include "Cpu0GenSubtargetInfo.inc"
@@ -684,7 +686,7 @@ diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
  namespace llvm {
  class StringRef;
  
-@@ -52,6 +54,9 @@
+@@ -59,6 +61,9 @@
    // Relocation Model
    Reloc::Model RM;
  
@@ -694,17 +696,18 @@ diff -Naur Chapter5_1/Cpu0Subtarget.h Chapter6_1/Cpu0Subtarget.h
  public:
    unsigned getTargetABI() const { return Cpu0ABI; }
  
-@@ -66,6 +71,7 @@
-   void ParseSubtargetFeatures(StringRef CPU, StringRef FS);
- 
-   bool isLittle() const { return IsLittle; }
+@@ -81,6 +86,8 @@
+   /// Features related to the presence of specific instructions.
+   bool hasCmp()   const { return HasCmp; }
+   bool hasSlt()   const { return HasSlt; }
++
 +  bool useSmallSection() const { return UseSmallSection; }
  };
  } // End llvm namespace
  
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.cpp
---- Chapter5_1/Cpu0TargetObjectFile.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.cpp	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/Cpu0TargetObjectFile.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0TargetObjectFile.cpp	2014-03-04 14:32:39.396076212 +0800
 @@ -39,3 +39,66 @@
  
  }
@@ -773,8 +776,8 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.cpp Chapter6_1/Cpu0TargetObjectFile.c
 +  return TargetLoweringObjectFileELF::SelectSectionForGlobal(GV, Kind, Mang,TM);
 +}
 diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
---- Chapter5_1/Cpu0TargetObjectFile.h	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/Cpu0TargetObjectFile.h	2014-02-10 19:46:19.963448970 +0800
+--- Chapter5_1/Cpu0TargetObjectFile.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/Cpu0TargetObjectFile.h	2014-03-04 14:32:39.400076212 +0800
 @@ -21,6 +21,19 @@
  
      void Initialize(MCContext &Ctx, const TargetMachine &TM);
@@ -796,8 +799,8 @@ diff -Naur Chapter5_1/Cpu0TargetObjectFile.h Chapter6_1/Cpu0TargetObjectFile.h
    };
  } // end namespace llvm
 diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -56,6 +56,14 @@
    switch (Kind) {
    default:                                 llvm_unreachable("Invalid kind!");
@@ -814,8 +817,8 @@ diff -Naur Chapter5_1/InstPrinter/Cpu0InstPrinter.cpp Chapter6_1/InstPrinter/Cpu
  
    OS << SRE->getSymbol();
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -36,6 +36,7 @@
    case FK_GPRel_4:
    case FK_Data_4:
@@ -833,8 +836,8 @@ diff -Naur Chapter5_1/MCTargetDesc/Cpu0AsmBackend.cpp Chapter6_1/MCTargetDesc/Cp
      Value = ((Value + 0x8000) >> 16) & 0xffff;
      break;
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h
---- Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2014-02-11 13:10:10.826934328 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h	2014-02-11 13:11:03.902934322 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0BaseInfo.h	2014-03-04 14:32:39.400076212 +0800
 @@ -77,6 +77,10 @@
      // N32/64 Flags.
      MO_GPOFF_HI,
@@ -847,8 +850,8 @@ diff -Naur Chapter5_1/MCTargetDesc/Cpu0BaseInfo.h Chapter6_1/MCTargetDesc/Cpu0Ba
      MO_GOT_PAGE,
      MO_GOT_OFST
 diff -Naur Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-10 19:46:19.963448970 +0800
-+++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-02-10 19:46:19.959448970 +0800
+--- Chapter5_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter6_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-04 14:32:39.400076212 +0800
 @@ -155,6 +155,36 @@
  
    assert (Kind == MCExpr::SymbolRef);

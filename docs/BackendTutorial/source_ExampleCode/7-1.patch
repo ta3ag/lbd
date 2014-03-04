@@ -1,7 +1,7 @@
 diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
---- Chapter6_1/Cpu0InstrInfo.td	2014-02-10 19:39:53.963441724 +0800
-+++ Chapter7_1/Cpu0InstrInfo.td	2014-02-10 19:39:53.987441724 +0800
-@@ -71,6 +71,12 @@
+--- Chapter6_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.400076212 +0800
++++ Chapter7_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.416076212 +0800
+@@ -79,6 +79,12 @@
    let EncoderMethod = "getMemEncoding";
  }
  
@@ -14,7 +14,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  // Transformation Function - get the lower 16 bits.
  def LO16 : SDNodeXForm<imm, [{
    return getImm(N, N->getZExtValue() & 0xffff);
-@@ -126,7 +132,11 @@
+@@ -134,7 +140,11 @@
  }]>;
  
  // Load/Store PatFrags.
@@ -26,7 +26,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  def store_a         : AlignedStore<store>;
  
  //===----------------------------------------------------------------------===//
-@@ -320,6 +330,10 @@
+@@ -348,6 +358,10 @@
    let neverHasSideEffects = 1;
  }
  
@@ -37,7 +37,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  // Instruction definition
  //===----------------------------------------------------------------------===//
-@@ -332,6 +346,12 @@
+@@ -360,6 +374,12 @@
  ///  aligned
  defm LD     : LoadM32<0x01,  "ld",  load_a>;
  defm ST     : StoreM32<0x02, "st",  store_a>;
@@ -50,7 +50,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  
  /// Arithmetic Instructions (ALU Immediate)
  // IR "add" defined in include/llvm/Target/TargetSelectionDAG.td, line 315 (def add).
-@@ -386,6 +406,14 @@
+@@ -419,6 +439,14 @@
  let addr=0 in
    def NOP   : FJ<0, (outs), (ins), "nop", [], IIAlu>;
  
@@ -65,7 +65,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  //  Arbitrary patterns that map to one or more instructions
  //===----------------------------------------------------------------------===//
-@@ -402,6 +430,14 @@
+@@ -435,6 +463,14 @@
  def : Pat<(i32 imm:$imm),
            (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
  
@@ -80,7 +80,7 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
  // hi/lo relocs
  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
  def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
-@@ -417,6 +453,10 @@
+@@ -450,6 +486,10 @@
  // 1: in == 0; 0: in != 0
            (XORi CPURegs:$in, 1)>;
  
@@ -89,11 +89,11 @@ diff -Naur Chapter6_1/Cpu0InstrInfo.td Chapter7_1/Cpu0InstrInfo.td
 +def : Pat<(i32 (extloadi16_a addr:$src)), (LHu addr:$src)>;
 +
  // setcc patterns
- multiclass SeteqPatsCmp<RegisterClass RC> {
- // a == b
+ 
+ // setcc for cmp instruction
 diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
---- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:39:53.963441724 +0800
-+++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:39:53.987441724 +0800
+--- Chapter6_1/Cpu0ISelDAGToDAG.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter7_1/Cpu0ISelDAGToDAG.cpp	2014-03-04 14:32:39.416076212 +0800
 @@ -152,6 +152,23 @@
          Addr.getOpcode() == ISD::TargetGlobalAddress))
        return false;
@@ -118,7 +118,7 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
  
    Base   = Addr;
    Offset = CurDAG->getTargetConstant(0, ValTy);
-@@ -204,6 +221,58 @@
+@@ -204,6 +221,65 @@
    switch(Opcode) {
    default: break;
  
@@ -145,10 +145,17 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
 +    SDValue RHS = Node->getOperand(1);
 +
 +    EVT VT = LHS.getValueType();
-+    SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
-+    SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-+    SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
-+                                           SDValue(StatusWord,0), Constant1);
++    const Cpu0TargetMachine &TM = getTargetMachine();
++    const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
++    SDNode *Carry;
++    if (Subtarget.hasCpu032II())
++      Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
++    else {
++      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
++      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
++      Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
++                                             SDValue(StatusWord,0), Constant1);
++    }
 +    SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
 +                                              SDValue(Carry,0), RHS);
 +
@@ -178,8 +185,8 @@ diff -Naur Chapter6_1/Cpu0ISelDAGToDAG.cpp Chapter7_1/Cpu0ISelDAGToDAG.cpp
    case ISD::MULHU: {
      MultOpc = (Opcode == ISD::MULHU ? Cpu0::MULTu : Cpu0::MULT);
 diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
---- Chapter6_1/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.963441724 +0800
-+++ Chapter7_1/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.987441724 +0800
+--- Chapter6_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.396076212 +0800
++++ Chapter7_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.416076212 +0800
 @@ -123,6 +123,16 @@
    // Set up the register classes
    addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
@@ -197,9 +204,9 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
    // Cpu0 Custom Operations
    setOperationAction(ISD::GlobalAddress,      MVT::i32,   Custom);
  
-@@ -285,3 +295,9 @@
-     return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other,
-                        Chain, DAG.getRegister(Cpu0::LR, MVT::i32));
+@@ -337,3 +347,9 @@
+   // Return on Cpu0 is always a "ret $lr"
+   return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());
  }
 +
 +bool // lbd document - mark - isOffsetFoldingLegal
@@ -208,8 +215,8 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.cpp Chapter7_1/Cpu0ISelLowering.cpp
 +  return false;
 +}
 diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
---- Chapter6_1/Cpu0ISelLowering.h	2014-02-10 19:39:53.963441724 +0800
-+++ Chapter7_1/Cpu0ISelLowering.h	2014-02-10 19:39:53.987441724 +0800
+--- Chapter6_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter7_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.416076212 +0800
 @@ -105,6 +105,8 @@
                    const SmallVectorImpl<ISD::OutputArg> &Outs,
                    const SmallVectorImpl<SDValue> &OutVals,
@@ -220,8 +227,8 @@ diff -Naur Chapter6_1/Cpu0ISelLowering.h Chapter7_1/Cpu0ISelLowering.h
  }
  
 diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2014-02-10 19:39:53.963441724 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2014-02-10 19:39:53.987441724 +0800
+--- Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp	2014-03-04 14:32:39.400076212 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp	2014-03-04 14:32:39.416076212 +0800
 @@ -118,3 +118,12 @@
    O << ")";
  }
@@ -236,8 +243,8 @@ diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.cpp Chapter7_1/InstPrinter/Cpu
 +  return;
 +}
 diff -Naur Chapter6_1/InstPrinter/Cpu0InstPrinter.h Chapter7_1/InstPrinter/Cpu0InstPrinter.h
---- Chapter6_1/InstPrinter/Cpu0InstPrinter.h	2014-02-10 19:39:53.963441724 +0800
-+++ Chapter7_1/InstPrinter/Cpu0InstPrinter.h	2014-02-10 19:39:53.987441724 +0800
+--- Chapter6_1/InstPrinter/Cpu0InstPrinter.h	2014-03-04 14:32:39.400076212 +0800
++++ Chapter7_1/InstPrinter/Cpu0InstPrinter.h	2014-03-04 14:32:39.416076212 +0800
 @@ -39,6 +39,7 @@
    void printOperand(const MCInst *MI, unsigned OpNo, raw_ostream &O);
    void printUnsignedImm(const MCInst *MI, int opNum, raw_ostream &O);

@@ -22,8 +22,8 @@ Table of Contents
    ctrlflow
    funccall
    elf
+   asm
    runbackend
-   optimize
    lld
    install
    todo

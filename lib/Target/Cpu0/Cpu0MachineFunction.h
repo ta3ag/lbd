@@ -35,7 +35,7 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
   /// use as the global base register. This is used for PIC in some PIC
   /// relocation models.
   unsigned GlobalBaseReg;
-  
+
     /// VarArgsFrameIndex - FrameIndex for start of varargs area.
   int VarArgsFrameIndex;
 
@@ -45,6 +45,7 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
   // OutArgFIRange: Range of indices of all frame objects created during call to
   //                LowerCall except for the frame object for restoring $gp.
   std::pair<int, int> InArgFIRange, OutArgFIRange;
+
   int GPFI; // Index of the frame object for restoring $gp
   mutable int DynAllocFI; // Frame index of dynamically allocated stack area.
   unsigned MaxCallFrameSize;
@@ -53,7 +54,7 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
   : MF(MF), 
-    SRetReturnReg(0), 
+    SRetReturnReg(0),
     GlobalBaseReg(0),
     VarArgsFrameIndex(0), InArgFIRange(std::make_pair(-1, 0)),
     OutArgFIRange(std::make_pair(-1, 0)), GPFI(0), DynAllocFI(0),

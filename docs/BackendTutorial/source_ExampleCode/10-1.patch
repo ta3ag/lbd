@@ -1,6 +1,6 @@
 diff -Naur Chapter9_4/CMakeLists.txt Chapter10_1/CMakeLists.txt
---- Chapter9_4/CMakeLists.txt	2014-02-21 17:48:39.074150260 +0800
-+++ Chapter10_1/CMakeLists.txt	2014-02-21 17:48:39.078150260 +0800
+--- Chapter9_4/CMakeLists.txt	2014-03-04 14:32:39.404076212 +0800
++++ Chapter10_1/CMakeLists.txt	2014-03-04 14:32:39.404076212 +0800
 @@ -9,7 +9,7 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
@@ -10,7 +10,7 @@ diff -Naur Chapter9_4/CMakeLists.txt Chapter10_1/CMakeLists.txt
  tablegen(LLVM Cpu0GenCodeEmitter.inc -gen-emitter)
  tablegen(LLVM Cpu0GenMCCodeEmitter.inc -gen-emitter -mc-emitter)
  
-@@ -41,5 +41,6 @@
+@@ -42,5 +42,6 @@
  
  # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
  add_subdirectory(InstPrinter)
@@ -18,17 +18,17 @@ diff -Naur Chapter9_4/CMakeLists.txt Chapter10_1/CMakeLists.txt
  add_subdirectory(TargetInfo)
  add_subdirectory(MCTargetDesc)
 diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
---- Chapter9_4/Cpu0InstrInfo.td	2014-02-21 17:48:39.074150260 +0800
-+++ Chapter10_1/Cpu0InstrInfo.td	2014-02-21 17:48:39.078150260 +0800
-@@ -196,6 +196,7 @@
+--- Chapter9_4/Cpu0InstrInfo.td	2014-03-04 14:32:39.404076212 +0800
++++ Chapter10_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.404076212 +0800
+@@ -212,6 +212,7 @@
    let rc = 0;
    let shamt = 0;
    let isCommutable = isComm;
 +  let DecoderMethod = "DecodeCMPInstruction";
+   let Predicates = [HasCmp];
  } // lbd document - mark - class CmpInstr
  
- // Arithmetic and logical instructions with 2 register operands.
-@@ -323,6 +324,7 @@
+@@ -370,6 +371,7 @@
      FJ<op, (outs), (ins calltarget:$target, variable_ops),
         !strconcat(instr_asm, "\t$target"), [(Cpu0JmpLink imm:$target)],
         IIBranch> {
@@ -36,7 +36,7 @@ diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
         }
  
    class JumpLinkReg<bits<8> op, string instr_asm,
-@@ -493,6 +495,7 @@
+@@ -549,6 +551,7 @@
  /// Jump & link and Return Instructions
  def SWI     : JumpLink<0x3a, "swi">;
  def JSUB    : JumpLink<0x3b, "jsub">;
@@ -46,7 +46,7 @@ diff -Naur Chapter9_4/Cpu0InstrInfo.td Chapter10_1/Cpu0InstrInfo.td
    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
 diff -Naur Chapter9_4/Disassembler/CMakeLists.txt Chapter10_1/Disassembler/CMakeLists.txt
 --- Chapter9_4/Disassembler/CMakeLists.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/CMakeLists.txt	2014-02-21 17:48:39.078150260 +0800
++++ Chapter10_1/Disassembler/CMakeLists.txt	2014-03-04 14:32:39.408076212 +0800
 @@ -0,0 +1,15 @@
 +include_directories( ${CMAKE_CURRENT_BINARY_DIR}/.. ${CMAKE_CURRENT_SOURCE_DIR}/.. )
 +
@@ -65,8 +65,8 @@ diff -Naur Chapter9_4/Disassembler/CMakeLists.txt Chapter10_1/Disassembler/CMake
 +add_dependencies(LLVMCpu0Disassembler Cpu0CommonTableGen)
 diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 --- Chapter9_4/Disassembler/Cpu0Disassembler.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/Cpu0Disassembler.cpp	2014-02-21 17:53:23.742150226 +0800
-@@ -0,0 +1,312 @@
++++ Chapter10_1/Disassembler/Cpu0Disassembler.cpp	2014-03-04 14:32:39.408076212 +0800
+@@ -0,0 +1,328 @@
 +//===- Cpu0Disassembler.cpp - Disassembler for Cpu0 -------------*- C++ -*-===//
 +//
 +//                     The LLVM Compiler Infrastructure
@@ -140,6 +140,11 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +                                       uint64_t Address,
 +                                       const void *Decoder);
 +// lbd document - mark - declare DecodeCMPInstruction
++static DecodeStatus DecodeBranch16Target(MCInst &Inst,
++                                       unsigned Insn,
++                                       uint64_t Address,
++                                       const void *Decoder);
++// lbd document - mark - declare DecodeBranch16Target
 +static DecodeStatus DecodeBranch24Target(MCInst &Inst,
 +                                       unsigned Insn,
 +                                       uint64_t Address,
@@ -318,6 +323,17 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +  return MCDisassembler::Success;
 +} // lbd document - mark - DecodeCMPInstruction
 +
++static DecodeStatus DecodeBranch16Target(MCInst &Inst,
++                                       unsigned Insn,
++                                       uint64_t Address,
++                                       const void *Decoder) {
++  int BranchOffset = fieldFromInstruction(Insn, 0, 16);
++  if (BranchOffset > 0x8fff)
++  	BranchOffset = -1*(0x10000 - BranchOffset);
++  Inst.addOperand(MCOperand::CreateImm(BranchOffset));
++  return MCDisassembler::Success;
++} // lbd document - mark - DecodeBranch16Target
++
 +/* CBranch instruction define $ra and then imm24; The printOperand() print 
 +operand 1 (operand 0 is $ra and operand 1 is imm24), so we Create register 
 +operand first and create imm24 next, as follows,
@@ -381,7 +397,7 @@ diff -Naur Chapter9_4/Disassembler/Cpu0Disassembler.cpp Chapter10_1/Disassembler
 +
 diff -Naur Chapter9_4/Disassembler/LLVMBuild.txt Chapter10_1/Disassembler/LLVMBuild.txt
 --- Chapter9_4/Disassembler/LLVMBuild.txt	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter10_1/Disassembler/LLVMBuild.txt	2014-02-21 17:48:39.078150260 +0800
++++ Chapter10_1/Disassembler/LLVMBuild.txt	2014-03-04 14:32:39.408076212 +0800
 @@ -0,0 +1,23 @@
 +;===- ./lib/Target/Cpu0/Disassembler/LLVMBuild.txt --------------*- Conf -*--===;
 +;
@@ -407,8 +423,8 @@ diff -Naur Chapter9_4/Disassembler/LLVMBuild.txt Chapter10_1/Disassembler/LLVMBu
 +required_libraries = MC Support Cpu0Info
 +add_to_library_groups = Cpu0
 diff -Naur Chapter9_4/LLVMBuild.txt Chapter10_1/LLVMBuild.txt
---- Chapter9_4/LLVMBuild.txt	2014-02-21 17:48:39.078150260 +0800
-+++ Chapter10_1/LLVMBuild.txt	2014-02-21 17:48:39.078150260 +0800
+--- Chapter9_4/LLVMBuild.txt	2014-03-04 14:32:39.404076212 +0800
++++ Chapter10_1/LLVMBuild.txt	2014-03-04 14:32:39.408076212 +0800
 @@ -19,6 +19,7 @@
  
  [common]

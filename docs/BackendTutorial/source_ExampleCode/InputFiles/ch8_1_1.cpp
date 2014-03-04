@@ -1,6 +1,7 @@
 // clang -target mips-unknown-linux-gnu -c ch8_1_1.cpp -emit-llvm -o ch8_1_1.bc
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch8_1_1.bc -o -
-// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -view-isel-dags -relocation-model=pic -filetype=asm ch8_1_1.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm ch8_1_1.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic -filetype=asm ch8_1_1.bc -o -
+// /Users/Jonathan/llvm/test/cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032I -view-isel-dags -relocation-model=pic -filetype=asm ch8_1_1.bc -o -
 
 /// start
 int test_control1()

@@ -67,7 +67,7 @@ def MOVZ_I_I     : CondMovIntInt<CPURegs, CPURegs, 0x0a, "movz">;
 def MOVN_I_I     : CondMovIntInt<CPURegs, CPURegs, 0x0b, "movn">;
 
 // Instantiation of conditional move patterns.
-let Predicates = [HasCpu032II] in {
+let Predicates = [HasSlt] in {
 defm : MovzPats0Slt<CPURegs, CPURegs, MOVZ_I_I, SLT, SLTu, SLTi, SLTiu>;
 }
 

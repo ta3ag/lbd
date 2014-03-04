@@ -32,14 +32,16 @@ def Cpu0InstrInfo : InstrInfo;
 // Cpu0 Subtarget features                                                    //
 //===----------------------------------------------------------------------===//
 
+def FeatureCmp         : SubtargetFeature<"cmp", "HasCmp", "true",
+                                "Enable 'cmp' instructions.">;
+def FeatureSlt         : SubtargetFeature<"slt", "HasSlt", "true",
+                                "Enable 'slt' instructions.">;
 def FeatureCpu032I     : SubtargetFeature<"cpu032I", "Cpu0ArchVersion", 
-        "Cpu032I", "Cpu032I ISA Support">;
-
+                                "Cpu032I", "Cpu032I ISA Support",
+                                [FeatureCmp]>;
 def FeatureCpu032II    : SubtargetFeature<"cpu032II", "Cpu0ArchVersion",                      
-         "Cpu032II", "Cpu032II ISA Support (use instruction slt)">;
-
-def FeatureCpu032III   : SubtargetFeature<"cpu032III", "Cpu0ArchVersion",                      
-         "Cpu032III", "Cpu032III ISA Support (use instruction slt)">;
+                               "Cpu032II", "Cpu032II ISA Support (slt)",
+                                [FeatureCmp, FeatureSlt]>;
 
 //===----------------------------------------------------------------------===//
 // Cpu0 processors supported.
@@ -50,7 +52,13 @@ class Proc<string Name, list<SubtargetFeature> Features>
 
 def : Proc<"cpu032I",  [FeatureCpu032I]>;
 def : Proc<"cpu032II", [FeatureCpu032II]>;
-def : Proc<"cpu032III", [FeatureCpu032III]>;
+// Above make Cpu0GenSubtargetInfo.inc set feature bit as the following order
+// enum {
+//   FeatureCmp =  1ULL << 0,
+//   FeatureCpu032I =  1ULL << 1,
+//   FeatureCpu032II =  1ULL << 2,
+//   FeatureSlt =  1ULL << 3
+// };
 
 def Cpu0AsmWriter : AsmWriter {
   string AsmWriterClassName  = "InstPrinter";

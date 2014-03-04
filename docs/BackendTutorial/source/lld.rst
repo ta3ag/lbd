@@ -925,12 +925,11 @@ for this purpose.
   393307
   16777222
   51
+  2
   2147483647
   -2147483648
   7
   15
-  2
-  1
   test_nolld(): PASS
   test_alloc() = 31, PASS
   global variable gI = 100, PASS
@@ -940,6 +939,7 @@ for this purpose.
   time3 = 1 10 12, PASS
   date1 = 2013 1 26 12 21 10, PASS
   date2 = 2013 1 26 12 21 10, PASS
+  test_select() = 2, PASS
   test_template() = 15, PASS
   test_inlineasm() = 53, PASS
   test_select() = 2, PASS

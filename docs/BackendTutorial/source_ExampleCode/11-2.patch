@@ -1,6 +1,6 @@
 diff -Naur Chapter11_1/Cpu0AsmPrinter.cpp Chapter11_2/Cpu0AsmPrinter.cpp
---- Chapter11_1/Cpu0AsmPrinter.cpp	2014-02-10 19:39:53.967441724 +0800
-+++ Chapter11_2/Cpu0AsmPrinter.cpp	2014-02-10 19:39:53.979441724 +0800
+--- Chapter11_1/Cpu0AsmPrinter.cpp	2014-03-04 14:32:39.404076212 +0800
++++ Chapter11_2/Cpu0AsmPrinter.cpp	2014-03-04 14:32:39.408076212 +0800
 @@ -289,6 +289,140 @@
      OutStreamer.EmitRawText(StringRef("\t.previous"));
  }
@@ -143,8 +143,8 @@ diff -Naur Chapter11_1/Cpu0AsmPrinter.cpp Chapter11_2/Cpu0AsmPrinter.cpp
  Cpu0AsmPrinter::getDebugValueLocation(const MachineInstr *MI) const {
    // Handles frame addresses emitted in Cpu0InstrInfo::emitFrameIndexDebugValue.
 diff -Naur Chapter11_1/Cpu0AsmPrinter.h Chapter11_2/Cpu0AsmPrinter.h
---- Chapter11_1/Cpu0AsmPrinter.h	2014-02-10 19:39:53.967441724 +0800
-+++ Chapter11_2/Cpu0AsmPrinter.h	2014-02-10 19:39:53.979441724 +0800
+--- Chapter11_1/Cpu0AsmPrinter.h	2014-03-04 14:32:39.404076212 +0800
++++ Chapter11_2/Cpu0AsmPrinter.h	2014-03-04 14:32:39.412076212 +0800
 @@ -58,6 +58,13 @@
    virtual void EmitFunctionEntryLabel();
    virtual void EmitFunctionBodyStart();
@@ -160,8 +160,8 @@ diff -Naur Chapter11_1/Cpu0AsmPrinter.h Chapter11_2/Cpu0AsmPrinter.h
    virtual MachineLocation getDebugValueLocation(const MachineInstr *MI) const;
    void PrintDebugValueComment(const MachineInstr *MI, raw_ostream &OS);
 diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
---- Chapter11_1/Cpu0InstrInfo.cpp	2014-02-10 19:39:53.967441724 +0800
-+++ Chapter11_2/Cpu0InstrInfo.cpp	2014-02-10 19:39:53.979441724 +0800
+--- Chapter11_1/Cpu0InstrInfo.cpp	2014-03-04 14:32:39.404076212 +0800
++++ Chapter11_2/Cpu0InstrInfo.cpp	2014-03-04 14:32:39.408076212 +0800
 @@ -142,3 +142,17 @@
                                  unsigned Opc) const {
    BuildMI(MBB, I, I->getDebugLoc(), get(Opc)).addReg(Cpu0::LR);
@@ -181,8 +181,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.cpp Chapter11_2/Cpu0InstrInfo.cpp
 +}
 +
 diff -Naur Chapter11_1/Cpu0InstrInfo.h Chapter11_2/Cpu0InstrInfo.h
---- Chapter11_1/Cpu0InstrInfo.h	2014-02-10 19:39:53.967441724 +0800
-+++ Chapter11_2/Cpu0InstrInfo.h	2014-02-10 19:39:53.979441724 +0800
+--- Chapter11_1/Cpu0InstrInfo.h	2014-03-04 14:32:39.404076212 +0800
++++ Chapter11_2/Cpu0InstrInfo.h	2014-03-04 14:32:39.408076212 +0800
 @@ -41,6 +41,9 @@
                             unsigned DestReg, unsigned SrcReg,
                             bool KillSrc) const;
@@ -194,8 +194,8 @@ diff -Naur Chapter11_1/Cpu0InstrInfo.h Chapter11_2/Cpu0InstrInfo.h
                                     MachineBasicBlock::iterator MBBI,
                                     unsigned SrcReg, bool isKill, int FrameIndex,
 diff -Naur Chapter11_1/Cpu0ISelDAGToDAG.cpp Chapter11_2/Cpu0ISelDAGToDAG.cpp
---- Chapter11_1/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:39:53.967441724 +0800
-+++ Chapter11_2/Cpu0ISelDAGToDAG.cpp	2014-02-10 19:39:53.979441724 +0800
+--- Chapter11_1/Cpu0ISelDAGToDAG.cpp	2014-03-04 14:32:39.404076212 +0800
++++ Chapter11_2/Cpu0ISelDAGToDAG.cpp	2014-03-04 14:32:39.408076212 +0800
 @@ -96,6 +96,10 @@
      return CurDAG->getTargetConstant(Imm, Node->getValueType(0));
    }
@@ -207,7 +207,7 @@ diff -Naur Chapter11_1/Cpu0ISelDAGToDAG.cpp Chapter11_2/Cpu0ISelDAGToDAG.cpp
  };
  }
  
-@@ -310,6 +314,15 @@
+@@ -317,6 +321,15 @@
    return ResNode;
  }
  
@@ -224,9 +224,9 @@ diff -Naur Chapter11_1/Cpu0ISelDAGToDAG.cpp Chapter11_2/Cpu0ISelDAGToDAG.cpp
  /// CPU0-specific DAG, ready for instruction scheduling.
  FunctionPass *llvm::createCpu0ISelDag(Cpu0TargetMachine &TM) {
 diff -Naur Chapter11_1/Cpu0ISelLowering.cpp Chapter11_2/Cpu0ISelLowering.cpp
---- Chapter11_1/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.967441724 +0800
-+++ Chapter11_2/Cpu0ISelLowering.cpp	2014-02-10 19:39:53.979441724 +0800
-@@ -821,6 +821,260 @@
+--- Chapter11_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.404076212 +0800
++++ Chapter11_2/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.408076212 +0800
+@@ -830,6 +830,260 @@
    // Return on Cpu0 is always a "ret $lr"
    return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());
  }
@@ -488,9 +488,9 @@ diff -Naur Chapter11_1/Cpu0ISelLowering.cpp Chapter11_2/Cpu0ISelLowering.cpp
  bool // lbd document - mark - isOffsetFoldingLegal
  Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
 diff -Naur Chapter11_1/Cpu0ISelLowering.h Chapter11_2/Cpu0ISelLowering.h
---- Chapter11_1/Cpu0ISelLowering.h	2014-02-10 19:39:53.967441724 +0800
-+++ Chapter11_2/Cpu0ISelLowering.h	2014-02-10 19:39:53.979441724 +0800
-@@ -120,6 +120,34 @@
+--- Chapter11_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.404076212 +0800
++++ Chapter11_2/Cpu0ISelLowering.h	2014-03-04 14:32:39.408076212 +0800
+@@ -121,6 +121,34 @@
                    const SmallVectorImpl<SDValue> &OutVals,
                    SDLoc DL, SelectionDAG &DAG) const;
  

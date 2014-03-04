@@ -11,10 +11,9 @@
 #include "ch7_3.cpp"
 #include "ch7_4.cpp"
 #include "ch8_1_1.cpp"
+#include "ch8_2.cpp"
 #include "ch9_1_4.cpp"
 #include "ch9_3.cpp"
-#include "ch12_1.cpp"
-#include "ch12_2.cpp"
 
 int test_nolld()
 {
@@ -58,6 +57,9 @@ int test_nolld()
   a = test_control1();
   print_integer(a);	// a = 51
   if (a != 51) pass = false;
+  a = test_DelUselessJMP();
+  print_integer(a); // a = 2
+  if (a != 2) pass = false;
   print_integer(2147483647); // test mod % (mult) from itoa.cpp
   print_integer(-2147483648); // test mod % (multu) from itoa.cpp
   a = test_madd();
@@ -66,12 +68,6 @@ int test_nolld()
   a = test_vararg();
   print_integer(a); // a = 15
   if (a != 15) pass = false;
-  a = test_DelUselessJMP(1, -2, 3);
-  print_integer(a); // a = 2
-  if (a != 2) pass = false;
-  a = test_OptSlt(1, -2, 3);
-  print_integer(a); // a = 1
-  if (a != 1) pass = false;
 
   return pass;
 }

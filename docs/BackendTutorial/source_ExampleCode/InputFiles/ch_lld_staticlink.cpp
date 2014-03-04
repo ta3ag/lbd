@@ -2,7 +2,16 @@
 /// start
 
 extern int test_alloc();
-extern int test_select(int a, int b);
+
+int test_select()
+{
+  int c = 0;
+  
+  c = select_1();
+  c += select_2();
+  
+  return c;
+}
 
 int test_staticlink()
 {
@@ -27,6 +36,12 @@ int test_staticlink()
     printf(", PASS\n");
   else
     printf(", FAIL\n");
+  a = test_select();  // 2
+  printf("test_select() = %d", a);
+  if (a == 2)
+    printf(", PASS\n");
+  else
+    printf(", FAIL\n");
   a = test_func_arg_struct();
   a = test_contructor();
   a = test_template();
@@ -38,12 +53,6 @@ int test_staticlink()
   a = test_inlineasm();
   printf("test_inlineasm() = %d", a); // a = 53
   if (a == 53)
-    printf(", PASS\n");
-  else
-    printf(", FAIL\n");
-  a = test_select(1, 2); // 2
-  printf("test_select() = %d", a); // a = 2
-  if (a == 2)
     printf(", PASS\n");
   else
     printf(", FAIL\n");
