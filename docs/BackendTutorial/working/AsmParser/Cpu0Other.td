@@ -1,4 +1,4 @@
-//===-- Cpu0.td - Describe the Cpu0 Target Machine ---------*- tablegen -*-===//
+//===-- Cpu0Other.td - Describe the Cpu0 Target Machine ----*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
