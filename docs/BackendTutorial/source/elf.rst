@@ -642,6 +642,27 @@ for decode in disassembler.
 The IR node Cpu0ISD::Ret is created in LowerReturn() which called at function 
 exit point.
 
+Finally cpu032II include all cpu032I instruction set and add some 
+instrucitons. When ``llvm-objdump -d`` invoke, function ParseCpu0Triple() as 
+the following will be called. Not like ``llc -mcpu=cpu032I`` can set mcpu type,
+so the varaible CPU in ParseCpu0Triple() is empty. We set Cpu0ArchFeature to 
+cpu032II than it can disassembly all instructions.
+
+.. rubric:: lbdex/Chapter10_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. code-block:: c++
+
+  static std::string ParseCpu0Triple(StringRef TT, StringRef CPU) {
+    ...
+    if (TheTriple == "cpu0" || TheTriple == "cpu0el") {
+      if (CPU.empty() || CPU == "cpu032II") {
+        Cpu0ArchFeature = "+cpu032II";
+      } else if (CPU == "cpu032I") {
+        Cpu0ArchFeature = "+cpu032I";
+      }
+    }
+    return Cpu0ArchFeature;
+  }
+
 Now, run Chapter10_1/ with command ``llvm-objdump -d ch8_1_1.cpu0.o`` will get 
 the following result.
 
