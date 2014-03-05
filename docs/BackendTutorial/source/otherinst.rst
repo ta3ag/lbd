@@ -1500,20 +1500,20 @@ run result of bc and asm instructions for ch4_5.cpp as below.
                   (XORi (SLTiuOp RC:$lhs, immSExt16:$rhs), 1)>;
   }
   
-  let Predicates = [HasCmp] in {
-  defm : SeteqPatsCmp<CPURegs>;
-  defm : SetltPatsCmp<CPURegs>;
-  defm : SetlePatsCmp<CPURegs>;
-  defm : SetgtPatsCmp<CPURegs>;
-  defm : SetgePatsCmp<CPURegs>;
-  }
-  
   let Predicates = [HasSlt] in {
   defm : SeteqPatsSlt<CPURegs, SLTiu, XOR, SLTu, ZERO>;
   defm : SetlePatsSlt<CPURegs, SLT, SLTu>;
   defm : SetgtPatsSlt<CPURegs, SLT, SLTu>;
   defm : SetgePatsSlt<CPURegs, SLT, SLTu>;
   defm : SetgeImmPatsSlt<CPURegs, SLTi, SLTiu>;
+  }
+  
+  let Predicates = [HasCmp] in {
+  defm : SeteqPatsCmp<CPURegs>;
+  defm : SetltPatsCmp<CPURegs>;
+  defm : SetlePatsCmp<CPURegs>;
+  defm : SetgtPatsCmp<CPURegs>;
+  defm : SetgePatsCmp<CPURegs>;
   }
 
 
@@ -1900,6 +1900,12 @@ instruction reorder since both of them use \$sw register while
     andi  $2, $2, 1
     st  $2, 12($sp)
     ...
+
+Chapter4_2 include cmp and slt instructions. Even cpu032II include both of 
+these two instructions, the slt take the priority since 
+"let Predicates = [HasSlt]" appeared before "let Predicates = [HasCmp]" in 
+Cpu0InstrInfo.td.
+
 
 Summary
 --------

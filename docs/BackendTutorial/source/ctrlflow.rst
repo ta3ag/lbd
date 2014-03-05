@@ -5,7 +5,13 @@ Control flow statements
 
 This chapter illustrates the corresponding IR for control flow statements, like 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
-translate these control flow statements of llvm IR into Cpu0 instructions. 
+translate these control flow statements of llvm IR into Cpu0 instructions in 
+section I. In section II, a optimiation pass of control flow for backend is 
+introduced. It's a simple tutorial program to let readers know how to add a 
+backend optimization pass and program it. Section III, include the conditional 
+instructions handle since the clang will generate specific IR select and 
+select_cc to support the backend optimiation in control flow statement.
+
 
 Control flow statement
 -----------------------
@@ -666,12 +672,12 @@ Finally we list the code added for full support of control flow statement,
                 (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
   }
   
-  let Predicates = [HasCmp] in {
-  defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
-  }
-  
   let Predicates = [HasSlt] in {
   defm : BrcondPatsSlt<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
+  }
+  
+  let Predicates = [HasCmp] in {
+  defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
   }
 
 
@@ -695,7 +701,7 @@ You can migrate from Mips if your backend is a pipeline RISC with
 delay slot. 
 In this section, we apply the "delete useless jmp" in Cpu0 
 backend optimization. 
-This algorithm is simple and effective as a perfect tutorial in optimization. 
+This algorithm is simple and effective to be a perfect tutorial in optimization. 
 Through this example, you can understand how to add an optimization pass and 
 coding your complicate optimization algorithm on your backend in real project.
 

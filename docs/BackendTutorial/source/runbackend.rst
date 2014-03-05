@@ -3,16 +3,28 @@
 Run backend
 ===========
 
-This chapter will implement Cpu0 instruction by Verilog language.
-We can write a C++ main 
+Until now, we have a llvm backend to compile C or assembly as the blue part of 
+:num:`Figure #runbackend-f1`. If without global variable, the elf obj can be 
+dump to hex file via ``llvm-objdump -d`` did in Chapter ELF.
+
+.. _runbackend-f1: 
+.. figure:: ../Fig/runbackend/1.png
+  :scale: 100 %
+  :align: center
+
+  Cpu0 backend without linker
+
+
+This chapter will implement Cpu0 instruction by Verilog language as the red 
+part of :num:`Figure #runbackend-f1`.
+With the Verilog machine, we can write a C++ main 
 function as well as the boot code by assembly hand code, and translate this 
 main()+bootcode() into obj file.
-Combined with llvm-objdump support in last chapter, 
+Combined with llvm-objdump support in chapter ELF, 
 this main()+bootcode() elf can be translated into hex file format which 
 include the disassemble code as comment. 
-Furthermore, we can design the Cpu0 with Verilog language tool and run the Cpu0 
-backend on PC by feed the hex file and see the Cpu0 instructions execution 
-result.
+Furthermore, we can run this hex program on the Cpu0 Verilog machine on PC and 
+see the Cpu0 instructions execution result.
 
 
 Verilog of CPU0
