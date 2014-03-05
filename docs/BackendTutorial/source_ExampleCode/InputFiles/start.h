@@ -1,13 +1,6 @@
 /// start
-#ifdef ASM_EASY_PORTING
-  #define CLEAR_SW \
-  asm("mfsw $at"); \
-  asm("addiu $at, $ZERO, 0"); \
-  asm("mtsw $at");
-#else
-  #define CLEAR_SW \
-  asm("andi $sw, $ZERO, 0");
-#endif
+#define CLEAR_SW \
+asm("andi $sw, $ZERO, 0");
 
 #define initRegs() \
   asm("addiu $1,  $ZERO, 0"); \

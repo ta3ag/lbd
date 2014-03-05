@@ -1,6 +1,6 @@
 diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
---- Chapter9_1/Cpu0InstrInfo.cpp	2014-03-04 14:32:39.412076212 +0800
-+++ Chapter9_2/Cpu0InstrInfo.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter9_1/Cpu0InstrInfo.cpp	2014-03-05 09:10:20.034684689 +0800
++++ Chapter9_2/Cpu0InstrInfo.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -81,6 +81,16 @@
                      unsigned SrcReg, bool isKill, int FI,
                      const TargetRegisterClass *RC,
@@ -19,8 +19,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.cpp Chapter9_2/Cpu0InstrInfo.cpp
  
  void Cpu0InstrInfo:: // lbd document - mark - before loadRegFromStackSlot
 diff -Naur Chapter9_1/Cpu0InstrInfo.td Chapter9_2/Cpu0InstrInfo.td
---- Chapter9_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.412076212 +0800
-+++ Chapter9_2/Cpu0InstrInfo.td	2014-03-04 14:32:39.412076212 +0800
+--- Chapter9_1/Cpu0InstrInfo.td	2014-03-05 09:10:20.034684689 +0800
++++ Chapter9_2/Cpu0InstrInfo.td	2014-03-05 09:10:20.034684689 +0800
 @@ -28,6 +28,9 @@
  
  def SDT_Cpu0JmpLink      : SDTypeProfile<0, 1, [SDTCisVT<0, iPTR>]>;
@@ -66,8 +66,8 @@ diff -Naur Chapter9_1/Cpu0InstrInfo.td Chapter9_2/Cpu0InstrInfo.td
  //===----------------------------------------------------------------------===//
  
 diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
---- Chapter9_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.412076212 +0800
-+++ Chapter9_2/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter9_1/Cpu0ISelLowering.cpp	2014-03-05 09:10:20.034684689 +0800
++++ Chapter9_2/Cpu0ISelLowering.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -296,7 +296,257 @@
  SDValue
  Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
@@ -333,8 +333,8 @@ diff -Naur Chapter9_1/Cpu0ISelLowering.cpp Chapter9_2/Cpu0ISelLowering.cpp
  }
 +
 diff -Naur Chapter9_1/Cpu0ISelLowering.h Chapter9_2/Cpu0ISelLowering.h
---- Chapter9_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.412076212 +0800
-+++ Chapter9_2/Cpu0ISelLowering.h	2014-03-04 14:32:39.412076212 +0800
+--- Chapter9_1/Cpu0ISelLowering.h	2014-03-05 09:10:20.034684689 +0800
++++ Chapter9_2/Cpu0ISelLowering.h	2014-03-05 09:10:20.034684689 +0800
 @@ -85,6 +85,13 @@
    private:
      // Subtarget Info

@@ -1,7 +1,6 @@
 
 /// start
 
-#include "Cpu0Config.h"
 #include "dynamic_linker.h"
 #include "start.h"
 

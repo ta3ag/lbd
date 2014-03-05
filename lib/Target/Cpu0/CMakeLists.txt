@@ -1,7 +1,7 @@
-# CMakeLists.txt
-# Our td all in Cpu0.td, Cpu0RegisterInfo.td and Cpu0InstrInfo.td included in 
-#  Cpu0.td.
-set(LLVM_TARGET_DEFINITIONS Cpu0.td)
+set(LLVM_TARGET_DEFINITIONS Cpu0Asm.td)
+tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
+
+set(LLVM_TARGET_DEFINITIONS Cpu0Other.td)
 
 # Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which included by 
 #  your hand code C++ files. 
@@ -17,7 +17,6 @@ tablegen(LLVM Cpu0GenAsmWriter.inc -gen-asm-writer)
 tablegen(LLVM Cpu0GenDAGISel.inc -gen-dag-isel)
 tablegen(LLVM Cpu0GenCallingConv.inc -gen-callingconv)
 tablegen(LLVM Cpu0GenSubtargetInfo.inc -gen-subtarget)
-tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
 
 # Cpu0CommonTableGen must be defined
 add_public_tablegen_target(Cpu0CommonTableGen)

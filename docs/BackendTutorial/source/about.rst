@@ -55,6 +55,7 @@ Revision history
 Version 3.4.3, Not release yet
   Fix Disassembly bug for GPROut register class.
   Adjust Chapters.
+  Remove hand copy Table of tblgen in AsmParser.
 
 Version 3.4.2, Released February 9, 2014
   Add ch12_2.cpp for slt instruction explanation and fix bug in Cpu0InstrInfo.cpp.

@@ -1,7 +1,7 @@
 diff -Naur Chapter8_1/CMakeLists.txt Chapter8_2/CMakeLists.txt
---- Chapter8_1/CMakeLists.txt	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter8_2/CMakeLists.txt	2014-03-04 14:32:39.396076212 +0800
-@@ -25,6 +25,7 @@
+--- Chapter8_1/CMakeLists.txt	2014-03-05 09:10:20.026684689 +0800
++++ Chapter8_2/CMakeLists.txt	2014-03-05 09:10:20.018684689 +0800
+@@ -22,6 +22,7 @@
  add_llvm_target(Cpu0CodeGen
    Cpu0AnalyzeImmediate.cpp
    Cpu0AsmPrinter.cpp
@@ -11,7 +11,7 @@ diff -Naur Chapter8_1/CMakeLists.txt Chapter8_2/CMakeLists.txt
    Cpu0ISelLowering.cpp
 diff -Naur Chapter8_1/Cpu0CondMov.td Chapter8_2/Cpu0CondMov.td
 --- Chapter8_1/Cpu0CondMov.td	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_2/Cpu0CondMov.td	2014-03-04 14:32:39.396076212 +0800
++++ Chapter8_2/Cpu0CondMov.td	2014-03-05 09:10:20.022684689 +0800
 @@ -0,0 +1,77 @@
 +//===-- Cpu0CondMov.td - Describe Cpu0 Conditional Moves --*- tablegen -*--===//
 +//
@@ -92,7 +92,7 @@ diff -Naur Chapter8_1/Cpu0CondMov.td Chapter8_2/Cpu0CondMov.td
 +
 diff -Naur Chapter8_1/Cpu0DelUselessJMP.cpp Chapter8_2/Cpu0DelUselessJMP.cpp
 --- Chapter8_1/Cpu0DelUselessJMP.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter8_2/Cpu0DelUselessJMP.cpp	2014-03-04 14:32:39.396076212 +0800
++++ Chapter8_2/Cpu0DelUselessJMP.cpp	2014-03-05 09:10:20.022684689 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//
 +//
@@ -194,8 +194,8 @@ diff -Naur Chapter8_1/Cpu0DelUselessJMP.cpp Chapter8_2/Cpu0DelUselessJMP.cpp
 +  return new DelJmp(tm);
 +}
 diff -Naur Chapter8_1/Cpu0.h Chapter8_2/Cpu0.h
---- Chapter8_1/Cpu0.h	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter8_2/Cpu0.h	2014-03-04 14:32:39.396076212 +0800
+--- Chapter8_1/Cpu0.h	2014-03-05 09:10:20.026684689 +0800
++++ Chapter8_2/Cpu0.h	2014-03-05 09:10:20.022684689 +0800
 @@ -23,6 +23,7 @@
    class FunctionPass;
  
@@ -205,8 +205,8 @@ diff -Naur Chapter8_1/Cpu0.h Chapter8_2/Cpu0.h
  } // end namespace llvm;
  
 diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter8_2/Cpu0InstrInfo.td
---- Chapter8_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter8_2/Cpu0InstrInfo.td	2014-03-04 14:32:39.396076212 +0800
+--- Chapter8_1/Cpu0InstrInfo.td	2014-03-05 09:10:20.026684689 +0800
++++ Chapter8_2/Cpu0InstrInfo.td	2014-03-05 09:10:20.022684689 +0800
 @@ -753,3 +753,5 @@
  defm : SetgePatsCmp<CPURegs>;
  }
@@ -214,8 +214,8 @@ diff -Naur Chapter8_1/Cpu0InstrInfo.td Chapter8_2/Cpu0InstrInfo.td
 +include "Cpu0CondMov.td"
 +
 diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter8_2/Cpu0ISelLowering.cpp
---- Chapter8_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter8_2/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.396076212 +0800
+--- Chapter8_1/Cpu0ISelLowering.cpp	2014-03-05 09:10:20.026684689 +0800
++++ Chapter8_2/Cpu0ISelLowering.cpp	2014-03-05 09:10:20.018684689 +0800
 @@ -141,6 +141,7 @@
  
    // Cpu0 Custom Operations
@@ -254,8 +254,8 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.cpp Chapter8_2/Cpu0ISelLowering.cpp
                                                 SelectionDAG &DAG) const {
    // FIXME there isn't actually debug info here
 diff -Naur Chapter8_1/Cpu0ISelLowering.h Chapter8_2/Cpu0ISelLowering.h
---- Chapter8_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter8_2/Cpu0ISelLowering.h	2014-03-04 14:32:39.396076212 +0800
+--- Chapter8_1/Cpu0ISelLowering.h	2014-03-05 09:10:20.026684689 +0800
++++ Chapter8_2/Cpu0ISelLowering.h	2014-03-05 09:10:20.018684689 +0800
 @@ -88,6 +88,7 @@
  
      // Lower Operand specifics
@@ -265,8 +265,8 @@ diff -Naur Chapter8_1/Cpu0ISelLowering.h Chapter8_2/Cpu0ISelLowering.h
  
  	//- must be exist without function all
 diff -Naur Chapter8_1/Cpu0TargetMachine.cpp Chapter8_2/Cpu0TargetMachine.cpp
---- Chapter8_1/Cpu0TargetMachine.cpp	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter8_2/Cpu0TargetMachine.cpp	2014-03-04 14:32:39.396076212 +0800
+--- Chapter8_1/Cpu0TargetMachine.cpp	2014-03-05 09:10:20.026684689 +0800
++++ Chapter8_2/Cpu0TargetMachine.cpp	2014-03-05 09:10:20.022684689 +0800
 @@ -83,6 +83,7 @@
      return *getCpu0TargetMachine().getSubtargetImpl();
    } // lbd document - mark - getCpu0Subtarget()

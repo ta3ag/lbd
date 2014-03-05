@@ -70,19 +70,6 @@ def CPURegs : RegisterClass<"Cpu0", [i32], 32, (add
   GP, FP, 
   SP, LR, PC)>;
 
-def GPROut : RegisterClass<"Cpu0", [i32], 32, (add
-  // Reserved
-  ZERO, AT, 
-  // Return Values and Arguments
-  V0, V1, A0, A1, 
-  // Not preserved across procedure calls
-  T9, T0,
-  // Callee save
-  S0, S1, 
-  // Reserved
-  GP, FP, 
-  SP, LR, PC)>;
-
 // Hi/Lo Registers class
 def HILO : RegisterClass<"Cpu0", [i32], 32, (add HI, LO)>;
 

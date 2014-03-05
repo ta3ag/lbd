@@ -1,7 +1,4 @@
-# CMakeLists.txt
-# Our td all in Cpu0.td, Cpu0RegisterInfo.td and Cpu0InstrInfo.td included in 
-#  Cpu0.td.
-set(LLVM_TARGET_DEFINITIONS Cpu0.td)
+set(LLVM_TARGET_DEFINITIONS Cpu0Other.td)
 
 # Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which included by 
 #  your hand code C++ files. 

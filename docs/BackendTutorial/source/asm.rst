@@ -55,9 +55,9 @@ LLVMBuild.txt as follows,
 .. rubric:: lbdex/Chapter11_1/CMakeLists.txt
 .. code-block:: c++
 
+  set(LLVM_TARGET_DEFINITIONS Cpu0Asm.td)
   tablegen(LLVM Cpu0GenAsmMatcher.inc -gen-asm-matcher)
-  ...
-  add_subdirectory(AsmParser)
+
   
 .. rubric:: lbdex/Chapter11_1/LLVMBuild.txt
 .. code-block:: c++
@@ -67,6 +67,23 @@ LLVMBuild.txt as follows,
   ...
   has_asmparser = 1
   
+
+.. rubric:: lbdex/Chapter11_1/Cpu0Asm.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Asm.td
+
+.. rubric:: lbdex/Chapter11_1/Cpu0RegisterInfoGPROutForAsm.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfoGPROutForAsm.td
+
+
+The CMakeLists.txt added as above to generate the Cpu0GenAsmMatcher.inc used by 
+Cpu0AsmParser.cpp. In Cpu0Asm.td, it include Cpu0RegisterInfoGPROutForAsm.td 
+which define GPROut is same to CPURegs. In Cpu0RegisterInfoGPROutForOther.td, 
+which used when translate llvm IR to Cpu0 instruction. The register SW are not 
+allowed to be allocated to output result register such as "and $sw, $1, $2" 
+since the $sw include the status word for Cpu0. So, the GPROut is defined to 
+exclude SW in Cpu0RegisterInfoGPROutForOther.td. When do assembler, instruction 
+"and $sw, $1, $2" is allowed. This assembly programm is accepted, so 
+Cpu0GenAsmMatcher.inc is generated follow the Cpu0Asm.td definition.
   
 .. rubric:: lbdex/Chapter11_1/Cpu0.td
 .. code-block:: c++
@@ -224,13 +241,8 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
               MCStreamer &Out, unsigned &ErrorInfo,
               bool MatchingInlineAsm) {
     MCInst Inst;
-  #ifndef ASM_EASY_PORTING
-    unsigned MatchResult = MatchInstructionImpl_R(Operands, Inst, ErrorInfo,
-                                                MatchingInlineAsm);
-  #else
     unsigned MatchResult = MatchInstructionImpl(Operands, Inst, ErrorInfo,
                                                 MatchingInlineAsm);
-  #endif
     switch (MatchResult) {
     default: break;
     case Match_Success: {
@@ -241,55 +253,6 @@ LoadImm32Reg are handled by Cpu0AsmParser.cpp as follows,
     }
     ...
   }
-
-  #define GET_REGISTER_MATCHER
-  #define GET_MATCHER_IMPLEMENTATION
-  #include "Cpu0GenAsmMatcher.inc"
-
-  #ifndef ASM_EASY_PORTING
-  // Adjust here the Cpu0InstrInfo.td changed.
-  static const MatchEntry MatchTable0_R[] = {
-    { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_CPURegs, 
-  MCK_CPURegs, MCK_CPURegs }, },
-  ...
-
-  unsigned Cpu0AsmParser::
-  MatchInstructionImpl_R(const SmallVectorImpl<MCParsedAsmOperand*> &Operands,
-                       MCInst &Inst,
-  unsigned &ErrorInfo, bool matchingInlineAsm, unsigned VariantID) {
-    ...
-    switch (VariantID) {
-    default: // unreachable
-    case 0: Start = MatchTable0_R; End = array_endof(MatchTable0_R); break;
-    ...
-  }
-  #endif
-
-As above code, when ASM_EASY_PORTING is defined, it will use 
-MatchInstructionImpl_R() instead MatchInstructionImpl(). 
-To prevent register SW is allocated as general purpose output register, we 
-use GPROut register class which exclude SW as most output operand defined in 
-Cpu0InstrInfo.td. Of course, the TableGen created file Cpu0GenAsmMatcher.inc 
-as follows,
-
-.. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0AsmParser.cpp
-.. code-block:: c++
-
-  static const MatchEntry MatchTable0[] = {
-    { 0 /* add */, Cpu0::ADD, Convert__Reg1_0__Reg1_1__Reg1_2, 0, { MCK_GPROut, 
-  MCK_CPURegs, MCK_CPURegs }, },
-
-Above keyword MCK_GPROut will limit AsmParser use GPROut register class as 
-output register. To allow programmer use \$sw as output register such as 
-"add \$sw, \$zero, \$zero" the code must be modified as above of 
-ASM_EASY_PORTING defined. 
-This solution has the problem that need keeping MatchTable0_R[] up to date by 
-hand when file Cpu0InstrInfo.td has been changed or the TableGen version is 
-changed.
-If we limit programmers that are not allowed to use \$sw as output register 
-(Cpu0 supply instruction MFSW and MFTW to move from/to SW to/from general 
-purpose register), then we can use MatchTable0[] instead of MatchTable0_R[]. 
-The condition compiler flag ASM_EASY_PORTING stands for this purpose.
 
 Finally, remind the CPURegs as below must 
 follow the order of register number because AsmParser use this when do register 

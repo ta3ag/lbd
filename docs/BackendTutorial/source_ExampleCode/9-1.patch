@@ -1,6 +1,6 @@
 diff -Naur Chapter8_2/Cpu0CallingConv.td Chapter9_1/Cpu0CallingConv.td
---- Chapter8_2/Cpu0CallingConv.td	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/Cpu0CallingConv.td	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/Cpu0CallingConv.td	2014-03-05 09:10:20.018684689 +0800
++++ Chapter9_1/Cpu0CallingConv.td	2014-03-05 09:10:20.034684689 +0800
 @@ -18,6 +18,28 @@
    CCIfType<[i32], CCAssignToReg<[V0, V1, A0, A1]>>
  ]>;
@@ -31,8 +31,8 @@ diff -Naur Chapter8_2/Cpu0CallingConv.td Chapter9_1/Cpu0CallingConv.td
    CCDelegateTo<RetCC_Cpu0EABI>
  ]>; // lbd document - mark - def RetCC_Cpu0
 diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter9_1/Cpu0InstrInfo.cpp
---- Chapter8_2/Cpu0InstrInfo.cpp	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/Cpu0InstrInfo.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/Cpu0InstrInfo.cpp	2014-03-05 09:10:20.022684689 +0800
++++ Chapter9_1/Cpu0InstrInfo.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -13,6 +13,7 @@
  
  #include "Cpu0InstrInfo.h"
@@ -75,8 +75,8 @@ diff -Naur Chapter8_2/Cpu0InstrInfo.cpp Chapter9_1/Cpu0InstrInfo.cpp
  
  MachineInstr*
 diff -Naur Chapter8_2/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
---- Chapter8_2/Cpu0InstrInfo.td	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/Cpu0InstrInfo.td	2014-03-05 09:10:20.022684689 +0800
++++ Chapter9_1/Cpu0InstrInfo.td	2014-03-05 09:10:20.034684689 +0800
 @@ -26,6 +26,13 @@
                                           [SDTCisInt<0>,
                                            SDTCisSameAs<0, 1>]>;
@@ -157,8 +157,8 @@ diff -Naur Chapter8_2/Cpu0InstrInfo.td Chapter9_1/Cpu0InstrInfo.td
  def : Pat<(Cpu0Hi tglobaladdr:$in), (SHL (ADDiu ZERO, tglobaladdr:$in), 16)>;
  def : Pat<(Cpu0Hi tglobaladdr:$in), (LUi tglobaladdr:$in)>;
 diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter9_1/Cpu0ISelLowering.cpp
---- Chapter8_2/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/Cpu0ISelLowering.cpp	2014-03-05 09:10:20.018684689 +0800
++++ Chapter9_1/Cpu0ISelLowering.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -293,6 +293,12 @@
  
  #include "Cpu0GenCallingConv.inc"
@@ -231,8 +231,8 @@ diff -Naur Chapter8_2/Cpu0ISelLowering.cpp Chapter9_1/Cpu0ISelLowering.cpp
  }
  
 diff -Naur Chapter8_2/Cpu0ISelLowering.h Chapter9_1/Cpu0ISelLowering.h
---- Chapter8_2/Cpu0ISelLowering.h	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/Cpu0ISelLowering.h	2014-03-05 09:10:20.018684689 +0800
++++ Chapter9_1/Cpu0ISelLowering.h	2014-03-05 09:10:20.034684689 +0800
 @@ -100,6 +100,11 @@
                             SmallVectorImpl<SDValue> &InVals) const;
    // LowerFormalArguments: incoming arguments
@@ -246,8 +246,8 @@ diff -Naur Chapter8_2/Cpu0ISelLowering.h Chapter9_1/Cpu0ISelLowering.h
      virtual SDValue
        LowerReturn(SDValue Chain,
 diff -Naur Chapter8_2/Cpu0MachineFunction.h Chapter9_1/Cpu0MachineFunction.h
---- Chapter8_2/Cpu0MachineFunction.h	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/Cpu0MachineFunction.h	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/Cpu0MachineFunction.h	2014-03-05 09:10:20.022684689 +0800
++++ Chapter9_1/Cpu0MachineFunction.h	2014-03-05 09:10:20.034684689 +0800
 @@ -36,7 +36,18 @@
    /// relocation models.
    unsigned GlobalBaseReg;
@@ -318,8 +318,8 @@ diff -Naur Chapter8_2/Cpu0MachineFunction.h Chapter9_1/Cpu0MachineFunction.h
    void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
    bool getEmitNOAT() const { return EmitNOAT; }
 diff -Naur Chapter8_2/Cpu0MCInstLower.cpp Chapter9_1/Cpu0MCInstLower.cpp
---- Chapter8_2/Cpu0MCInstLower.cpp	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/Cpu0MCInstLower.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/Cpu0MCInstLower.cpp	2014-03-05 09:10:20.018684689 +0800
++++ Chapter9_1/Cpu0MCInstLower.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -47,6 +47,7 @@
  //  format=false (global var in .sdata).
    case Cpu0II::MO_GPREL:     Kind = MCSymbolRefExpr::VK_Cpu0_GPREL; break;
@@ -349,8 +349,8 @@ diff -Naur Chapter8_2/Cpu0MCInstLower.cpp Chapter9_1/Cpu0MCInstLower.cpp
      return LowerSymbolOperand(MO, MOTy, offset);
    case MachineOperand::MO_RegisterMask:
 diff -Naur Chapter8_2/InstPrinter/Cpu0InstPrinter.cpp Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp
---- Chapter8_2/InstPrinter/Cpu0InstPrinter.cpp	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/InstPrinter/Cpu0InstPrinter.cpp	2014-03-05 09:10:20.018684689 +0800
++++ Chapter9_1/InstPrinter/Cpu0InstPrinter.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -58,6 +58,7 @@
    case MCSymbolRefExpr::VK_None:           break;
  // Cpu0_GPREL is for llc -march=cpu0 -relocation-model=static
@@ -360,8 +360,8 @@ diff -Naur Chapter8_2/InstPrinter/Cpu0InstPrinter.cpp Chapter9_1/InstPrinter/Cpu
    case MCSymbolRefExpr::VK_Cpu0_GOT:       OS << "%got(";    break;
    case MCSymbolRefExpr::VK_Cpu0_ABS_HI:    OS << "%hi(";     break;
 diff -Naur Chapter8_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp
---- Chapter8_2/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-05 09:10:20.022684689 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0AsmBackend.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -35,6 +35,7 @@
      return 0;
    case FK_GPRel_4:
@@ -379,8 +379,8 @@ diff -Naur Chapter8_2/MCTargetDesc/Cpu0AsmBackend.cpp Chapter9_1/MCTargetDesc/Cp
        { "fixup_Cpu0_GOT_LO16",       0,     16,   0 }
      };
 diff -Naur Chapter8_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp
---- Chapter8_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-05 09:10:20.022684689 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0ELFObjectWriter.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -113,6 +113,9 @@
    case Cpu0::fixup_Cpu0_GPREL16:
      Type = ELF::R_CPU0_GPREL16;
@@ -392,8 +392,8 @@ diff -Naur Chapter8_2/MCTargetDesc/Cpu0ELFObjectWriter.cpp Chapter9_1/MCTargetDe
    case Cpu0::fixup_Cpu0_GOT_Local:
      Type = ELF::R_CPU0_GOT16;
 diff -Naur Chapter8_2/MCTargetDesc/Cpu0FixupKinds.h Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h
---- Chapter8_2/MCTargetDesc/Cpu0FixupKinds.h	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/MCTargetDesc/Cpu0FixupKinds.h	2014-03-05 09:10:20.022684689 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0FixupKinds.h	2014-03-05 09:10:20.034684689 +0800
 @@ -43,14 +43,17 @@
  
      // Local symbol fixup resulting in - R_CPU0_GOT16.
@@ -415,8 +415,8 @@ diff -Naur Chapter8_2/MCTargetDesc/Cpu0FixupKinds.h Chapter9_1/MCTargetDesc/Cpu0
      // resulting in - R_CPU0_GOT_HI16
      fixup_Cpu0_GOT_HI16,
 diff -Naur Chapter8_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp
---- Chapter8_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-04 14:32:39.396076212 +0800
-+++ Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-04 14:32:39.412076212 +0800
+--- Chapter8_2/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-05 09:10:20.022684689 +0800
++++ Chapter9_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp	2014-03-05 09:10:20.034684689 +0800
 @@ -201,9 +201,12 @@
    assert(MO.isExpr() && "getJumpTargetOpValue expects only expressions");
  

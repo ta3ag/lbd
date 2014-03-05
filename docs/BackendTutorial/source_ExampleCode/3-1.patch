@@ -1,7 +1,7 @@
 diff -Naur Chapter2/CMakeLists.txt Chapter3_1/CMakeLists.txt
---- Chapter2/CMakeLists.txt	2014-03-04 14:32:39.400076212 +0800
-+++ Chapter3_1/CMakeLists.txt	2014-03-04 14:32:39.408076212 +0800
-@@ -9,6 +9,8 @@
+--- Chapter2/CMakeLists.txt	2014-03-05 09:10:20.026684689 +0800
++++ Chapter3_1/CMakeLists.txt	2014-03-05 09:10:20.030684689 +0800
+@@ -6,6 +6,8 @@
  #  came from Cpu0InstrInfo.td.
  tablegen(LLVM Cpu0GenRegisterInfo.inc -gen-register-info)
  tablegen(LLVM Cpu0GenInstrInfo.inc -gen-instr-info)
@@ -10,7 +10,7 @@ diff -Naur Chapter2/CMakeLists.txt Chapter3_1/CMakeLists.txt
  tablegen(LLVM Cpu0GenSubtargetInfo.inc -gen-subtarget)
  
  # Cpu0CommonTableGen must be defined
-@@ -16,7 +18,14 @@
+@@ -13,7 +15,14 @@
  
  # Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen
  add_llvm_target(Cpu0CodeGen
@@ -27,7 +27,7 @@ diff -Naur Chapter2/CMakeLists.txt Chapter3_1/CMakeLists.txt
  # Should match with "subdirectories =  MCTargetDesc TargetInfo" in LLVMBuild.txt
 diff -Naur Chapter2/Cpu0CallingConv.td Chapter3_1/Cpu0CallingConv.td
 --- Chapter2/Cpu0CallingConv.td	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0CallingConv.td	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0CallingConv.td	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,18 @@
 +//===-- Cpu0CallingConv.td - Calling Conventions for Cpu0 --*- tablegen -*-===//
 +//
@@ -49,7 +49,7 @@ diff -Naur Chapter2/Cpu0CallingConv.td Chapter3_1/Cpu0CallingConv.td
 +
 diff -Naur Chapter2/Cpu0FrameLowering.cpp Chapter3_1/Cpu0FrameLowering.cpp
 --- Chapter2/Cpu0FrameLowering.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0FrameLowering.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0FrameLowering.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,100 @@
 +//===-- Cpu0FrameLowering.cpp - Cpu0 Frame Information --------------------===//
 +//
@@ -153,7 +153,7 @@ diff -Naur Chapter2/Cpu0FrameLowering.cpp Chapter3_1/Cpu0FrameLowering.cpp
 +
 diff -Naur Chapter2/Cpu0FrameLowering.h Chapter3_1/Cpu0FrameLowering.h
 --- Chapter2/Cpu0FrameLowering.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0FrameLowering.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0FrameLowering.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,43 @@
 +//===-- Cpu0FrameLowering.h - Define frame lowering for Cpu0 ----*- C++ -*-===//
 +//
@@ -200,7 +200,7 @@ diff -Naur Chapter2/Cpu0FrameLowering.h Chapter3_1/Cpu0FrameLowering.h
 +
 diff -Naur Chapter2/Cpu0InstrInfo.cpp Chapter3_1/Cpu0InstrInfo.cpp
 --- Chapter2/Cpu0InstrInfo.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0InstrInfo.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0InstrInfo.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,29 @@
 +//===-- Cpu0InstrInfo.cpp - Cpu0 Instruction Information ------------------===//
 +//
@@ -233,7 +233,7 @@ diff -Naur Chapter2/Cpu0InstrInfo.cpp Chapter3_1/Cpu0InstrInfo.cpp
 +
 diff -Naur Chapter2/Cpu0InstrInfo.h Chapter3_1/Cpu0InstrInfo.h
 --- Chapter2/Cpu0InstrInfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0InstrInfo.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0InstrInfo.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,41 @@
 +//===-- Cpu0InstrInfo.h - Cpu0 Instruction Information ----------*- C++ -*-===//
 +//
@@ -277,8 +277,8 @@ diff -Naur Chapter2/Cpu0InstrInfo.h Chapter3_1/Cpu0InstrInfo.h
 +
 +#endif
 diff -Naur Chapter2/Cpu0InstrInfo.td Chapter3_1/Cpu0InstrInfo.td
---- Chapter2/Cpu0InstrInfo.td	2014-03-04 14:32:39.400076212 +0800
-+++ Chapter3_1/Cpu0InstrInfo.td	2014-03-04 14:32:39.408076212 +0800
+--- Chapter2/Cpu0InstrInfo.td	2014-03-05 09:10:20.026684689 +0800
++++ Chapter3_1/Cpu0InstrInfo.td	2014-03-05 09:10:20.030684689 +0800
 @@ -28,6 +28,18 @@
                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
  
@@ -300,7 +300,7 @@ diff -Naur Chapter2/Cpu0InstrInfo.td Chapter3_1/Cpu0InstrInfo.td
  
 diff -Naur Chapter2/Cpu0ISelLowering.cpp Chapter3_1/Cpu0ISelLowering.cpp
 --- Chapter2/Cpu0ISelLowering.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0ISelLowering.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0ISelLowering.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,72 @@
 +//===-- Cpu0ISelLowering.cpp - Cpu0 DAG Lowering Implementation -----------===//
 +//
@@ -376,7 +376,7 @@ diff -Naur Chapter2/Cpu0ISelLowering.cpp Chapter3_1/Cpu0ISelLowering.cpp
 +}
 diff -Naur Chapter2/Cpu0ISelLowering.h Chapter3_1/Cpu0ISelLowering.h
 --- Chapter2/Cpu0ISelLowering.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0ISelLowering.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0ISelLowering.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,63 @@
 +//===-- Cpu0ISelLowering.h - Cpu0 DAG Lowering Interface --------*- C++ -*-===//
 +//
@@ -443,7 +443,7 @@ diff -Naur Chapter2/Cpu0ISelLowering.h Chapter3_1/Cpu0ISelLowering.h
 +#endif // Cpu0ISELLOWERING_H
 diff -Naur Chapter2/Cpu0MachineFunction.h Chapter3_1/Cpu0MachineFunction.h
 --- Chapter2/Cpu0MachineFunction.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0MachineFunction.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0MachineFunction.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,42 @@
 +//===-- Cpu0MachineFunctionInfo.h - Private data used for Cpu0 ----*- C++ -*-=//
 +//
@@ -489,7 +489,7 @@ diff -Naur Chapter2/Cpu0MachineFunction.h Chapter3_1/Cpu0MachineFunction.h
 +
 diff -Naur Chapter2/Cpu0RegisterInfo.cpp Chapter3_1/Cpu0RegisterInfo.cpp
 --- Chapter2/Cpu0RegisterInfo.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0RegisterInfo.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0RegisterInfo.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,99 @@
 +//===-- Cpu0RegisterInfo.cpp - CPU0 Register Information -== --------------===//
 +//
@@ -592,7 +592,7 @@ diff -Naur Chapter2/Cpu0RegisterInfo.cpp Chapter3_1/Cpu0RegisterInfo.cpp
 +
 diff -Naur Chapter2/Cpu0RegisterInfo.h Chapter3_1/Cpu0RegisterInfo.h
 --- Chapter2/Cpu0RegisterInfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0RegisterInfo.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0RegisterInfo.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,58 @@
 +//===-- Cpu0RegisterInfo.h - Cpu0 Register Information Impl -----*- C++ -*-===//
 +//
@@ -654,7 +654,7 @@ diff -Naur Chapter2/Cpu0RegisterInfo.h Chapter3_1/Cpu0RegisterInfo.h
 +#endif
 diff -Naur Chapter2/Cpu0SelectionDAGInfo.cpp Chapter3_1/Cpu0SelectionDAGInfo.cpp
 --- Chapter2/Cpu0SelectionDAGInfo.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0SelectionDAGInfo.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0SelectionDAGInfo.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,23 @@
 +//===-- Cpu0SelectionDAGInfo.cpp - Cpu0 SelectionDAG Info -----------------===//
 +//
@@ -681,7 +681,7 @@ diff -Naur Chapter2/Cpu0SelectionDAGInfo.cpp Chapter3_1/Cpu0SelectionDAGInfo.cpp
 +}
 diff -Naur Chapter2/Cpu0SelectionDAGInfo.h Chapter3_1/Cpu0SelectionDAGInfo.h
 --- Chapter2/Cpu0SelectionDAGInfo.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0SelectionDAGInfo.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0SelectionDAGInfo.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,31 @@
 +//===-- Cpu0SelectionDAGInfo.h - Cpu0 SelectionDAG Info ---------*- C++ -*-===//
 +//
@@ -716,7 +716,7 @@ diff -Naur Chapter2/Cpu0SelectionDAGInfo.h Chapter3_1/Cpu0SelectionDAGInfo.h
 +#endif
 diff -Naur Chapter2/Cpu0Subtarget.cpp Chapter3_1/Cpu0Subtarget.cpp
 --- Chapter2/Cpu0Subtarget.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0Subtarget.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0Subtarget.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,50 @@
 +//===-- Cpu0Subtarget.cpp - Cpu0 Subtarget Information --------------------===//
 +//
@@ -770,7 +770,7 @@ diff -Naur Chapter2/Cpu0Subtarget.cpp Chapter3_1/Cpu0Subtarget.cpp
 +
 diff -Naur Chapter2/Cpu0Subtarget.h Chapter3_1/Cpu0Subtarget.h
 --- Chapter2/Cpu0Subtarget.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0Subtarget.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0Subtarget.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,87 @@
 +//===-- Cpu0Subtarget.h - Define Subtarget for the Cpu0 ---------*- C++ -*-===//
 +//
@@ -860,8 +860,8 @@ diff -Naur Chapter2/Cpu0Subtarget.h Chapter3_1/Cpu0Subtarget.h
 +
 +#endif
 diff -Naur Chapter2/Cpu0TargetMachine.cpp Chapter3_1/Cpu0TargetMachine.cpp
---- Chapter2/Cpu0TargetMachine.cpp	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter3_1/Cpu0TargetMachine.cpp	2014-03-04 14:32:39.408076212 +0800
+--- Chapter2/Cpu0TargetMachine.cpp	2014-03-05 09:10:20.026684689 +0800
++++ Chapter3_1/Cpu0TargetMachine.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -11,9 +11,81 @@
  //
  //===----------------------------------------------------------------------===//
@@ -946,7 +946,7 @@ diff -Naur Chapter2/Cpu0TargetMachine.cpp Chapter3_1/Cpu0TargetMachine.cpp
 +
 diff -Naur Chapter2/Cpu0TargetMachine.h Chapter3_1/Cpu0TargetMachine.h
 --- Chapter2/Cpu0TargetMachine.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0TargetMachine.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0TargetMachine.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,92 @@
 +//===-- Cpu0TargetMachine.h - Define TargetMachine for Cpu0 -----*- C++ -*-===//
 +//
@@ -1042,7 +1042,7 @@ diff -Naur Chapter2/Cpu0TargetMachine.h Chapter3_1/Cpu0TargetMachine.h
 +#endif
 diff -Naur Chapter2/Cpu0TargetObjectFile.cpp Chapter3_1/Cpu0TargetObjectFile.cpp
 --- Chapter2/Cpu0TargetObjectFile.cpp	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0TargetObjectFile.cpp	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0TargetObjectFile.cpp	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,41 @@
 +//===-- Cpu0TargetObjectFile.cpp - Cpu0 Object Files ----------------------===//
 +//
@@ -1087,7 +1087,7 @@ diff -Naur Chapter2/Cpu0TargetObjectFile.cpp Chapter3_1/Cpu0TargetObjectFile.cpp
 +
 diff -Naur Chapter2/Cpu0TargetObjectFile.h Chapter3_1/Cpu0TargetObjectFile.h
 --- Chapter2/Cpu0TargetObjectFile.h	1970-01-01 08:00:00.000000000 +0800
-+++ Chapter3_1/Cpu0TargetObjectFile.h	2014-03-04 14:32:39.408076212 +0800
++++ Chapter3_1/Cpu0TargetObjectFile.h	2014-03-05 09:10:20.030684689 +0800
 @@ -0,0 +1,28 @@
 +//===-- llvm/Target/Cpu0TargetObjectFile.h - Cpu0 Object Info ---*- C++ -*-===//
 +//
@@ -1118,10 +1118,10 @@ diff -Naur Chapter2/Cpu0TargetObjectFile.h Chapter3_1/Cpu0TargetObjectFile.h
 +
 +#endif
 diff -Naur Chapter2/Cpu0.td Chapter3_1/Cpu0.td
---- Chapter2/Cpu0.td	2014-03-04 14:32:39.404076212 +0800
-+++ Chapter3_1/Cpu0.td	2014-03-04 14:32:39.408076212 +0800
-@@ -22,9 +22,44 @@
- include "Cpu0RegisterInfo.td"
+--- Chapter2/Cpu0.td	2014-03-05 09:10:20.026684689 +0800
++++ Chapter3_1/Cpu0.td	2014-03-05 09:10:20.030684689 +0800
+@@ -13,9 +13,44 @@
+ 
  include "Cpu0Schedule.td"
  include "Cpu0InstrInfo.td"
 +include "Cpu0CallingConv.td"

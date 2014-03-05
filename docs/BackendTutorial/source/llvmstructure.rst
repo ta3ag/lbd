@@ -749,7 +749,10 @@ to [#tablegen]_ for more information regarding how to use tablegen.
 
 Every backend has a .td which defines some target information, including what other .td 
 files are used by the backend.  These files have a similar syntax to C++. For Cpu0, the 
-target description file is called Cpu0.td, which is shown below:
+target description file is called Cpu0Other.td, which is shown below:
+
+.. rubric:: lbdex/Chapter2/Cpu0Other.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Other.td
 
 .. rubric:: lbdex/Chapter2/Cpu0.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
@@ -763,7 +766,8 @@ target description file is called Cpu0.td, which is shown below:
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
     :start-after: let AssemblyParserVariants = [Cpu0AsmParserVariant];
 
-Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
+Cpu0Other.td and Cpu0.td includes a few other .td files. 
+Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
 ``def PC`` indicates that there is a register called PC.  Also, there is a register class 
 named ``CPURegs`` that contains all of the other registers.  You may have multiple 
@@ -771,6 +775,9 @@ register classes (see the X86 backend, for example) which can help you if certai
 instructions can only write to specific registers.  In this case, there is only one set 
 of general purpose registers for Cpu0, and some registers that are reserved so that they 
 are not modified by instructions during execution.
+
+.. rubric:: lbdex/Chapter2/Cpu0RegisterInfoGPROutForOther.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfoGPROutForOther.td
 
 .. rubric:: lbdex/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
@@ -1421,7 +1428,8 @@ Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,
 
 At this point, we finish the Target Registration for Cpu0 backend. 
 The backend compiler command llc can recognize cpu0 backend now. 
-Currently we just define target td files (Cpu0.td, Cpu0RegisterInfo.td, ...). 
+Currently we just define target td files (Cpu0.td, Cpu0Other.td, 
+Cpu0RegisterInfo.td, ...). 
 According to LLVM structure, we need to define our target machine and include 
 those td related files. 
 The error message say we didn't define our target machine.
