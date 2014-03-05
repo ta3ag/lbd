@@ -5,7 +5,7 @@ Run backend
 
 Until now, we have a llvm backend to compile C or assembly as the blue part of 
 :num:`Figure #runbackend-f1`. If without global variable, the elf obj can be 
-dump to hex file via ``llvm-objdump -d`` did in Chapter ELF.
+dumped to hex file via ``llvm-objdump -d`` did in Chapter ELF Support.
 
 .. _runbackend-f1: 
 .. figure:: ../Fig/runbackend/1.png
