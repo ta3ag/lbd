@@ -79,8 +79,10 @@ The CMakeLists.txt added as above to generate the Cpu0GenAsmMatcher.inc used by
 Cpu0AsmParser.cpp. In Cpu0Asm.td, it include Cpu0RegisterInfoGPROutForAsm.td 
 which define GPROut is same to CPURegs. In Cpu0RegisterInfoGPROutForOther.td, 
 which used when translate llvm IR to Cpu0 instruction. The register SW are not 
-allowed to be allocated to output result register such as "and $sw, $1, $2" 
-since the $sw include the status word for Cpu0. So, the GPROut is defined to 
+allowed to be allocated to output result register when translate llvm IR. 
+For example, if compile with C statement "a = (b & c);" and it generate 
+"and $sw, $1, $2" instruction then the $sw of interrupt status will be 
+destroyed. To avoid this happen, the GPROut is defined to 
 exclude SW in Cpu0RegisterInfoGPROutForOther.td. When do assembler, instruction 
 "and $sw, $1, $2" is allowed. This assembly programm is accepted, so 
 Cpu0GenAsmMatcher.inc is generated follow the Cpu0Asm.td definition.
