@@ -646,7 +646,7 @@ Finally cpu032II include all cpu032I instruction set and add some
 instrucitons. When ``llvm-objdump -d`` invoke, function ParseCpu0Triple() as 
 the following will be called. Not like ``llc -mcpu=cpu032I`` can set mcpu type,
 so the varaible CPU in ParseCpu0Triple() is empty. We set Cpu0ArchFeature to 
-cpu032II than it can disassembly all instructions.
+"+cpu032II" than it can disassembly all instructions.
 
 .. rubric:: lbdex/Chapter10_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
 .. code-block:: c++
