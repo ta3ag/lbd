@@ -1,7 +1,7 @@
 #!/bin/sh -a
 
 rm matmul matmul.polly
-LLVM_INSTALL=~/polly/llvm_build
+LLVM_INSTALL=~/polly/llvm_arm_build
 alias pollycc="${LLVM_INSTALL}/bin/clang -Xclang -load -Xclang ${LLVM_INSTALL}/lib/LLVMPolly.so"
 alias opt="opt -load ${LLVM_INSTALL}/lib/LLVMPolly.so"
 
