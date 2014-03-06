@@ -10,7 +10,7 @@ export POLLY_SRC=${LLVM_SRC}/tools/polly
 export CLANG_SRC=${LLVM_SRC}/tools/clang
 export CLOOG_SRC=${BASE}/cloog_src
 export CLOOG_INSTALL=${BASE}/cloog_install
-export LLVM_BUILD=${BASE}/llvm_build
+export LLVM_BUILD=${BASE}/llvm_arm_build
 
 if [ -e /proc/cpuinfo ]; then
     procs=`cat /proc/cpuinfo | grep processor | wc -l`
@@ -65,7 +65,7 @@ fi
 cp ${BINUTILS_INSTALL}/arm-linux-gnueabi/bin/* ${LLVM_BUILD}/bin/.
 cp -rf ${MVLTOOLCHAIN}/lib/gcc ${LLVM_BUILD}/lib/.
 if ! test -e ${LLVM_BUILD}/arm-marvell-linux-gnueabi; then
-    mkdir arm-marvell-linux-gnueabi
+    mkdir ${LLVM_BUILD}/arm-marvell-linux-gnueabi
 fi
-cp -rf SYSROOT/include ${LLVM_BUILD}/arm-marvell-linux-gnueabi/.
+cp -rf ${SYSROOT}/include ${LLVM_BUILD}/arm-marvell-linux-gnueabi/.
 
