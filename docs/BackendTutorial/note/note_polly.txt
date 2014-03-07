@@ -24,9 +24,31 @@ Polly-optimize: clang -Xclang -load -Xclang LLVMPolly.so -mllvm -polly -O3 (use 
 
   cd polly_ex && ./build-matmul-arm.sh            // build with llvm arm
   time ./matmul                                   // non-polly clang -O3
+  // result:
+      # time ./matmul
+      real	10m 25.97s
+      user	10m 25.76s
+      sys	0m 0.23s
+
   time ./matmul.polly                             // polly clang -O3
+  // result
+      # time ./matmul.polly
+      real	2m 59.71s
+      user	2m 59.55s
+      sys	0m 0.16s
 
   time ./pmatmul > pmatmul.result
+  // result
+      # time ./pmatmul > pmatmul.result
+      real	22m 38.11s
+      user	10m 33.15s
+      sys	0m 0.51s
+
   time ./pmatmul.polly > pmatmul.polly.result
+  // result
+      real	15m 45.92s
+      user	3m 12.79s
+      sys	0m 0.50s
+
   diff pmatmul.result pmatmul.polly.result        // to ensure the outputs is same
 
