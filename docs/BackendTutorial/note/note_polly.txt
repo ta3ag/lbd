@@ -52,3 +52,9 @@ Polly-optimize: clang -Xclang -load -Xclang LLVMPolly.so -mllvm -polly -O3 (use 
 
   diff pmatmul.result pmatmul.polly.result        // to ensure the outputs is same
 
+7. 2014/03/07 the git llvm/polly can build by the following change of polly.sh,
+from:
+    make -j$procs -l$procs
+to:
+    make 
+
