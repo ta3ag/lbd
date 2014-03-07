@@ -107,9 +107,9 @@ Let's run Chapter11_2/ with ``llvm-objdump -d`` for input files
 ch_run_backend.cpp to generate the hex file of inputing to cpu0Is Verilog 
 simulator to get the output result as below. 
 Remind ch_run_backend.cpp have to be compiled with option 
-``clang -target mips-unknown-linux-gnu`` and use the clang of
-your build instead of download from Xcode on iMac. The ~/llvm/release/
-cmake_debug_build/bin/Debug/ is my build clang from source code.
+``clang -target mips-unknown-linux-gnu`` since the example code ch9_3.cpp which 
+use the vararg need to compile with this option. Others example code is no 
+difference for this option and default option. 
 
 
 .. code-block:: bash

@@ -1508,7 +1508,7 @@ implementation.
 Summary
 --------
 
-LLVM judgement
+LLVM evaluation
 ~~~~~~~~~~~~~~~~~
 
 Thanks the llvm open source project. 
@@ -1547,14 +1547,15 @@ most important thing to improve the open source code development.
 The Open Source Organization recognized this point before us and set 
 Open Source Document Project years ago [#]_ [#]_ [#]_ [#]_ [#]_.
 Open Source grows up and becomes a giant software infrastructure with the forces 
-of company [#]_  [#]_, school research team and countless talent engineers passion. 
+of company [#]_  [#]_, school research team and countless talent engineers 
+passion. 
 It terminated the situation of everyone trying to re-invent wheels during 10 
 years ago.
 Extend your software from the re-usable source code is the right way. 
 Of course you should consider an open source license if you are working 
 with business.
 Actually anyone can contribute back to open source through the learning process. 
-We write this book through the process of learning llvm backend and contribute 
+This book is written through the process of learning llvm backend and contribute 
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only 
 few number of readers interested in study llvm backend even 
