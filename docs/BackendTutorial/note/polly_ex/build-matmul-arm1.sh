@@ -1,7 +1,7 @@
 #!/bin/sh -a
 
 rm matmul matmul1
-LLVM_INSTALL=~/test/polly/llvm_arm_build"
+LLVM_INSTALL=~/test/polly/llvm_arm_build
 
 ${LLVM_INSTALL}/bin/clang -O3 -DTEST -mcpu=cortex-a9 -mfloat-abi=hard matmul.cpp -o pmatmul
 ${LLVM_INSTALL}/bin/clang -O3 -DTEST -mcpu=cortex-a9 -mfloat-abi=hard matmul1.cpp -o pmatmul1
