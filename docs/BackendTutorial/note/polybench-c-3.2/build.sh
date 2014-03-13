@@ -25,6 +25,16 @@ ${LLVM_INSTALL}/bin/clang -O3 -I utilities -I datamining/covariance utilities/po
 
 ${LLVM_INSTALL}/bin/clang -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/mvt/mvt.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o mvt
 
+${LLVM_INSTALL}/bin/clang -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/symm/symm.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o symm
+
+${LLVM_INSTALL}/bin/clang -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/syr2k/syr2k.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o syr2k
+
+${LLVM_INSTALL}/bin/clang -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/syrk/syrk.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o syrk
+
+${LLVM_INSTALL}/bin/clang -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/trisolv/trisolv.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o trisolv
+
+${LLVM_INSTALL}/bin/clang -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/trmm/trmm.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o trmm
+
 
 
 
@@ -51,6 +61,16 @@ pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamini
 pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/gesummv/gesummv.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o gesummv.polly
 
 pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/mvt/mvt.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o mvt.polly
+
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/symm/symm.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o symm
+
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/syr2k/syr2k.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o syr2k
+
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/syrk/syrk.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o syrk
+
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/trisolv/trisolv.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o trisolv
+
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/trmm/trmm.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o trmm
 
 
 
