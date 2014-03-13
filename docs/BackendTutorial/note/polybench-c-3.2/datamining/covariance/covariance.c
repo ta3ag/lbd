@@ -1,3 +1,9 @@
+// Must compile with option -DPOLYBENCH_USE_SCALAR_LB as follows, otherwise not speedup.
+// 
+// LLVM_INSTALL=~/test/polly/llvm_build
+// alias pollycc="${LLVM_INSTALL}/bin/clang -Xclang -load -Xclang ${LLVM_INSTALL}/lib/LLVMPolly.so"
+// pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c datamining/covariance/covariance.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o covariance.polly
+
 /**
  * covariance.c: This file is part of the PolyBench/C 3.2 test suite.
  *
