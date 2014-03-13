@@ -1,6 +1,6 @@
 #!/bin/sh -a
 
-rm matmul matmul.polly
+rm matmul matmul.polly matmul.result matmul.polly.result
 LLVM_INSTALL=~/test/polly/llvm_build
 alias pollycc="${LLVM_INSTALL}/bin/clang -Xclang -load -Xclang ${LLVM_INSTALL}/lib/LLVMPolly.so"
 alias opt="opt -load ${LLVM_INSTALL}/lib/LLVMPolly.so"
@@ -17,8 +17,8 @@ opt -S -mem2reg -loop-simplify -polly-indvars matmul.polly.ll > matmul.preopt.ll
 echo "--> 4. Show the SCoPs detected by Polly"
 opt -basicaa -polly-cloog -analyze -q matmul.preopt.ll
 
-${LLVM_INSTALL}/bin/clang -O3 -DTEST matmul.c -o matmul
-pollycc -mllvm -polly -O3 -DTEST matmul.c -o matmul.polly
+${LLVM_INSTALL}/bin/clang -O3 -DPOLYBENCH_DUMP_ARRAYS matmul.c -o matmul
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -DPOLYBENCH_DUMP_ARRAYS matmul.c -o matmul.polly
 
 echo "\nWith print result"
 echo "time ./matmul"
@@ -27,7 +27,7 @@ echo "time ./matmul.polly"
 time -f "%E real, %U user, %S sys" ./matmul.polly > matmul.polly.result
 
 ${LLVM_INSTALL}/bin/clang -O3 matmul.c -o matmul
-pollycc -mllvm -polly -O3 matmul.c -o matmul.polly
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 matmul.c -o matmul.polly
 
 echo "\n\nNo print result"
 echo "time ./matmul"

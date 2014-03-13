@@ -1,8 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//#define GLOABL_ARRAY
+
+/* Dead-code elimination macros. Use argc/argv for the run-time check. */
+# ifndef POLYBENCH_DUMP_ARRAYS
+#  define POLYBENCH_DCE_ONLY_CODE    if (argc > 42 && ! strcmp(argv[0], ""))
+# else
+#  define POLYBENCH_DCE_ONLY_CODE
+# endif
+
+# define polybench_prevent_dce(func)		\
+  POLYBENCH_DCE_ONLY_CODE			\
+  func
+
 #define N 1536*1
-#if 0
+
+#ifdef GLOABL_ARRAY
 float A[N][N];
 float B[N][N];
 float C[N][N];
@@ -60,7 +74,6 @@ void matmul()
 }
 #endif
 
-#ifdef TEST
 void print_array(float C[N][N])
 {
     int i, j;
@@ -73,39 +86,31 @@ void print_array(float C[N][N])
         fprintf(stdout, "\n");
     }
 }
-#endif
 
-int main()
+int main(int argc, char** argv)
 {
     int i, j, k;
     double t_start, t_end;
 
-#if 0
+#ifdef GLOABL_ARRAY
     init_array();
+// The pointer such as A, B, C make polly cannot optimization.
+// It can be solved by pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 matmul.c -o matmul.polly
+    matmul(A, B, C);
 #else
     float *A; float *B; float *C;
     A = malloc(N*N*sizeof(float));
     B = malloc(N*N*sizeof(float));
     C = malloc(N*N*sizeof(float));
     init_array(A, B);
-#endif
-
-#if 0
-    for(i=0; i<N; i++)  {
-        for(j=0; j<N; j++)  {
-            C[i][j] = 0;
-            for(k=0; k<N; k++)
-                C[i][j] = C[i][j] + A[i][k] * B[k][j];
-        }
-    }
-#else
 // The pointer such as A, B, C make polly cannot optimization.
 // It can be solved by pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 matmul.c -o matmul.polly
     matmul(A, B, C);
 #endif
 
-#ifdef TEST
-    print_array(C);
-#endif
+    /* Prevent dead-code elimination. All live-out data must be printed
+       by the function call in argument. */
+    polybench_prevent_dce(print_array(C));
+
     return 0;
 }
