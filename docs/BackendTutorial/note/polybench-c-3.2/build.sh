@@ -42,15 +42,15 @@ pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamini
 
 #pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/cholesky/cholesky.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o cholesky
 
-pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/doitgen/doitgen.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o doitgen
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/doitgen/doitgen.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o doitgen.polly
 
-pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/gemm/gemm.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o gemm
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/gemm/gemm.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o gemm.polly
 
-pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/gemver/gemver.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o gemver
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/gemver/gemver.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o gemver.polly
 
-pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/gesummv/gesummv.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o gesummv
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/gesummv/gesummv.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o gesummv.polly
 
-pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/mvt/mvt.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o mvt
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -I utilities -I datamining/covariance utilities/polybench.c linear-algebra/kernels/mvt/mvt.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB -o mvt.polly
 
 
 
