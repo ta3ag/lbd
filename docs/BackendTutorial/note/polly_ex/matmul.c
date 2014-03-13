@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #define N 1536*1
+#if 0
 float A[N][N];
 float B[N][N];
 float C[N][N];
@@ -16,6 +18,19 @@ void init_array()
         }
     }
 }
+#else
+void init_array(float A[N][N], float B[N][N])
+{
+    int i, j;
+
+    for (i=0; i<N; i++) {
+        for (j=0; j<N; j++) {
+            A[i][j] = (1+(i*j)%1024)/2.0;
+            B[i][j] = (1+(i*j)%1024)/2.0;
+        }
+    }
+}
+#endif
 
 #if 1
 void matmul(float a[N][N], float b[N][N], float c[N][N])
@@ -46,7 +61,7 @@ void matmul()
 #endif
 
 #ifdef TEST
-void print_array()
+void print_array(float C[N][N])
 {
     int i, j;
 
@@ -65,7 +80,15 @@ int main()
     int i, j, k;
     double t_start, t_end;
 
+#if 0
     init_array();
+#else
+    float *A; float *B; float *C;
+    A = malloc(N*N*sizeof(float));
+    B = malloc(N*N*sizeof(float));
+    C = malloc(N*N*sizeof(float));
+    init_array(A, B);
+#endif
 
 #if 0
     for(i=0; i<N; i++)  {
@@ -82,7 +105,7 @@ int main()
 #endif
 
 #ifdef TEST
-    print_array();
+    print_array(C);
 #endif
     return 0;
 }
