@@ -3,8 +3,8 @@
 rm -rf polybench
 mkdir polybench
 
-BUILD_ARM=0
-#BUILD_ARM=1
+#BUILD_ARM=0
+BUILD_ARM=1
 
 #DUMP_RESULT=0
 DUMP_RESULT=1
