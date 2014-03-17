@@ -1,0 +1,132 @@
+# ./run.sh 
+
+time ./covariance
+63.720487
+time ./covariance.polly
+15.789125
+
+time ./2mm
+441.851994
+time ./2mm.polly
+137.762483
+
+time ./3mm
+659.719464
+time ./3mm.polly
+206.345479
+
+time ./atax
+1.237957
+time ./atax.polly
+1.997169
+
+time ./bicg
+1.211386
+time ./bicg.polly
+1.084857
+
+time ./doitgen
+15.048831
+time ./doitgen.polly
+8.180120
+
+time ./gemm
+222.666352
+time ./gemm.polly
+68.646826
+
+time ./gemver
+5.948769
+time ./gemver.polly
+3.189632
+
+time ./gesummv
+1.711688
+time ./gesummv.polly
+1.669207
+
+time ./mvt
+4.739651
+time ./mvt.polly
+1.995253
+
+time ./symm
+292.682315
+time ./symm.polly
+288.732312
+
+time ./syr2k
+129.399274
+time ./syr2k.polly
+82.075006
+
+time ./syrk
+62.006279
+time ./syrk.polly
+37.397927
+time ./trmm
+30.550419
+time ./trmm.polly
+50.860348
+
+time ./durbin
+4.312813
+time ./durbin.polly
+4.581312
+
+time ./dynprog
+2.145070
+time ./dynprog.polly
+3.365834
+
+
+time ./lu
+21.156936
+time ./lu.polly
+21.466185
+
+time ./ludcmp
+23.200376
+time ./ludcmp.polly
+23.675167
+
+time ./floyd-warshall
+75.907292
+time ./floyd-warshall.polly
+75.918520
+
+time ./reg_detect
+0.095316
+time ./reg_detect.polly
+0.095069
+
+time ./adi
+35.700053
+time ./adi.polly
+53.752930
+
+time ./fdtd-2d
+16.807083
+time ./fdtd-2d.polly
+4.840509
+
+time ./fdtd-apml
+12.365511
+time ./fdtd-apml.polly
+11.920703
+
+time ./jacobi-1d-imper
+0.044361
+time ./jacobi-1d-imper.polly
+0.032417
+
+time ./jacobi-2d-imper
+2.430924
+time ./jacobi-2d-imper.polly
+0.972684
+
+time ./seidel-2d
+2.331828
+time ./seidel-2d.polly
+1.732603
+
