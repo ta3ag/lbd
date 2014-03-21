@@ -14,11 +14,37 @@
 #ifndef CPU0_MACHINE_FUNCTION_INFO_H
 #define CPU0_MACHINE_FUNCTION_INFO_H
 
-#include "llvm/CodeGen/MachineFunction.h"
+#include "Cpu0Subtarget.h"
+#include "llvm/ADT/StringMap.h"
+#include "llvm/ADT/ValueMap.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
+#include "llvm/CodeGen/MachineFunction.h"
+#include "llvm/CodeGen/MachineMemOperand.h"
+#include "llvm/CodeGen/PseudoSourceValue.h"
+#include "llvm/IR/GlobalValue.h"
+#include "llvm/Target/TargetFrameLowering.h"
+#include "llvm/Target/TargetMachine.h"
 #include <utility>
 
 namespace llvm {
+
+/// \brief A class derived from PseudoSourceValue that represents a GOT entry
+/// resolved by lazy-binding.
+class Cpu0CallEntry : public PseudoSourceValue {
+public:
+  explicit Cpu0CallEntry(const StringRef &N);
+  explicit Cpu0CallEntry(const GlobalValue *V);
+  virtual bool isConstant(const MachineFrameInfo *) const;
+  virtual bool isAliased(const MachineFrameInfo *) const;
+  virtual bool mayAlias(const MachineFrameInfo *) const;
+
+private:
+  virtual void printCustom(raw_ostream &O) const;
+#ifndef NDEBUG
+  std::string Name;
+  const GlobalValue *Val;
+#endif
+};
 
 /// Cpu0FunctionInfo - This class is derived from MachineFunction private
 /// Cpu0 target-specific information for each MachineFunction.
@@ -56,6 +82,10 @@ class Cpu0FunctionInfo : public MachineFunctionInfo {
   mutable int DynAllocFI; // Frame index of dynamically allocated stack area.
   unsigned MaxCallFrameSize;
   bool EmitNOAT;
+
+  /// Cpu0CallEntry maps.
+  StringMap<const Cpu0CallEntry *> ExternalCallEntries;
+  ValueMap<const GlobalValue *, const Cpu0CallEntry *> GlobalCallEntries;
 
 public:
   Cpu0FunctionInfo(MachineFunction& MF)
@@ -121,6 +151,15 @@ public:
   void setMaxCallFrameSize(unsigned S) { MaxCallFrameSize = S; }
   bool getEmitNOAT() const { return EmitNOAT; }
   void setEmitNOAT() { EmitNOAT = true; }
+
+  /// \brief Create a MachinePointerInfo that has a Cpu0CallEntr object
+  /// representing a GOT entry for an external function.
+  MachinePointerInfo callPtrInfo(const StringRef &Name);
+
+  /// \brief Create a MachinePointerInfo that has a Cpu0CallEntr object
+  /// representing a GOT entry for a global function.
+  MachinePointerInfo callPtrInfo(const GlobalValue *Val);
+
 };
 
 } // end of namespace llvm

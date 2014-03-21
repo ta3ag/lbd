@@ -19,6 +19,7 @@
 #include "Cpu0TargetObjectFile.h"
 #include "Cpu0Subtarget.h"
 #include "MCTargetDesc/Cpu0BaseInfo.h"
+#include "llvm/ADT/Statistic.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/GlobalVariable.h"
@@ -35,14 +36,25 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+#include <cctype>
 
 using namespace llvm;
+
+STATISTIC(NumTailCalls, "Number of tail calls");
+
+static cl::opt<bool>
+LargeGOT("cpu0-mxgot", cl::Hidden,
+         cl::desc("CPU0: Enable GOT larger than 64k."), cl::init(false));
+
+static cl::opt<bool>
+EnableCpu0TailCalls("enable-cpu0-tail-calls", cl::Hidden,
+                    cl::desc("CPU0: Enable tail calls."), cl::init(false));
 
 SDValue Cpu0TargetLowering::getGlobalReg(SelectionDAG &DAG, EVT Ty) const {
   Cpu0FunctionInfo *FI = DAG.getMachineFunction().getInfo<Cpu0FunctionInfo>();
   return DAG.getRegister(FI->getGlobalBaseReg(), Ty);
 }
-
+#if 0
 static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
   EVT Ty = Op.getValueType();
 
@@ -61,6 +73,38 @@ static SDValue getTargetNode(SDValue Op, SelectionDAG &DAG, unsigned Flag) {
 
   llvm_unreachable("Unexpected node type.");
   return SDValue();
+}
+#endif
+
+SDValue Cpu0TargetLowering::getTargetNode(GlobalAddressSDNode *N, EVT Ty,
+                                          SelectionDAG &DAG,
+                                          unsigned Flag) const {
+  return DAG.getTargetGlobalAddress(N->getGlobal(), SDLoc(N), Ty, 0, Flag);
+}
+
+SDValue Cpu0TargetLowering::getTargetNode(ExternalSymbolSDNode *N, EVT Ty,
+                                          SelectionDAG &DAG,
+                                          unsigned Flag) const {
+  return DAG.getTargetExternalSymbol(N->getSymbol(), Ty, Flag);
+}
+
+SDValue Cpu0TargetLowering::getTargetNode(BlockAddressSDNode *N, EVT Ty,
+                                          SelectionDAG &DAG,
+                                          unsigned Flag) const {
+  return DAG.getTargetBlockAddress(N->getBlockAddress(), Ty, 0, Flag);
+}
+
+SDValue Cpu0TargetLowering::getTargetNode(JumpTableSDNode *N, EVT Ty,
+                                          SelectionDAG &DAG,
+                                          unsigned Flag) const {
+  return DAG.getTargetJumpTable(N->getIndex(), Ty, Flag);
+}
+
+SDValue Cpu0TargetLowering::getTargetNode(ConstantPoolSDNode *N, EVT Ty,
+                                          SelectionDAG &DAG,
+                                          unsigned Flag) const {
+  return DAG.getTargetConstantPool(N->getConstVal(), Ty, N->getAlignment(),
+                                   N->getOffset(), Flag);
 }
 
 const char *Cpu0TargetLowering::getTargetNodeName(unsigned Opcode) const {
@@ -387,11 +431,35 @@ Cpu0TargetLowering::passArgOnStack(SDValue StackPtr, unsigned Offset,
                       /*isVolatile=*/ true, false, 0);
 }
 
+bool Cpu0TargetLowering::
+isEligibleForTailCallOptimization(const Cpu0CC &Cpu0CCInfo,
+                                  unsigned NextStackOffset,
+                                  const Cpu0FunctionInfo& FI) const {
+  if (!EnableCpu0TailCalls)
+    return false;
+
+  // Return false if either the callee or caller has a byval argument.
+  if (Cpu0CCInfo.hasByValArg() || FI.hasByvalArg())
+    return false;
+
+  // Return true if the callee's argument area is no larger than the
+  // caller's.
+  return NextStackOffset <= FI.getIncomingArgSize();
+}
+
 void Cpu0TargetLowering::
 getOpndList(SmallVectorImpl<SDValue> &Ops,
             std::deque< std::pair<unsigned, SDValue> > &RegsToPass,
             bool IsPICCall, bool GlobalOrExternal, bool InternalLinkage,
             CallLoweringInfo &CLI, SDValue Callee, SDValue Chain) const {
+  // T9 should contain the address of the callee function if
+  // -reloction-model=pic or it is an indirect call.
+  if (IsPICCall || !GlobalOrExternal) {
+    unsigned T9Reg = Cpu0::T9;
+    RegsToPass.push_front(std::make_pair(T9Reg, Callee));
+  } else
+    Ops.push_back(Callee);
+
   // Insert node "GP copy globalreg" before call to function.
   //
   // R_MIPS_CALL* operators (emitted when non-internal functions are called
@@ -457,10 +525,9 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   SmallVector<CCValAssign, 16> ArgLocs;
   CCState CCInfo(CallConv, IsVarArg, DAG.getMachineFunction(),
                  getTargetMachine(), ArgLocs, *DAG.getContext());
-  Cpu0CC Cpu0CCInfo(CallConv, Subtarget->isFP64bit(), CCInfo);
+  Cpu0CC Cpu0CCInfo(CallConv, IsO32, CCInfo);
 
   Cpu0CCInfo.analyzeCallOperands(Outs, IsVarArg,
-                                 Subtarget->mipsSEUsesSoftFloat(),
                                  Callee.getNode(), CLI.Args);
 
   // Get a count of how many bytes are to be pushed on the stack.
@@ -566,7 +633,7 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
       InternalLinkage = Val->hasInternalLinkage();
 
       if (InternalLinkage)
-        Callee = getAddrLocal(G, DAG);
+        Callee = getAddrLocal(G, Ty, DAG);
       else if (LargeGOT)
         Callee = getAddrGlobalLargeGOT(G, Ty, DAG, Cpu0II::MO_CALL_HI16,
                                        Cpu0II::MO_CALL_LO16, Chain,
@@ -616,7 +683,33 @@ Cpu0TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   // Handle result values, copying them out of physregs into vregs that we
   // return.
   return LowerCallResult(Chain, InFlag, CallConv, IsVarArg,
-                         Ins, DL, DAG, InVals, CLI.Callee.getNode(), CLI.RetTy);
+                         Ins, DL, DAG, InVals);
+}
+
+/// LowerCallResult - Lower the result values of a call into the
+/// appropriate copies out of appropriate physical registers.
+SDValue
+Cpu0TargetLowering::LowerCallResult(SDValue Chain, SDValue InFlag,
+                                    CallingConv::ID CallConv, bool isVarArg,
+                                    const SmallVectorImpl<ISD::InputArg> &Ins,
+                                    SDLoc DL, SelectionDAG &DAG,
+                                    SmallVectorImpl<SDValue> &InVals) const {
+  // Assign locations to each value returned by this call.
+  SmallVector<CCValAssign, 16> RVLocs;
+  CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
+		 getTargetMachine(), RVLocs, *DAG.getContext());
+
+  CCInfo.AnalyzeCallResult(Ins, RetCC_Cpu0);
+
+  // Copy all of the result registers out of their specified physreg.
+  for (unsigned i = 0; i != RVLocs.size(); ++i) {
+    Chain = DAG.getCopyFromReg(Chain, DL, RVLocs[i].getLocReg(),
+                               RVLocs[i].getValVT(), InFlag).getValue(1);
+    InFlag = Chain.getValue(2);
+    InVals.push_back(Chain.getValue(0));
+  }
+
+  return Chain;
 }
 
 //===----------------------------------------------------------------------===//
@@ -1089,8 +1182,8 @@ Cpu0TargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
 }
 
 Cpu0TargetLowering::Cpu0CC::Cpu0CC(
-  CallingConv::ID CC, CCState &Info)
-  : CCInfo(Info), CallConv(CC) {
+  CallingConv::ID CC, bool IsO32_, CCState &Info)
+  : CCInfo(Info), CallConv(CC), IsO32(IsO32_) {
   // Pre-allocate reserved argument area.
   CCInfo.AllocateStack(reservedArgArea(), 1);
 }
@@ -1098,7 +1191,7 @@ Cpu0TargetLowering::Cpu0CC::Cpu0CC(
 
 void Cpu0TargetLowering::Cpu0CC::
 analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
-                    bool IsVarArg, bool IsSoftFloat, const SDNode *CallNode,
+                    bool IsVarArg, const SDNode *CallNode,
                     std::vector<ArgListEntry> &FuncArgs) {
   assert((CallConv != CallingConv::Fast || !IsVarArg) &&
          "CallingConv::Fast shouldn't be used for vararg functions.");
@@ -1119,8 +1212,7 @@ analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
     if (IsVarArg && !Args[I].IsFixed)
       R = VarFn(I, ArgVT, ArgVT, CCValAssign::Full, ArgFlags, CCInfo);
     else {
-      MVT RegVT = getRegVT(ArgVT, FuncArgs[Args[I].OrigArgIndex].Ty, CallNode,
-                           IsSoftFloat);
+      MVT RegVT = getRegVT(ArgVT, FuncArgs[Args[I].OrigArgIndex].Ty, CallNode);
       R = FixedFn(I, ArgVT, RegVT, CCValAssign::Full, ArgFlags, CCInfo);
     }
 
@@ -1136,7 +1228,7 @@ analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Args,
 
 void Cpu0TargetLowering::Cpu0CC::
 analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
-                       bool IsSoftFloat, Function::const_arg_iterator FuncArg) {
+                       Function::const_arg_iterator FuncArg) {
   unsigned NumArgs = Args.size();
   llvm::CCAssignFn *FixedFn = fixedArgFn();
   unsigned CurArgIdx = 0;
@@ -1152,7 +1244,7 @@ analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
       continue;
     }
 
-    MVT RegVT = getRegVT(ArgVT, FuncArg->getType(), 0, IsSoftFloat);
+    MVT RegVT = getRegVT(ArgVT, FuncArg->getType(), 0);
 
     if (!FixedFn(I, ArgVT, RegVT, CCValAssign::Full, ArgFlags, CCInfo))
       continue;
@@ -1167,7 +1259,7 @@ analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Args,
 
 template<typename Ty>
 void Cpu0TargetLowering::Cpu0CC::
-analyzeReturn(const SmallVectorImpl<Ty> &RetVals, bool IsSoftFloat,
+analyzeReturn(const SmallVectorImpl<Ty> &RetVals,
               const SDNode *CallNode, const Type *RetTy) const {
   CCAssignFn *Fn;
 
@@ -1176,7 +1268,7 @@ analyzeReturn(const SmallVectorImpl<Ty> &RetVals, bool IsSoftFloat,
   for (unsigned I = 0, E = RetVals.size(); I < E; ++I) {
     MVT VT = RetVals[I].VT;
     ISD::ArgFlagsTy Flags = RetVals[I].Flags;
-    MVT RegVT = this->getRegVT(VT, RetTy, CallNode, IsSoftFloat);
+    MVT RegVT = this->getRegVT(VT, RetTy, CallNode);
 
     if (Fn(I, VT, RegVT, CCValAssign::Full, Flags, this->CCInfo)) {
 #ifndef NDEBUG
@@ -1189,15 +1281,15 @@ analyzeReturn(const SmallVectorImpl<Ty> &RetVals, bool IsSoftFloat,
 }
 
 void Cpu0TargetLowering::Cpu0CC::
-analyzeCallResult(const SmallVectorImpl<ISD::InputArg> &Ins, bool IsSoftFloat,
+analyzeCallResult(const SmallVectorImpl<ISD::InputArg> &Ins,
                   const SDNode *CallNode, const Type *RetTy) const {
-  analyzeReturn(Ins, IsSoftFloat, CallNode, RetTy);
+  analyzeReturn(Ins, CallNode, RetTy);
 }
 
 void Cpu0TargetLowering::Cpu0CC::
-analyzeReturn(const SmallVectorImpl<ISD::OutputArg> &Outs, bool IsSoftFloat,
+analyzeReturn(const SmallVectorImpl<ISD::OutputArg> &Outs,
               const Type *RetTy) const {
-  analyzeReturn(Outs, IsSoftFloat, 0, RetTy);
+  analyzeReturn(Outs, 0, RetTy);
 }
 
 void Cpu0TargetLowering::Cpu0CC::handleByValArg(unsigned ValNo, MVT ValVT,
@@ -1224,7 +1316,7 @@ void Cpu0TargetLowering::Cpu0CC::handleByValArg(unsigned ValNo, MVT ValVT,
 }
 
 unsigned Cpu0TargetLowering::Cpu0CC::numIntArgRegs() const {
-  return array_lengthof(IntRegs);
+  return 0;
 }
 
 unsigned Cpu0TargetLowering::Cpu0CC::reservedArgArea() const {
@@ -1247,7 +1339,7 @@ void Cpu0TargetLowering::Cpu0CC::allocateRegs(ByValArgInfo &ByVal,
                                               unsigned ByValSize,
                                               unsigned Align) {
   unsigned RegSize = regSize(), NumIntArgRegs = numIntArgRegs();
-  const uint16_t *IntArgRegs = intArgRegs(), *ShadowRegs = shadowRegs();
+  const uint16_t *IntArgRegs = intArgRegs();
   assert(!(ByValSize % RegSize) && !(Align % RegSize) &&
          "Byval argument's size and alignment should be a multiple of"
          "RegSize.");
@@ -1256,28 +1348,117 @@ void Cpu0TargetLowering::Cpu0CC::allocateRegs(ByValArgInfo &ByVal,
 
   // If Align > RegSize, the first arg register must be even.
   if ((Align > RegSize) && (ByVal.FirstIdx % 2)) {
-    CCInfo.AllocateReg(IntArgRegs[ByVal.FirstIdx], ShadowRegs[ByVal.FirstIdx]);
+    CCInfo.AllocateReg(IntArgRegs[ByVal.FirstIdx]);
     ++ByVal.FirstIdx;
   }
 
   // Mark the registers allocated.
   for (unsigned I = ByVal.FirstIdx; ByValSize && (I < NumIntArgRegs);
        ByValSize -= RegSize, ++I, ++ByVal.NumRegs)
-    CCInfo.AllocateReg(IntArgRegs[I], ShadowRegs[I]);
+    CCInfo.AllocateReg(IntArgRegs[I]);
 }
 
 MVT Cpu0TargetLowering::Cpu0CC::getRegVT(MVT VT, const Type *OrigTy,
-                                         const SDNode *CallNode,
-                                         bool IsSoftFloat) const {
-  if (IsSoftFloat || IsO32)
+                                         const SDNode *CallNode) const {
+  if (IsO32)
     return VT;
 
-  // Check if the original type was fp128.
-  if (originalTypeIsF128(OrigTy, CallNode)) {
-    assert(VT == MVT::i64);
-    return MVT::f64;
+  return VT;
+}
+
+// Copy byVal arg to registers and stack.
+void Cpu0TargetLowering::
+passByValArg(SDValue Chain, SDLoc DL,
+             std::deque< std::pair<unsigned, SDValue> > &RegsToPass,
+             SmallVectorImpl<SDValue> &MemOpChains, SDValue StackPtr,
+             MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
+             const Cpu0CC &CC, const ByValArgInfo &ByVal,
+             const ISD::ArgFlagsTy &Flags, bool isLittle) const {
+  unsigned ByValSize = Flags.getByValSize();
+  unsigned Offset = 0; // Offset in # of bytes from the beginning of struct.
+  unsigned RegSize = CC.regSize();
+  unsigned Alignment = std::min(Flags.getByValAlign(), RegSize);
+  EVT PtrTy = getPointerTy(), RegTy = MVT::getIntegerVT(RegSize * 8);
+
+  if (ByVal.NumRegs) {
+    const uint16_t *ArgRegs = CC.intArgRegs();
+    bool LeftoverBytes = (ByVal.NumRegs * RegSize > ByValSize);
+    unsigned I = 0;
+
+    // Copy words to registers.
+    for (; I < ByVal.NumRegs - LeftoverBytes; ++I, Offset += RegSize) {
+      SDValue LoadPtr = DAG.getNode(ISD::ADD, DL, PtrTy, Arg,
+                                    DAG.getConstant(Offset, PtrTy));
+      SDValue LoadVal = DAG.getLoad(RegTy, DL, Chain, LoadPtr,
+                                    MachinePointerInfo(), false, false, false,
+                                    Alignment);
+      MemOpChains.push_back(LoadVal.getValue(1));
+      unsigned ArgReg = ArgRegs[ByVal.FirstIdx + I];
+      RegsToPass.push_back(std::make_pair(ArgReg, LoadVal));
+    }
+
+    // Return if the struct has been fully copied.
+    if (ByValSize == Offset)
+      return;
+
+    // Copy the remainder of the byval argument with sub-word loads and shifts.
+    if (LeftoverBytes) {
+      assert((ByValSize > Offset) && (ByValSize < Offset + RegSize) &&
+             "Size of the remainder should be smaller than RegSize.");
+      SDValue Val;
+
+      for (unsigned LoadSize = RegSize / 2, TotalSizeLoaded = 0;
+           Offset < ByValSize; LoadSize /= 2) {
+        unsigned RemSize = ByValSize - Offset;
+
+        if (RemSize < LoadSize)
+          continue;
+
+        // Load subword.
+        SDValue LoadPtr = DAG.getNode(ISD::ADD, DL, PtrTy, Arg,
+                                      DAG.getConstant(Offset, PtrTy));
+        SDValue LoadVal =
+          DAG.getExtLoad(ISD::ZEXTLOAD, DL, RegTy, Chain, LoadPtr,
+                         MachinePointerInfo(), MVT::getIntegerVT(LoadSize * 8),
+                         false, false, Alignment);
+        MemOpChains.push_back(LoadVal.getValue(1));
+
+        // Shift the loaded value.
+        unsigned Shamt;
+
+        if (isLittle)
+          Shamt = TotalSizeLoaded;
+        else
+          Shamt = (RegSize - (TotalSizeLoaded + LoadSize)) * 8;
+
+        SDValue Shift = DAG.getNode(ISD::SHL, DL, RegTy, LoadVal,
+                                    DAG.getConstant(Shamt, MVT::i32));
+
+        if (Val.getNode())
+          Val = DAG.getNode(ISD::OR, DL, RegTy, Val, Shift);
+        else
+          Val = Shift;
+
+        Offset += LoadSize;
+        TotalSizeLoaded += LoadSize;
+        Alignment = std::min(Alignment, LoadSize);
+      }
+
+      unsigned ArgReg = ArgRegs[ByVal.FirstIdx + I];
+      RegsToPass.push_back(std::make_pair(ArgReg, Val));
+      return;
+    }
   }
 
-  return VT;
+  // Copy remainder of byval arg to it with memcpy.
+  unsigned MemCpySize = ByValSize - Offset;
+  SDValue Src = DAG.getNode(ISD::ADD, DL, PtrTy, Arg,
+                            DAG.getConstant(Offset, PtrTy));
+  SDValue Dst = DAG.getNode(ISD::ADD, DL, PtrTy, StackPtr,
+                            DAG.getIntPtrConstant(ByVal.Address));
+  Chain = DAG.getMemcpy(Chain, DL, Dst, Src, DAG.getConstant(MemCpySize, PtrTy),
+                        Alignment, /*isVolatile=*/false, /*AlwaysInline=*/false,
+                        MachinePointerInfo(0), MachinePointerInfo(0));
+  MemOpChains.push_back(Chain);
 }
 

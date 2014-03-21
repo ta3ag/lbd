@@ -23,6 +23,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/Target/TargetLowering.h"
 #include <deque>
+#include <string>
 
 namespace llvm {
   namespace Cpu0ISD {
@@ -66,6 +67,7 @@ namespace llvm {
   //===--------------------------------------------------------------------===//
   // TargetLowering Implementation
   //===--------------------------------------------------------------------===//
+  class Cpu0FunctionInfo;
 
   class Cpu0TargetLowering : public TargetLowering  {
   public:
@@ -176,19 +178,18 @@ namespace llvm {
 
 
       void analyzeCallOperands(const SmallVectorImpl<ISD::OutputArg> &Outs,
-                               bool IsVarArg, bool IsSoftFloat,
+                               bool IsVarArg,
                                const SDNode *CallNode,
                                std::vector<ArgListEntry> &FuncArgs);
       void analyzeFormalArguments(const SmallVectorImpl<ISD::InputArg> &Ins,
-                                  bool IsSoftFloat,
                                   Function::const_arg_iterator FuncArg);
 
       void analyzeCallResult(const SmallVectorImpl<ISD::InputArg> &Ins,
-                             bool IsSoftFloat, const SDNode *CallNode,
+                             const SDNode *CallNode,
                              const Type *RetTy) const;
 
       void analyzeReturn(const SmallVectorImpl<ISD::OutputArg> &Outs,
-                         bool IsSoftFloat, const Type *RetTy) const;
+                         const Type *RetTy) const;
 
       const CCState &getCCInfo() const { return CCInfo; }
 
@@ -234,11 +235,10 @@ namespace llvm {
       /// return a value. This function returns f64 if the argument is an i64
       /// value which has been generated as a result of softening an f128 value.
       /// Otherwise, it just returns VT.
-      MVT getRegVT(MVT VT, const Type *OrigTy, const SDNode *CallNode,
-                   bool IsSoftFloat) const;
+      MVT getRegVT(MVT VT, const Type *OrigTy, const SDNode *CallNode) const;
 
       template<typename Ty>
-      void analyzeReturn(const SmallVectorImpl<Ty> &RetVals, bool IsSoftFloat,
+      void analyzeReturn(const SmallVectorImpl<Ty> &RetVals,
                          const SDNode *CallNode, const Type *RetTy) const;
 
       CCState &CCInfo;
@@ -246,10 +246,33 @@ namespace llvm {
       bool IsO32;
       SmallVector<ByValArgInfo, 2> ByValArgs;
     };
-  private:
+  protected:
     // Subtarget Info
     const Cpu0Subtarget *Subtarget;
     
+    bool IsO32;
+
+  private:
+    // Create a TargetGlobalAddress node.
+    SDValue getTargetNode(GlobalAddressSDNode *N, EVT Ty, SelectionDAG &DAG,
+                          unsigned Flag) const;
+
+    // Create a TargetExternalSymbol node.
+    SDValue getTargetNode(ExternalSymbolSDNode *N, EVT Ty, SelectionDAG &DAG,
+                          unsigned Flag) const;
+
+    // Create a TargetBlockAddress node.
+    SDValue getTargetNode(BlockAddressSDNode *N, EVT Ty, SelectionDAG &DAG,
+                          unsigned Flag) const;
+
+    // Create a TargetJumpTable node.
+    SDValue getTargetNode(JumpTableSDNode *N, EVT Ty, SelectionDAG &DAG,
+                          unsigned Flag) const;
+
+    // Create a TargetConstantPool node.
+    SDValue getTargetNode(ConstantPoolSDNode *N, EVT Ty, SelectionDAG &DAG,
+                          unsigned Flag) const;
+
     // Lower Operand helpers
     SDValue LowerCallResult(SDValue Chain, SDValue InFlag,
                             CallingConv::ID CallConv, bool isVarArg,
@@ -262,6 +285,23 @@ namespace llvm {
     SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;
     SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG) const;
+
+
+    /// isEligibleForTailCallOptimization - Check whether the call is eligible
+    /// for tail call optimization.
+    virtual bool
+    isEligibleForTailCallOptimization(const Cpu0CC &Cpu0CCInfo,
+                                      unsigned NextStackOffset,
+                                      const Cpu0FunctionInfo& FI) const;
+
+
+    /// passByValArg - Pass a byval argument in registers or on stack.
+    void passByValArg(SDValue Chain, SDLoc DL,
+                      std::deque< std::pair<unsigned, SDValue> > &RegsToPass,
+                      SmallVectorImpl<SDValue> &MemOpChains, SDValue StackPtr,
+                      MachineFrameInfo *MFI, SelectionDAG &DAG, SDValue Arg,
+                      const Cpu0CC &CC, const ByValArgInfo &ByVal,
+                      const ISD::ArgFlagsTy &Flags, bool isLittle) const;
 
 	//- must be exist without function all
     virtual SDValue
