@@ -11,7 +11,7 @@
 // When N is large (20), the instruction execution time is the major
 // while L1 data cache miss time is minor. 
 
-//#define N 256 // (0.018/0.018=1, 0.332/0.015=22)
+#define N 256 // (0.018/0.018=1, 0.332/0.015=22)
 /*
 cschen@cschen-BM6835-BM6635-BP6335:~/install/bin$ sudo time ./ocount --events=CPU_CLK_UNHALTED,l1d_pend_miss:pending  ./matmul
 
@@ -32,7 +32,7 @@ Event counts (actual) for /home/cschen/install/bin/matmul.polly:
 0.02user 0.00system 0:00.04elapsed 46%CPU (0avgtext+0avgdata 6864maxresident)k
 0inputs+0outputs (0major+4443minor)pagefaults 0swaps*/
 
-#define N 512 // (0.16/0.13=1.2, 3.9/1.4=2.7)
+//#define N 512 // (0.16/0.13=1.2, 3.9/1.4=2.7)
 
 //#define N 768 // (1.35/0.42=3.2, 11.1/2.7=4.1)
 //#define N 1024 // (6.62/1.21=5.4, 103.6/13.6=7.6 .. 60.1/9.1=6.7)
@@ -44,10 +44,14 @@ Event counts (actual) for /home/cschen/install/bin/matmul.polly:
 //#define N 5120 // (1235.6/149.3=8.2, 33463.1/1447.0=23.1) (1198.8/150.0=7.9, 33551.3/1469.6=22.8)
 
 
+//#define DATA_TYPE int
+//#define DATA_PRINTF_MODIFIER "%0.2d "
+#define DATA_TYPE float
+#define DATA_PRINTF_MODIFIER "%0.2lf "
 
-float A[N][N];
-float B[N][N];
-float C[N][N];
+DATA_TYPE A[N][N];
+DATA_TYPE B[N][N];
+DATA_TYPE C[N][N];
 
 void init_array()
 {
@@ -67,7 +71,7 @@ void print_array()
 
     for (i=0; i<N; i++) {
         for (j=0; j<N; j++) {
-            fprintf(stdout, "%lf ", C[i][j]);
+            fprintf(stdout, DATA_PRINTF_MODIFIER, C[i][j]);
             if (j%80 == 79) fprintf(stdout, "\n");
         }
         fprintf(stdout, "\n");
@@ -78,7 +82,6 @@ int main()
 {
 //int l;
     int i, j, k;
-    double t_start, t_end;
 
     init_array();
 //for (l=0; l < N; l++)
