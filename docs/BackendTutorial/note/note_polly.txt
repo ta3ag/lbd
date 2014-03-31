@@ -58,3 +58,6 @@ from:
 to:
     make 
 
+8. Document:
+http://polly.llvm.org/publications/grosser-diploma-thesis.pdf
+

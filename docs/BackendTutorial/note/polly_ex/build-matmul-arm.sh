@@ -1,7 +1,7 @@
 #!/bin/sh -a
 
-rm matmul matmul.polly
-LLVM_INSTALL=~/test/polly/llvm_arm_build
+rm matmul matmul.polly pmatmul pmatmul.polly
+LLVM_INSTALL=~/test/polly/cmake_arm_debug_build
 alias pollycc="${LLVM_INSTALL}/bin/clang -Xclang -load -Xclang ${LLVM_INSTALL}/lib/LLVMPolly.so"
 alias opt="opt -load ${LLVM_INSTALL}/lib/LLVMPolly.so"
 
@@ -17,11 +17,14 @@ opt -S -mem2reg -loop-simplify -polly-indvars matmul.polly.ll > matmul.preopt.ll
 echo "--> 4. Show the SCoPs detected by Polly"
 opt -basicaa -polly-cloog -analyze -q matmul.preopt.ll
 
-${LLVM_INSTALL}/bin/clang -O3 -DTEST -mcpu=cortex-a9 -mfloat-abi=hard matmul.c -o pmatmul
-pollycc -mllvm -polly -O3 -DTEST -mcpu=cortex-a9 -mfloat-abi=hard matmul.c -o pmatmul.polly
+${LLVM_INSTALL}/bin/clang -O3 -DTEST -mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon matmul.c -o pmatmul
+pollycc -mllvm -polly -O3 -DTEST -mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon matmul.c -o pmatmul.polly
 
-${LLVM_INSTALL}/bin/clang -O3 -mcpu=cortex-a9 -mfloat-abi=hard matmul.c -o matmul
-pollycc -mllvm -polly -O3 -mcpu=cortex-a9 -mfloat-abi=hard matmul.c -o matmul.polly
+${LLVM_INSTALL}/bin/clang -O3 -mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon matmul.c -o matmul
+pollycc -mllvm -polly -O3 -mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon matmul.c -o matmul.polly
+
+${LLVM_INSTALL}/bin/clang -O3 -mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon -S matmul.c -o matmul.s
+pollycc -mllvm -polly -O3 -mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon -S matmul.c -o matmul.polly.s
 
 scp pmatmul pmatmul.polly matmul matmul.polly root@10.19.132.196:/root/cschen/
 

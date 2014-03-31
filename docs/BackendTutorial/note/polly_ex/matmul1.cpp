@@ -7,9 +7,13 @@
 #include <stdio.h>
 
 //#define T 8 // 3.81 vs 22.76 (original)
-#define T 32 // 3.10
+//#define T 32 // 3.10
 //#define T 48 // 3.42
-#define N 1536*1
+
+#define T 12 // best value 1.60 vs 16.0
+
+//#define N 1536
+#define N 512
 float A[N][N];
 float B[N][N];
 float C[N][N];
@@ -56,7 +60,7 @@ int main()
     double t_start, t_end;
 
     init_array();
-#if 0
+#if 1
     for (i=0;i<N;i=i+T) {
       for (j=0;j<N;j=j+T) {
         for (k=0;k<N;k=k+T) {
