@@ -52,7 +52,9 @@ Ulrich Weigand <Ulrich.Weigand@de.ibm.com> in AsmParser question answer.
 Revision history
 ----------------
 
-Version 3.4.3, Not release yet
+Version 3.4.4, Not release yet
+
+Version 3.4.3, Released March 31, 2014
   Fix Disassembly bug for GPROut register class.
   Adjust Chapters.
   Remove hand copy Table of tblgen in AsmParser.
