@@ -587,10 +587,19 @@ _EXAMPLES=ON -DLLVM_BUILD_EXAMPLES=ON -G "Unix Makefiles" ../src/``, as follows.
   -- Build files have been written to: /usr/local/llvm/release/cmake_release_build
 
 After cmake, run command ``make``, then you can get clang, llc, llvm-as, ..., 
-in cmake_release_build/bin/ after a few tens minutes of build. Next, edit 
+in cmake_release_build/bin/ after a few tens minutes of build. 
+To speed up make process via SMP power, please check your core numbers by the 
+following command then do make the next.
+
+.. code-block:: bash
+
+  [Gamma@localhost cmake_release_build]$ cat /proc/cpuinfo | grep processor | wc -l
+  8
+  [Gamma@localhost cmake_release_build]$ make -j8 -l8
+
+Next, edit 
 /home/Gamma/.bash_profile with adding /usr/local/llvm/release/cmake_release_build/
-bin to PATH 
-to enable the clang, llc, ..., command search path, as follows,
+bin to PATH to enable the clang, llc, ..., command search path, as follows,
 
 .. code-block:: bash
 
@@ -614,9 +623,8 @@ to enable the clang, llc, ..., command search path, as follows,
   [Gamma@localhost ~]$ source .bash_profile
   [Gamma@localhost ~]$ $PATH
   bash: /usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:
-  /usr/sbin:/usr/local/sphinx/bin:/opt/mips_linux_toolchain_clang/mips_linux_tool
-  chain/bin:/home/Gamma/.local/bin:/home/Gamma/bin:/usr/local/sphinx/bin:/usr/
-  local/llvm/release/cmake_release_build/bin
+  /usr/sbin:/usr/local/sphinx/bin:/home/Gamma/.local/bin:/home/Gamma/bin:
+  /usr/local/sphinx/bin:/usr/local/llvm/release/cmake_release_build/bin
 
 
 Install cpu0 debug build on Linux
@@ -741,7 +749,7 @@ Then do make as follows,
 
 .. code-block:: bash
 
-  [Gamma@localhost cmake_debug_build]$ make
+  [Gamma@localhost cmake_debug_build]$ make -j8 -l8
   Scanning dependencies of target LLVMSupport
   [ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APFloat.cpp.o
   [ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APInt.cpp.o
@@ -757,6 +765,11 @@ Then do make as follows,
   TestMain.cpp.o Linking CXX static library ../../lib/libgtest_main.a
   [100%] Built target gtest_main
   [Gamma@localhost cmake_debug_build]$
+
+Since the clang invoke the /usr/local/llvm/cmake_release_build/bin/clang where 
+is built by ``cmake -DCMAKE_BUILD_TYPE=Release``, it is 4 times speed up more 
+than ``make`` (default use 1 thread only). But if you make with debug 
+clang build, it won't speed up too much.
 
 Now, we are ready for the cpu0 backend development. We can run gdb debug as 
 follows. 

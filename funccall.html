@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.2',
+        VERSION:     '3.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -257,12 +257,7 @@ We don&#8217;t reserve any dedicated register for arguments passing since cpu0 h
 only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined
 for cpu0 passing rule as follows,</p>
 <p class="rubric">lbdex/Chapter9_1/Cpu0CallingConv.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">def</span> <span class="n">RetCC_Cpu0EABI</span> <span class="o">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
-  <span class="c1">// i32 are returned in registers V0, V1, A0, A1</span>
-  <span class="n">CCIfType</span><span class="o">&lt;</span><span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="n">CCAssignToReg</span><span class="o">&lt;</span><span class="p">[</span><span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">]</span><span class="o">&gt;&gt;</span>
-<span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="c1">//===----------------------------------------------------------------------===//</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
 <span class="c1">// Cpu0 EABI Calling Convention</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
@@ -282,14 +277,6 @@ for cpu0 passing rule as follows,</p>
 <span class="n">def</span> <span class="n">CC_Cpu0</span> <span class="o">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
   <span class="n">CCDelegateTo</span><span class="o">&lt;</span><span class="n">CC_Cpu0EABI</span><span class="o">&gt;</span>
 <span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-
-
-<span class="n">def</span> <span class="n">RetCC_Cpu0</span> <span class="o">:</span> <span class="n">CallingConv</span><span class="o">&lt;</span><span class="p">[</span>
-  <span class="n">CCDelegateTo</span><span class="o">&lt;</span><span class="n">RetCC_Cpu0EABI</span><span class="o">&gt;</span>
-<span class="p">]</span><span class="o">&gt;</span><span class="p">;</span> <span class="c1">// lbd document - mark - def RetCC_Cpu0</span>
-
-<span class="n">def</span> <span class="n">CSR_O32</span> <span class="o">:</span> <span class="n">CalleeSavedRegs</span><span class="o">&lt;</span><span class="p">(</span><span class="n">add</span> <span class="n">LR</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span>
-                                   <span class="p">(</span><span class="n">sequence</span> <span class="s">&quot;S%u&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>As above, CC_Cpu0 is the cpu0 Calling Convention which delegate to CC_Cpu0EABI
@@ -311,7 +298,9 @@ We define it as follows,</p>
   <span class="k">return</span> <span class="n">CLI</span><span class="p">.</span><span class="n">Chain</span><span class="p">;</span>
 <span class="p">}</span>
 <span class="p">...</span>
-<span class="c1">/// LowerFormalArguments - transform physical registers into virtual registers</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// LowerFormalArguments - transform physical registers into virtual registers</span>
 <span class="c1">/// and generate load operations for arguments places on the stack.</span>
 <span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerFormalArguments</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
@@ -334,7 +323,7 @@ We define it as follows,</p>
   <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">ArgLocs</span><span class="p">;</span>
   <span class="n">CCState</span> <span class="nf">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
                  <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">ArgLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
-
+                         
   <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeFormalArguments</span><span class="p">(</span><span class="n">Ins</span><span class="p">,</span> <span class="n">CC_Cpu0</span><span class="p">);</span>
 
   <span class="n">Function</span><span class="o">::</span><span class="n">const_arg_iterator</span> <span class="n">FuncArg</span> <span class="o">=</span>
@@ -345,13 +334,15 @@ We define it as follows,</p>
     <span class="n">CCValAssign</span> <span class="o">&amp;</span><span class="n">VA</span> <span class="o">=</span> <span class="n">ArgLocs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
     <span class="n">EVT</span> <span class="n">ValVT</span> <span class="o">=</span> <span class="n">VA</span><span class="p">.</span><span class="n">getValVT</span><span class="p">();</span>
     <span class="n">ISD</span><span class="o">::</span><span class="n">ArgFlagsTy</span> <span class="n">Flags</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">Flags</span><span class="p">;</span>
-    <span class="kt">bool</span> <span class="n">IsRegLoc</span> <span class="o">=</span> <span class="n">VA</span><span class="p">.</span><span class="n">isRegLoc</span><span class="p">();</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">isByVal</span><span class="p">())</span> <span class="p">{</span>
       <span class="n">assert</span><span class="p">(</span><span class="n">Flags</span><span class="p">.</span><span class="n">getByValSize</span><span class="p">()</span> <span class="o">&amp;&amp;</span>
-             <span class="s">&quot;ByVal args of size 0 should have been ignored by front-end.&quot;</span><span class="p">);</span>
-      <span class="k">continue</span><span class="p">;</span>
+             <span class="s">&quot;ByVal args of size 0 should have been ignored by front-end.&quot;</span><span class="p">);</span> 
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>      <span class="k">continue</span><span class="p">;</span>
     <span class="p">}</span>
+
     <span class="c1">// sanity check</span>
     <span class="n">assert</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">isMemLoc</span><span class="p">());</span>
 
@@ -365,16 +356,20 @@ We define it as follows,</p>
                                  <span class="n">MachinePointerInfo</span><span class="o">::</span><span class="n">getFixedStack</span><span class="p">(</span><span class="n">LastFI</span><span class="p">),</span>
                                  <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="nb">false</span><span class="p">,</span> <span class="mi">0</span><span class="p">));</span>
   <span class="p">}</span>
-  <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setLastInArgFI</span><span class="p">(</span><span class="n">LastFI</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">setLastInArgFI</span><span class="p">(</span><span class="n">LastFI</span><span class="p">);</span>
   <span class="c1">// All stores are grouped in one node to allow the matching between</span>
   <span class="c1">// the size of Ins and InVals. This only happens when on varg functions</span>
   <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">OutChains</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span> <span class="p">{</span>
     <span class="n">OutChains</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Chain</span><span class="p">);</span>
     <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TokenFactor</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span>
                         <span class="o">&amp;</span><span class="n">OutChains</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">OutChains</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
-  <span class="p">}</span>
+  <span class="p">}</span> <span class="c1">// if (!OutChains.empty())</span>
   <span class="k">return</span> <span class="n">Chain</span><span class="p">;</span>
 <span class="p">}</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_1/Cpu0ISelLowering.h</p>
@@ -1429,21 +1424,13 @@ arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).</p
 </pre></div>
 </div>
 <p class="rubric">lbdex/Chapter9_3/Cpu0MachineFunction.h</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">/// SRetReturnReg - Some subtargets require that sret lowering includes</span>
-<span class="c1">/// returning the value of the returned struct in a register. This field</span>
-<span class="c1">/// holds the virtual register into which the sret argument is passed.</span>
-<span class="kt">unsigned</span> <span class="n">SRetReturnReg</span><span class="p">;</span>
-<span class="p">...</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
 <span class="n">Cpu0FunctionInfo</span><span class="p">(</span><span class="n">MachineFunction</span><span class="o">&amp;</span> <span class="n">MF</span><span class="p">)</span>
-<span class="o">:</span> <span class="p">...</span>
-  <span class="n">SRetReturnReg</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="o">:</span>
 <span class="p">...</span>
 <span class="kt">bool</span> <span class="n">isOutArgFI</span><span class="p">(</span><span class="kt">int</span> <span class="n">FI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="k">return</span> <span class="n">FI</span> <span class="o">&lt;=</span> <span class="n">OutArgFIRange</span><span class="p">.</span><span class="n">first</span> <span class="o">&amp;&amp;</span> <span class="n">FI</span> <span class="o">&gt;=</span> <span class="n">OutArgFIRange</span><span class="p">.</span><span class="n">second</span><span class="p">;</span>
 <span class="p">}</span>
-<span class="p">...</span>
-<span class="kt">unsigned</span> <span class="n">getSRetReturnReg</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span> <span class="k">return</span> <span class="n">SRetReturnReg</span><span class="p">;</span> <span class="p">}</span>
-<span class="kt">void</span> <span class="n">setSRetReturnReg</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">Reg</span><span class="p">)</span> <span class="p">{</span> <span class="n">SRetReturnReg</span> <span class="o">=</span> <span class="n">Reg</span><span class="p">;</span> <span class="p">}</span>
 <span class="p">...</span>
 </pre></div>
 </div>
@@ -1817,13 +1804,17 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
   <span class="k">if</span> <span class="p">(</span><span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getEmitNOAT</span><span class="p">())</span>
     <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.set</span><span class="se">\t</span><span class="s">noat&quot;</span><span class="p">));</span>
   <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitRawText</span><span class="p">(</span><span class="n">StringRef</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\t</span><span class="s">.set</span><span class="se">\t</span><span class="s">nomacro&quot;</span><span class="p">));</span>
-<span class="p">}</span>
-<span class="p">...</span>
+<span class="p">}</span> <span class="c1">// lbd document - mark - EmitInstrWithMacroNoAT</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
 <span class="kt">void</span> <span class="n">Cpu0AsmPrinter</span><span class="o">::</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">...</span>
   <span class="kt">unsigned</span> <span class="n">Opc</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">();</span>
   <span class="p">...</span>
-  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">MCInsts</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">MCInsts</span><span class="p">;</span>
 
   <span class="k">switch</span> <span class="p">(</span><span class="n">Opc</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">CPRESTORE</span><span class="o">:</span> <span class="p">{</span>
@@ -1840,8 +1831,8 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
       <span class="n">MCInstLowering</span><span class="p">.</span><span class="n">LowerCPRESTORE</span><span class="p">(</span><span class="n">Offset</span><span class="p">,</span> <span class="n">MCInsts</span><span class="p">);</span>
 
       <span class="k">for</span> <span class="p">(</span><span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">MCInst</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MCInsts</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
-         <span class="n">I</span> <span class="o">!=</span> <span class="n">MCInsts</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
-      <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="o">*</span><span class="n">I</span><span class="p">);</span>
+           <span class="n">I</span> <span class="o">!=</span> <span class="n">MCInsts</span><span class="p">.</span><span class="n">end</span><span class="p">();</span> <span class="o">++</span><span class="n">I</span><span class="p">)</span>
+        <span class="n">OutStreamer</span><span class="p">.</span><span class="n">EmitInstruction</span><span class="p">(</span><span class="o">*</span><span class="n">I</span><span class="p">);</span>
 
       <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span>
@@ -1850,8 +1841,10 @@ def CPRESTORE : Cpu0Pseudo&lt;(outs), (ins i32imm:$loc, CPURegs:$gp),
   <span class="p">}</span>
   <span class="nl">default:</span>
     <span class="k">break</span><span class="p">;</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
+  <span class="p">}</span> <span class="c1">// lbd document - mark - switch (Opc)</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1934,360 +1927,6 @@ Mips has the same 0 in it&#8217;s jal instruction.
 The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test.</p>
 <div class="highlight-bash"><div class="highlight"><pre>// jsub _Z5sum_iiiiiii translate into 2B 00 00 00
 00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40
-</pre></div>
-</div>
-</div>
-<div class="section" id="correct-the-return-of-main">
-<h3>Correct the return of main()<a class="headerlink" href="#correct-the-return-of-main" title="Permalink to this headline">¶</a></h3>
-<p>The LowerReturn() modified in Chapter9_3/ as follows,</p>
-<p class="rubric">lbdex/Chapter9_3/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
-
-<span class="n">SDValue</span>
-<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerReturn</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
-                                <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
-                                <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
-                                <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
-                                <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-
-  <span class="c1">// CCValAssign - represent the assignment of</span>
-  <span class="c1">// the return value to a location</span>
-  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">CCValAssign</span><span class="p">,</span> <span class="mi">16</span><span class="o">&gt;</span> <span class="n">RVLocs</span><span class="p">;</span>
-
-  <span class="c1">// CCState - Info about the registers and stack slot.</span>
-  <span class="n">CCState</span> <span class="nf">CCInfo</span><span class="p">(</span><span class="n">CallConv</span><span class="p">,</span> <span class="n">isVarArg</span><span class="p">,</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">(),</span>
-		 <span class="n">getTargetMachine</span><span class="p">(),</span> <span class="n">RVLocs</span><span class="p">,</span> <span class="o">*</span><span class="n">DAG</span><span class="p">.</span><span class="n">getContext</span><span class="p">());</span>
-
-  <span class="c1">// Analize return values.</span>
-  <span class="n">CCInfo</span><span class="p">.</span><span class="n">AnalyzeReturn</span><span class="p">(</span><span class="n">Outs</span><span class="p">,</span> <span class="n">RetCC_Cpu0</span><span class="p">);</span>
-
-  <span class="n">SDValue</span> <span class="n">Flag</span><span class="p">;</span>
-  <span class="n">SmallVector</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="p">,</span> <span class="mi">4</span><span class="o">&gt;</span> <span class="n">RetOps</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Chain</span><span class="p">);</span>
-
-  <span class="c1">// Copy the result values into the output registers.</span>
-  <span class="k">for</span> <span class="p">(</span><span class="kt">unsigned</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">RVLocs</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">CCValAssign</span> <span class="o">&amp;</span><span class="n">VA</span> <span class="o">=</span> <span class="n">RVLocs</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
-    <span class="n">assert</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">isRegLoc</span><span class="p">()</span> <span class="o">&amp;&amp;</span> <span class="s">&quot;Can only return in registers!&quot;</span><span class="p">);</span>
-
-    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocReg</span><span class="p">(),</span> <span class="n">OutVals</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Flag</span><span class="p">);</span>
-
-    <span class="c1">// Guarantee that all emitted copies are stuck together with flags.</span>
-    <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-    <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">VA</span><span class="p">.</span><span class="n">getLocReg</span><span class="p">(),</span> <span class="n">VA</span><span class="p">.</span><span class="n">getLocVT</span><span class="p">()));</span>
-  <span class="p">}</span>
-</pre></div>
-</div>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="n">RetOps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">;</span>  <span class="c1">// Update chain.</span>
-
-  <span class="c1">// Add the flag if we have it.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">Flag</span><span class="p">.</span><span class="n">getNode</span><span class="p">())</span>
-    <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">Flag</span><span class="p">);</span>
-
-  <span class="c1">// Return on Cpu0 is always a &quot;ret $lr&quot;</span>
-  <span class="k">return</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">Cpu0ISD</span><span class="o">::</span><span class="n">Ret</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">RetOps</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">RetOps</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
-<span class="p">}</span>
-<span class="c1">// lbd document - mark - inlineasm begin</span>
-</pre></div>
-</div>
-<p>The LowerReturn work with RET defined in Chapter3_4 as follows,</p>
-<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.h</p>
-<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">/// Expand Pseudo instructions into real backend instructions</span>
-  <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
-
-<span class="nl">private:</span>
-  <span class="kt">void</span> <span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
-                   <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Cpu0InstrInfo::expandPostRAPseudo</span>
-<span class="c1">/// Expand Pseudo instructions into real backend instructions</span>
-<span class="kt">bool</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">expandPostRAPseudo</span><span class="p">(</span><span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span> <span class="o">=</span> <span class="o">*</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
-
-  <span class="k">switch</span><span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
-  <span class="k">case</span> <span class="n">Cpu0</span>:<span class="o">:</span><span class="n">RetLR</span><span class="o">:</span>
-    <span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MI</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">RET</span><span class="p">);</span>
-    <span class="k">break</span><span class="p">;</span>
-  <span class="p">}</span>
-
-  <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">MI</span><span class="p">);</span>
-  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
-<span class="p">}</span>
-
-<span class="kt">void</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">ExpandRetLR</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span>
-                                <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span><span class="p">,</span>
-                                <span class="kt">unsigned</span> <span class="n">Opc</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="n">BuildMI</span><span class="p">(</span><span class="n">MBB</span><span class="p">,</span> <span class="n">I</span><span class="p">,</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getDebugLoc</span><span class="p">(),</span> <span class="n">get</span><span class="p">(</span><span class="n">Opc</span><span class="p">)).</span><span class="n">addReg</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">LR</span><span class="p">);</span>
-<span class="p">}</span>
-
-<span class="c1">/// Return the number of bytes of code the specified instruction may be.</span>
-<span class="kt">unsigned</span> <span class="n">Cpu0InstrInfo</span><span class="o">::</span><span class="n">GetInstSizeInBytes</span><span class="p">(</span><span class="k">const</span> <span class="n">MachineInstr</span> <span class="o">*</span><span class="n">MI</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="k">switch</span> <span class="p">(</span><span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">())</span> <span class="p">{</span>
-  <span class="nl">default:</span>
-    <span class="k">return</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getDesc</span><span class="p">().</span><span class="n">getSize</span><span class="p">();</span>
-  <span class="k">case</span>  <span class="n">TargetOpcode</span>:<span class="o">:</span><span class="n">INLINEASM</span><span class="o">:</span> <span class="p">{</span>       <span class="c1">// Inline Asm: Variable size.</span>
-    <span class="k">const</span> <span class="n">MachineFunction</span> <span class="o">*</span><span class="n">MF</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">getParent</span><span class="p">();</span>
-    <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">AsmStr</span> <span class="o">=</span> <span class="n">MI</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getSymbolName</span><span class="p">();</span>
-    <span class="k">return</span> <span class="nf">getInlineAsmLength</span><span class="p">(</span><span class="n">AsmStr</span><span class="p">,</span> <span class="o">*</span><span class="n">MF</span><span class="o">-&gt;</span><span class="n">getTarget</span><span class="p">().</span><span class="n">getMCAsmInfo</span><span class="p">());</span>
-  <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>// Return
-def Cpu0Ret : SDNode&lt;"Cpu0ISD::Ret", SDTNone,
-                     [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]&gt;;
-...
-let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
-    isIndirectBranch = 1 in
-class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
-  FL&lt;op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch&gt; {
-  let rb = 0;
-  let imm16 = 0;
-}
-// Return instruction
-class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x2C, "ret", RC&gt; {
-  let isReturn = 1;
-  let isCodeGenOnly = 1;
-  let hasCtrlDep = 1;
-  let hasExtraSrcRegAllocReq = 1;
-}
-...
-let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-    isBarrier=1, hasCtrlDep=1, addr=0 in
-  def RetLR : Cpu0Pseudo&lt;(outs), (ins), "", [(Cpu0Ret)]&gt;;
-
-def RET     : RetBase&lt;CPURegs&gt;;</pre>
-</div>
-<p>Above code do the following:</p>
-<ol class="arabic simple">
-<li>Declare a pseudo node by the following code,</li>
-</ol>
-<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// Return</span>
-<span class="n">def</span> <span class="n">Cpu0Ret</span> <span class="o">:</span> <span class="n">SDNode</span><span class="o">&lt;</span><span class="s">&quot;Cpu0ISD::Ret&quot;</span><span class="p">,</span> <span class="n">SDTNone</span><span class="p">,</span>
-                     <span class="p">[</span><span class="n">SDNPHasChain</span><span class="p">,</span> <span class="n">SDNPOptInGlue</span><span class="p">,</span> <span class="n">SDNPVariadic</span><span class="p">]</span><span class="o">&gt;</span><span class="p">;</span>
-<span class="p">...</span>
-<span class="n">let</span> <span class="n">isReturn</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">isTerminator</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hasDelaySlot</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">isCodeGenOnly</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">isBarrier</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hasCtrlDep</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">addr</span><span class="o">=</span><span class="mi">0</span> <span class="n">in</span>
-  <span class="n">def</span> <span class="n">RetLR</span> <span class="o">:</span> <span class="n">Cpu0Pseudo</span><span class="o">&lt;</span><span class="p">(</span><span class="n">outs</span><span class="p">),</span> <span class="p">(</span><span class="n">ins</span><span class="p">),</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="n">Cpu0Ret</span><span class="p">)]</span><span class="o">&gt;</span><span class="p">;</span>
-</pre></div>
-</div>
-<ol class="arabic simple" start="2">
-<li>Create Cpu0ISD::Ret node in LowerReturn() which is called when meet function
-return as above code in Chapter9_3/Cpu0ISelLowering.cpp. More specific, it
-create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the
-V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
-with V0 register will live out and won&#8217;t be removed in any later optimization
-step. Remember, if use &#8220;return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other,
-Chain, DAG.getRegister(Cpu0::LR, MVT::i32));&#8221; instead of &#8220;return DAG.getNode
-(Cpu0ISD::Ret, DL, MVT::Other, &amp;RetOps[0], RetOps.size());&#8221; the V0 register
-won&#8217;t be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
-in later optimization stage. Then the result is same with Chapter9_2
-which the return value is error.</li>
-</ol>
-<div class="highlight-bash"><div class="highlight"><pre>Initial selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
-SelectionDAG has 21 nodes:
-  ...
-  0x1ea1e50: <span class="nv">i32</span> <span class="o">=</span> Register %V0
-
-      0x1e9fd20: &lt;multiple use&gt;
-      0x1e9fd20: &lt;multiple use&gt;
-      0x1ea1c50: <span class="nv">i32</span> <span class="o">=</span> FrameIndex&lt;2&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-
-      0x1e9f120: &lt;multiple use&gt;
-    0x1ea1d50: <span class="nv">ch</span> <span class="o">=</span> store 0x1e9fd20:1, 0x1e9fd20, 0x1ea1c50,
-    0x1e9f120&lt;ST4<span class="o">[</span>%i<span class="o">]</span>&gt; <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>7<span class="o">]</span>
-
-    0x1ea1e50: &lt;multiple use&gt;
-    0x1e9ef20: &lt;multiple use&gt;
-  0x1ea1f50: ch,glue <span class="o">=</span> CopyToReg 0x1ea1d50, 0x1ea1e50, 0x1e9ef20
-
-    0x1ea1f50: &lt;multiple use&gt;
-    0x1ea1e50: &lt;multiple use&gt;
-    0x1ea1f50: &lt;multiple use&gt;
-  0x1ea2050: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret 0x1ea1f50, 0x1ea1e50, 0x1ea1f50:1
-</pre></div>
-</div>
-<ol class="arabic simple" start="3">
-<li>After instruction selection, the Cpu0::Ret is replaced by Cpu0::RetLR
-as below. This effect came from &#8220;def RetLR&#8221; as step 1.</li>
-</ol>
-<div class="highlight-bash"><div class="highlight"><pre><span class="o">=====</span> Instruction selection begins: BB#0 <span class="s1">&#39;entry&#39;</span>
-Selecting: 0x1ea4050: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50,
-0x1ea3f50:1 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>27<span class="o">]</span>
-
-ISEL: Starting pattern match on root node: 0x1ea4050: <span class="nv">ch</span> <span class="o">=</span> Cpu0ISD::Ret
-0x1ea3f50, 0x1ea3e50, 0x1ea3f50:1 <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>27<span class="o">]</span>
-
-  Morphed node: 0x1ea4050: <span class="nv">ch</span> <span class="o">=</span> RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
-...
-ISEL: Match <span class="nb">complete</span>!
-<span class="o">=</span>&gt; 0x1ea4050: <span class="nv">ch</span> <span class="o">=</span> RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
-...
-<span class="o">=====</span> Instruction selection ends:
-Selected selection DAG: BB#0 <span class="s1">&#39;main:entry&#39;</span>
-SelectionDAG has 28 nodes:
-...
-    0x1ea3e50: &lt;multiple use&gt;
-    0x1ea3f50: &lt;multiple use&gt;
-    0x1ea3f50: &lt;multiple use&gt;
-  0x1ea4050: <span class="nv">ch</span> <span class="o">=</span> RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
-</pre></div>
-</div>
-<ol class="arabic simple" start="4">
-<li>Expand the Cpu0::RetLR into instruction <strong>ret $lr</strong> in &#8220;Post-RA pseudo
-instruction expansion pass&#8221; stage by the code in Chapter9_3/Cpu0InstrInfo.cpp
-as above. This stage is after the register allocation, so we can replace the
-V0 ($r2) by LR ($lr) without any side effect.</li>
-<li>Print assembly or obj according the information (those *.inc generated by
-TableGen from *.td) generated by the following code at &#8220;Cpu0 Assembly
-Printer&#8221; stage.</li>
-</ol>
-<p class="rubric">lbdex/Chapter3_4/Cpu0InstrInfo.td</p>
-<div class="highlight-c++"><pre>class JumpFR&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC&gt;:
-  FL&lt;op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch&gt; {
-  let rb = 0;
-  let imm16 = 0;
-}
-// Return instruction
-class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
-  let isReturn = 1;
-  let isCodeGenOnly = 1;
-  let hasCtrlDep = 1;
-  let hasExtraSrcRegAllocReq = 1;
-}
-...
-def RET     : RetBase&lt;CPURegs&gt;;</pre>
-</div>
-<p>List the stages mentioned in Chapter 3 and sub-stages in Chapter 4 again as
-below. Step 2 as above is before &#8220;CPU0 DAG-&gt;DAG Pattern Instruction Selection&#8221;
-stage, step 3 is in &#8220;Instruction selection&#8221; stage, step 4 is in &#8220;Expand ISel
-Pseudo-instructions&#8221; stage and step 5 is &#8220;Cpu0 Assembly Printer&#8221; stage.</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-79-200:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_5.bc
--debug-pass<span class="o">=</span>Structure -o -
-...
-Machine Branch Probability Analysis
-  ModulePass Manager
-    FunctionPass Manager
-      ...
-      CPU0 DAG-&gt;DAG Pattern Instruction Selection
-        Initial selection DAG
-        Optimized lowered selection DAG
-        Type-legalized selection DAG
-        Optimized <span class="nb">type</span>-legalized selection DAG
-        Legalized selection DAG
-        Optimized legalized selection DAG
-        Instruction selection
-        Selected selection DAG
-        Scheduling
-      ...
-      Greedy Register Allocator
-      ...
-      Post-RA pseudo instruction expansion pass
-      ...
-      Cpu0 Assembly Printer
-</pre></div>
-</div>
-<p>Summary to Table: Correct the return value in each stage.</p>
-<table border="1" class="docutils">
-<caption>Correct the return value in each stage</caption>
-<colgroup>
-<col width="57%" />
-<col width="43%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Stage</th>
-<th class="head">Function</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>Write Code</td>
-<td>Declare a pseudo node Cpu0::Ret</td>
-</tr>
-<tr class="row-odd"><td>Before CPU0 DAG-&gt;DAG Pattern Instruction Selection</td>
-<td>Create Cpu0ISD::Ret DAG</td>
-</tr>
-<tr class="row-even"><td>Instruction selection</td>
-<td>Cpu0::Ret is replaced by Cpu0::RetLR</td>
-</tr>
-<tr class="row-odd"><td>Post-RA pseudo instruction expansion pass</td>
-<td>Cpu0::RetLR -&gt; ret $lr</td>
-</tr>
-<tr class="row-even"><td>Cpu0 Assembly Printer</td>
-<td>Print according &#8220;def RET&#8221;</td>
-</tr>
-</tbody>
-</table>
-<p>Run Chapter9_3/ to get the correct result (return register $2 is 0) as follows,</p>
-<div class="highlight-bash"><div class="highlight"><pre>118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch7_5.bc -o
-ch7_5.cpu0.static.s
-118-165-78-31:InputFiles Jonathan<span class="nv">$ </span>cat ch7_5.cpu0.static.s
-  .section .mdebug.abi32
-  .previous
-  .file <span class="s2">&quot;ch7_5.bc&quot;</span>
-  .text
-  .globl  main
-  .align  2
-  .type main,@function
-  .ent  main                    <span class="c"># @main</span>
-main:
-  .cfi_startproc
-  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
-  .mask   0x00000000,0
-  .set  noreorder
-  .set  nomacro
-<span class="c"># BB#0:</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
-<span class="nv">$tmp1</span>:
-  .cfi_def_cfa_offset 16
-  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
-  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, %hi<span class="o">(</span>date<span class="o">)</span>
-  shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
-  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span>date<span class="o">)</span>
-  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, %hi<span class="o">(</span>a<span class="o">)</span>
-  shl <span class="nv">$3</span>, <span class="nv">$3</span>, 16
-  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span>a<span class="o">)</span>
-  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
-  st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
-  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
-  ret <span class="nv">$lr</span>
-  .set  macro
-  .set  reorder
-  .end  main
-<span class="nv">$tmp2</span>:
-  .size main, <span class="o">(</span><span class="nv">$tmp2</span><span class="o">)</span>-main
-  .cfi_endproc
-
-  .type date,@object            <span class="c"># @date</span>
-  .data
-  .globl  date
-  .align  2
-date:
-  .4byte  2012                    <span class="c"># 0x7dc</span>
-  .4byte  10                      <span class="c"># 0xa</span>
-  .4byte  12                      <span class="c"># 0xc</span>
-  .size date, 12
-
-  .type a,@object               <span class="c"># @a</span>
-  .globl  a
-  .align  2
-a:
-  .4byte  2012                    <span class="c"># 0x7dc</span>
-  .4byte  10                      <span class="c"># 0xa</span>
-  .4byte  12                      <span class="c"># 0xc</span>
-  .size a, 12
 </pre></div>
 </div>
 </div>
@@ -2391,10 +2030,7 @@ JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/ll
 cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
 ch9_2_1.bc -o ch9_2_1.cpu0.s
 ...
-Assertion failed: <span class="o">(</span>InVals.size<span class="o">()</span> <span class="o">==</span> Ins.size<span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="s2">&quot;LowerFormalArguments didn&#39;t</span>
-<span class="s2">emit the correct number of values!&quot;</span><span class="o">)</span>, <span class="k">function </span>LowerArguments, file /Users/
-Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp,
-line 6712.
+sret virtual register not created in the entry block
 ...
 </pre></div>
 </div>
@@ -2637,33 +2273,6 @@ function call.</p>
     <span class="p">}</span>
     <span class="n">SDValue</span> <span class="n">Copy</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span> <span class="n">DL</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">InVals</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
     <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TokenFactor</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Copy</span><span class="p">,</span> <span class="n">Chain</span><span class="p">);</span>
-  <span class="p">}</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-<span class="p">...</span>
-<span class="n">SDValue</span>
-<span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerReturn</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
-                <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
-                <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">ISD</span><span class="o">::</span><span class="n">OutputArg</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">Outs</span><span class="p">,</span>
-                <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
-                <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="c1">// The cpu0 ABIs for returning structs by value requires that we copy</span>
-  <span class="c1">// the sret argument into $v0 for the return. We saved the argument into</span>
-  <span class="c1">// a virtual register in the entry block, so now we copy the value out</span>
-  <span class="c1">// and into $v0.</span>
-  <span class="k">if</span> <span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getFunction</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">hasStructRetAttr</span><span class="p">())</span> <span class="p">{</span>
-    <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span>      <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">();</span>
-    <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
-    <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getSRetReturnReg</span><span class="p">();</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">Reg</span><span class="p">)</span>
-      <span class="n">llvm_unreachable</span><span class="p">(</span><span class="s">&quot;sret virtual register not created in the entry block&quot;</span><span class="p">);</span>
-    <span class="n">SDValue</span> <span class="n">Val</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyFromReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">());</span>
-
-    <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">Chain</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">Val</span><span class="p">,</span> <span class="n">Flag</span><span class="p">);</span>
-    <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-    <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">()));</span>
   <span class="p">}</span>
   <span class="p">...</span>
 <span class="p">}</span>
@@ -3088,8 +2697,9 @@ List the code and their effect as follows,</p>
                      <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">InVals</span><span class="p">)</span>
                       <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="c1">// The cpu0 ABIs for returning structs by value requires that we copy</span>
-  <span class="c1">// the sret argument into $v0 for the return. Save the argument into</span>
+<span class="cp">#if 1 </span><span class="c1">// Incomming. Without this, it will use $3 instead of $2 as return</span>
+  <span class="c1">// register. The cpu0 ABIs for returning structs by value requires that we</span>
+  <span class="c1">// copy the sret argument into $v0 for the return. Save the argument into</span>
   <span class="c1">// a virtual register so that we can access it from the return points.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getFunction</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">hasStructRetAttr</span><span class="p">())</span> <span class="p">{</span>
     <span class="kt">unsigned</span> <span class="n">Reg</span> <span class="o">=</span> <span class="n">Cpu0FI</span><span class="o">-&gt;</span><span class="n">getSRetReturnReg</span><span class="p">();</span>
@@ -3100,6 +2710,7 @@ List the code and their effect as follows,</p>
     <span class="n">SDValue</span> <span class="n">Copy</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getCopyToReg</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getEntryNode</span><span class="p">(),</span> <span class="n">DL</span><span class="p">,</span> <span class="n">Reg</span><span class="p">,</span> <span class="n">InVals</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
     <span class="n">Chain</span> <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">TokenFactor</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Copy</span><span class="p">,</span> <span class="n">Chain</span><span class="p">);</span>
   <span class="p">}</span>
+<span class="cp">#endif </span><span class="c1">// lbd document - mark - endif - hasStructRetAttr()</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>
@@ -3111,7 +2722,7 @@ st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</s
 ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z8copyDate4Date<span class="o">)(</span><span class="nv">$gp</span><span class="o">)</span>
 </pre></div>
 </div>
-<p class="rubric">lbdex/Chapter9_4/Cpu0ISelLowering.cpp</p>
+<p class="rubric">lbdex/Chapter3_6/Cpu0ISelLowering.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span>
 <span class="n">Cpu0TargetLowering</span><span class="o">::</span><span class="n">LowerReturn</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Chain</span><span class="p">,</span>
                 <span class="n">CallingConv</span><span class="o">::</span><span class="n">ID</span> <span class="n">CallConv</span><span class="p">,</span> <span class="kt">bool</span> <span class="n">isVarArg</span><span class="p">,</span>
@@ -3119,10 +2730,11 @@ ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z8copyDate4Date
                 <span class="k">const</span> <span class="n">SmallVectorImpl</span><span class="o">&lt;</span><span class="n">SDValue</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">OutVals</span><span class="p">,</span>
                 <span class="n">SDLoc</span> <span class="n">DL</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span> <span class="p">{</span>
   <span class="p">...</span>
-  <span class="c1">// The cpu0 ABIs for returning structs by value requires that we copy</span>
-  <span class="c1">// the sret argument into $v0 for the return. We saved the argument into</span>
-  <span class="c1">// a virtual register in the entry block, so now we copy the value out</span>
-  <span class="c1">// and into $v0.</span>
+<span class="cp">#if 1 </span><span class="c1">// structure return begin. Without this, it will use $3 instead of $2</span>
+  <span class="c1">// as return register. The cpu0 ABIs for returning structs by value requires</span>
+  <span class="c1">// that we copy the sret argument into $v0 for the return. We saved the</span>
+  <span class="c1">// argument into a virtual register in the entry block, so now we copy the</span>
+  <span class="c1">// value out and into $v0.</span>
   <span class="k">if</span> <span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">().</span><span class="n">getFunction</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">hasStructRetAttr</span><span class="p">())</span> <span class="p">{</span>
     <span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">MF</span>      <span class="o">=</span> <span class="n">DAG</span><span class="p">.</span><span class="n">getMachineFunction</span><span class="p">();</span>
     <span class="n">Cpu0FunctionInfo</span> <span class="o">*</span><span class="n">Cpu0FI</span> <span class="o">=</span> <span class="n">MF</span><span class="p">.</span><span class="n">getInfo</span><span class="o">&lt;</span><span class="n">Cpu0FunctionInfo</span><span class="o">&gt;</span><span class="p">();</span>
@@ -3136,6 +2748,7 @@ ld  <span class="nv">$t9</span>, %call16<span class="o">(</span>_Z8copyDate4Date
     <span class="n">Flag</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">.</span><span class="n">getValue</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
     <span class="n">RetOps</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">DAG</span><span class="p">.</span><span class="n">getRegister</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">V0</span><span class="p">,</span> <span class="n">getPointerTy</span><span class="p">()));</span>
   <span class="p">}</span>
+<span class="cp">#endif </span><span class="c1">// structure return end</span>
   <span class="p">...</span>
 <span class="p">}</span>
 </pre></div>

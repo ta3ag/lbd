@@ -217,8 +217,28 @@ only 16 registers while Mips has 32 registers. Cpu0CallingConv.td is defined
 for cpu0 passing rule as follows,
 
 .. rubric:: lbdex/Chapter9_1/Cpu0CallingConv.td
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CallingConv.td
-    :start-after: CCIf<!strconcat("State.getTarget().getSubtarget<Cpu0Subtarget>().", F), A>;
+.. code-block:: c++
+  
+  //===----------------------------------------------------------------------===//
+  // Cpu0 EABI Calling Convention
+  //===----------------------------------------------------------------------===//
+  
+  def CC_Cpu0EABI : CallingConv<[
+    // Promote i8/i16 arguments to i32.
+    CCIfType<[i8, i16], CCPromoteToType<i32>>,
+    // Integer values get stored in stack slots that are 4 bytes in
+    // size and 4-byte aligned.
+    CCIfType<[i32], CCAssignToStack<4, 4>>
+  ]>;
+  
+  
+  //===----------------------------------------------------------------------===//
+  // Cpu0 Calling Convention Dispatch
+  //===----------------------------------------------------------------------===//
+  
+  def CC_Cpu0 : CallingConv<[
+    CCDelegateTo<CC_Cpu0EABI>
+  ]>;
 
 
 As above, CC_Cpu0 is the cpu0 Calling Convention which delegate to CC_Cpu0EABI 
@@ -244,70 +264,16 @@ We define it as follows,
     return CLI.Chain;
   }
   ...
-  /// LowerFormalArguments - transform physical registers into virtual registers
-  /// and generate load operations for arguments places on the stack.
-  SDValue
-  Cpu0TargetLowering::LowerFormalArguments(SDValue Chain,
-                                           CallingConv::ID CallConv,
-                                           bool isVarArg,
-                                        const SmallVectorImpl<ISD::InputArg> &Ins,
-                                           SDLoc DL, SelectionDAG &DAG,
-                                           SmallVectorImpl<SDValue> &InVals)
-                                            const {
-    MachineFunction &MF = DAG.getMachineFunction();
-    MachineFrameInfo *MFI = MF.getFrameInfo();
-    Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
 
-    Cpu0FI->setVarArgsFrameIndex(0);
-
-    // Used with vargs to acumulate store chains.
-    std::vector<SDValue> OutChains;
-
-    // Assign locations to all of the incoming arguments.
-    SmallVector<CCValAssign, 16> ArgLocs;
-    CCState CCInfo(CallConv, isVarArg, DAG.getMachineFunction(),
-                   getTargetMachine(), ArgLocs, *DAG.getContext());
-                           
-    CCInfo.AnalyzeFormalArguments(Ins, CC_Cpu0);
-
-    Function::const_arg_iterator FuncArg =
-      DAG.getMachineFunction().getFunction()->arg_begin();
-    int LastFI = 0;// Cpu0FI->LastInArgFI is 0 at the entry of this function.
-
-    for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i, ++FuncArg) {
-      CCValAssign &VA = ArgLocs[i];
-      EVT ValVT = VA.getValVT();
-      ISD::ArgFlagsTy Flags = Ins[i].Flags;
-      bool IsRegLoc = VA.isRegLoc();
-
-      if (Flags.isByVal()) {
-        assert(Flags.getByValSize() &&
-               "ByVal args of size 0 should have been ignored by front-end."); 
-        continue;
-      }
-      // sanity check
-      assert(VA.isMemLoc());
-
-      // The stack pointer offset is relative to the caller stack frame.
-      LastFI = MFI->CreateFixedObject(ValVT.getSizeInBits()/8,
-                                      VA.getLocMemOffset(), true);
-
-      // Create load nodes to retrieve arguments from the stack
-      SDValue FIN = DAG.getFrameIndex(LastFI, getPointerTy());
-      InVals.push_back(DAG.getLoad(ValVT, DL, Chain, FIN,
-                                   MachinePointerInfo::getFixedStack(LastFI),
-                                   false, false, false, 0));
-    }
-    Cpu0FI->setLastInArgFI(LastFI);
-    // All stores are grouped in one node to allow the matching between
-    // the size of Ins and InVals. This only happens when on varg functions
-    if (!OutChains.empty()) {
-      OutChains.push_back(Chain);
-      Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other,
-                          &OutChains[0], OutChains.size());
-    }
-    return Chain;
-  }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // lbd document - mark - ReadByValArg
+    :end-before: unsigned NumWords = (Flags.getByValSize() + 3) / 4;
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: &*FuncArg);
+    :end-before: #if 1 // Incomming. Without this, it will use $3 instead of $2 as return
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // lbd document - mark - if (isVarArg)
+    :end-before: //               Return Value Calling Convention Implementation
 
 .. rubric:: lbdex/Chapter9_1/Cpu0ISelLowering.h
 .. code-block:: c++
@@ -1093,21 +1059,13 @@ arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).
 .. rubric:: lbdex/Chapter9_3/Cpu0MachineFunction.h
 .. code-block:: c++
 
-  /// SRetReturnReg - Some subtargets require that sret lowering includes
-  /// returning the value of the returned struct in a register. This field
-  /// holds the virtual register into which the sret argument is passed.
-  unsigned SRetReturnReg;
   ...
   Cpu0FunctionInfo(MachineFunction& MF)
-  : ...
-    SRetReturnReg(0)
+  : 
   ...
   bool isOutArgFI(int FI) const {
     return FI <= OutArgFIRange.first && FI >= OutArgFIRange.second;
   }
-  ...
-  unsigned getSRetReturnReg() const { return SRetReturnReg; }
-  void setSRetReturnReg(unsigned Reg) { SRetReturnReg = Reg; }
   ...
 
 
@@ -1382,53 +1340,22 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
 
   
 .. rubric:: lbdex/Chapter9_3/Cpu0AsmPrinter.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: using namespace llvm;
+    :end-before: bool Cpu0AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
 .. code-block:: c++
 
-  void Cpu0AsmPrinter::EmitInstrWithMacroNoAT(const MachineInstr *MI) {
-    MCInst TmpInst;
-  
-    MCInstLowering.Lower(MI, TmpInst);
-    OutStreamer.EmitRawText(StringRef("\t.set\tmacro"));
-    if (Cpu0FI->getEmitNOAT())
-      OutStreamer.EmitRawText(StringRef("\t.set\tat"));
-    OutStreamer.EmitInstruction(TmpInst);
-    if (Cpu0FI->getEmitNOAT())
-      OutStreamer.EmitRawText(StringRef("\t.set\tnoat"));
-    OutStreamer.EmitRawText(StringRef("\t.set\tnomacro"));
-  }
   ...
   void Cpu0AsmPrinter::EmitInstruction(const MachineInstr *MI) {
     ...
     unsigned Opc = MI->getOpcode();
     ...
-    SmallVector<MCInst, 4> MCInsts;
-  
-    switch (Opc) {
-    case Cpu0::CPRESTORE: {
-      const MachineOperand &MO = MI->getOperand(0);
-      assert(MO.isImm() && "CPRESTORE's operand must be an immediate.");
-      int64_t Offset = MO.getImm();
-  
-      if (OutStreamer.hasRawTextSupport()) {
-        if (!isInt<16>(Offset)) {
-          EmitInstrWithMacroNoAT(MI);
-          return;
-        }
-      } else {
-        MCInstLowering.LowerCPRESTORE(Offset, MCInsts);
-  
-        for (SmallVector<MCInst, 4>::iterator I = MCInsts.begin();
-           I != MCInsts.end(); ++I)
-        OutStreamer.EmitInstruction(*I);
-  
-        return;
-      }
-  
-      break;
-    }
-    default:
-      break;
-    }
+
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
+    :start-after: MCInst TmpInst0;
+    :end-before: MCInstLowering.Lower(MI, TmpInst0);
+.. code-block:: c++
+
     ...
   }
   
@@ -1496,284 +1423,6 @@ The ch9_1_3.cpp and ch9_1_4.cpp are example code more for test.
   00F0: 2B 00 00 00 01 2D 00 34 00 ED 00 3C 09 DD 00 40 
 
 
-Correct the return of main()
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The LowerReturn() modified in Chapter9_3/ as follows, 
-
-.. rubric:: lbdex/Chapter9_3/Cpu0ISelLowering.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: Return Value Calling Convention Implementation
-    :end-before: // structure return begin
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
-    :start-after: // structure return end
-    :end-before: //===----------------------------------------------------------------------===//
-
-The LowerReturn work with RET defined in Chapter3_4 as follows,
-
-.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.h
-    :start-after: // lbd document - mark - emitFrameIndexDebugValue
-    :end-before: };
-
-.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.cpp
-    :start-after: // lbd document - mark - emitFrameIndexDebugValue
-
-.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  // Return
-  def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
-                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
-  ...
-  let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
-      isIndirectBranch = 1 in
-  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-    FL<op, (outs), (ins RC:$ra),
-       !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
-    let rb = 0;
-    let imm16 = 0;
-  }
-  // Return instruction
-  class RetBase<RegisterClass RC>: JumpFR<0x2C, "ret", RC> {
-    let isReturn = 1;
-    let isCodeGenOnly = 1;
-    let hasCtrlDep = 1;
-    let hasExtraSrcRegAllocReq = 1;
-  }
-  ...
-  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-      isBarrier=1, hasCtrlDep=1, addr=0 in
-    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
-
-  def RET     : RetBase<CPURegs>;
-
-
-Above code do the following:
-
-1. Declare a pseudo node by the following code,
-
-.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  // Return
-  def Cpu0Ret : SDNode<"Cpu0ISD::Ret", SDTNone,
-                       [SDNPHasChain, SDNPOptInGlue, SDNPVariadic]>;
-  ...
-  let isReturn=1, isTerminator=1, hasDelaySlot=1, isCodeGenOnly=1,
-      isBarrier=1, hasCtrlDep=1, addr=0 in
-    def RetLR : Cpu0Pseudo<(outs), (ins), "", [(Cpu0Ret)]>;
-
-
-2. Create Cpu0ISD::Ret node in LowerReturn() which is called when meet function
-   return as above code in Chapter9_3/Cpu0ISelLowering.cpp. More specific, it 
-   create DAGs (Cpu0ISD::Ret (CopyToReg %X, %V0, %Y), %V0, Flag). Since the the 
-   V0 register is assigned in CopyToReg and Cpu0ISD::Ret use V0, the CopyToReg
-   with V0 register will live out and won't be removed in any later optimization
-   step. Remember, if use "return DAG.getNode(Cpu0ISD::Ret, DL, MVT::Other, 
-   Chain, DAG.getRegister(Cpu0::LR, MVT::i32));" instead of "return DAG.getNode
-   (Cpu0ISD::Ret, DL, MVT::Other, &RetOps[0], RetOps.size());" the V0 register
-   won't be live out, the previous DAG (CopyToReg %X, %V0, %Y) will be removed
-   in later optimization stage. Then the result is same with Chapter9_2
-   which the return value is error. 
-
-
-.. code-block:: bash
-
-  Initial selection DAG: BB#0 'main:entry'
-  SelectionDAG has 21 nodes:
-    ...
-    0x1ea1e50: i32 = Register %V0
-
-        0x1e9fd20: <multiple use>
-        0x1e9fd20: <multiple use>
-        0x1ea1c50: i32 = FrameIndex<2> [ORD=7]
-
-        0x1e9f120: <multiple use>
-      0x1ea1d50: ch = store 0x1e9fd20:1, 0x1e9fd20, 0x1ea1c50, 
-      0x1e9f120<ST4[%i]> [ORD=7]
-
-      0x1ea1e50: <multiple use>
-      0x1e9ef20: <multiple use>
-    0x1ea1f50: ch,glue = CopyToReg 0x1ea1d50, 0x1ea1e50, 0x1e9ef20
-
-      0x1ea1f50: <multiple use>
-      0x1ea1e50: <multiple use>
-      0x1ea1f50: <multiple use>
-    0x1ea2050: ch = Cpu0ISD::Ret 0x1ea1f50, 0x1ea1e50, 0x1ea1f50:1
-
-
-3. After instruction selection, the Cpu0::Ret is replaced by Cpu0::RetLR 
-   as below. This effect came from "def RetLR" as step 1.
-
-.. code-block:: bash
-
-  ===== Instruction selection begins: BB#0 'entry'
-  Selecting: 0x1ea4050: ch = Cpu0ISD::Ret 0x1ea3f50, 0x1ea3e50, 
-  0x1ea3f50:1 [ID=27]
-
-  ISEL: Starting pattern match on root node: 0x1ea4050: ch = Cpu0ISD::Ret 
-  0x1ea3f50, 0x1ea3e50, 0x1ea3f50:1 [ID=27]
-
-    Morphed node: 0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
-  ...
-  ISEL: Match complete!
-  => 0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
-  ...
-  ===== Instruction selection ends:
-  Selected selection DAG: BB#0 'main:entry'
-  SelectionDAG has 28 nodes:
-  ...
-      0x1ea3e50: <multiple use>
-      0x1ea3f50: <multiple use>
-      0x1ea3f50: <multiple use>
-    0x1ea4050: ch = RetLR 0x1ea3e50, 0x1ea3f50, 0x1ea3f50:1
-
-
-4. Expand the Cpu0::RetLR into instruction **ret $lr** in "Post-RA pseudo 
-   instruction expansion pass" stage by the code in Chapter9_3/Cpu0InstrInfo.cpp 
-   as above. This stage is after the register allocation, so we can replace the
-   V0 ($r2) by LR ($lr) without any side effect.
-
-5. Print assembly or obj according the information (those \*.inc generated by 
-   TableGen from \*.td) generated by the following code at "Cpu0 Assembly 
-   Printer" stage.
-
-.. rubric:: lbdex/Chapter3_4/Cpu0InstrInfo.td
-.. code-block:: c++
-
-  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-    FL<op, (outs), (ins RC:$ra),
-       !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
-    let rb = 0;
-    let imm16 = 0;
-  }
-  // Return instruction
-  class RetBase<RegisterClass RC>: JumpFR<0x3c, "ret", RC> {
-    let isReturn = 1;
-    let isCodeGenOnly = 1;
-    let hasCtrlDep = 1;
-    let hasExtraSrcRegAllocReq = 1;
-  }
-  ...
-  def RET     : RetBase<CPURegs>;
-
-List the stages mentioned in Chapter 3 and sub-stages in Chapter 4 again as 
-below. Step 2 as above is before "CPU0 DAG->DAG Pattern Instruction Selection"
-stage, step 3 is in "Instruction selection" stage, step 4 is in "Expand ISel 
-Pseudo-instructions" stage and step 5 is "Cpu0 Assembly Printer" stage.
-
-.. code-block:: bash
-
-  118-165-79-200:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5.bc 
-  -debug-pass=Structure -o -
-  ...
-  Machine Branch Probability Analysis
-    ModulePass Manager
-      FunctionPass Manager
-        ...
-        CPU0 DAG->DAG Pattern Instruction Selection
-          Initial selection DAG
-          Optimized lowered selection DAG
-          Type-legalized selection DAG
-          Optimized type-legalized selection DAG
-          Legalized selection DAG
-          Optimized legalized selection DAG
-          Instruction selection
-          Selected selection DAG
-          Scheduling
-        ...
-        Greedy Register Allocator
-        ...
-        Post-RA pseudo instruction expansion pass
-        ...
-        Cpu0 Assembly Printer
-
-
-Summary to Table: Correct the return value in each stage.
-
-.. table:: Correct the return value in each stage
-
-  ===================================================  ======================================
-  Stage                                                Function   
-  ===================================================  ======================================
-  Write Code                                           Declare a pseudo node Cpu0::Ret
-  Before CPU0 DAG->DAG Pattern Instruction Selection   Create Cpu0ISD::Ret DAG
-  Instruction selection                                Cpu0::Ret is replaced by Cpu0::RetLR
-  Post-RA pseudo instruction expansion pass            Cpu0::RetLR -> ret $lr
-  Cpu0 Assembly Printer                                Print according "def RET"
-  ===================================================  ======================================
-
-  
-Run Chapter9_3/ to get the correct result (return register $2 is 0) as follows, 
-
-.. code-block:: bash
-
-  118-165-78-31:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm ch7_5.bc -o 
-  ch7_5.cpu0.static.s
-  118-165-78-31:InputFiles Jonathan$ cat ch7_5.cpu0.static.s 
-    .section .mdebug.abi32
-    .previous
-    .file "ch7_5.bc"
-    .text
-    .globl  main
-    .align  2
-    .type main,@function
-    .ent  main                    # @main
-  main:
-    .cfi_startproc
-    .frame  $sp,16,$lr
-    .mask   0x00000000,0
-    .set  noreorder
-    .set  nomacro
-  # BB#0:
-    addiu $sp, $sp, -16
-  $tmp1:
-    .cfi_def_cfa_offset 16
-    addiu $2, $zero, 0
-    st  $2, 12($sp)
-    addiu $3, $zero, %hi(date)
-    shl $3, $3, 16
-    addiu $3, $3, %lo(date)
-    ld  $3, 8($3)
-    st  $3, 8($sp)
-    addiu $3, $zero, %hi(a)
-    shl $3, $3, 16
-    addiu $3, $3, %lo(a)
-    ld  $3, 4($3)
-    st  $3, 4($sp)
-    addiu $sp, $sp, 16
-    ret $lr
-    .set  macro
-    .set  reorder
-    .end  main
-  $tmp2:
-    .size main, ($tmp2)-main
-    .cfi_endproc
-  
-    .type date,@object            # @date
-    .data
-    .globl  date
-    .align  2
-  date:
-    .4byte  2012                    # 0x7dc
-    .4byte  10                      # 0xa
-    .4byte  12                      # 0xc
-    .size date, 12
-  
-    .type a,@object               # @a
-    .globl  a
-    .align  2
-  a:
-    .4byte  2012                    # 0x7dc
-    .4byte  10                      # 0xa
-    .4byte  12                      # 0xc
-    .size a, 12
-
-
 Support features
 -----------------
 
@@ -1795,10 +1444,7 @@ Run Chapter9_3 with ch9_2_1.cpp will get the error message as follows,
   cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
   ch9_2_1.bc -o ch9_2_1.cpu0.s
   ...
-  Assertion failed: (InVals.size() == Ins.size() && "LowerFormalArguments didn't 
-  emit the correct number of values!"), function LowerArguments, file /Users/
-  Jonathan/llvm/test/src/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp, 
-  line 6712.
+  sret virtual register not created in the entry block
   ...
 
 Run Chapter9_3/ with ch9_3.cpp to get the following error,
@@ -1933,33 +1579,7 @@ function call.
     }
     ...
   }
-  ...
-  SDValue
-  Cpu0TargetLowering::LowerReturn(SDValue Chain,
-                  CallingConv::ID CallConv, bool isVarArg,
-                  const SmallVectorImpl<ISD::OutputArg> &Outs,
-                  const SmallVectorImpl<SDValue> &OutVals,
-                  SDLoc DL, SelectionDAG &DAG) const {
-    ...
-    // The cpu0 ABIs for returning structs by value requires that we copy
-    // the sret argument into $v0 for the return. We saved the argument into
-    // a virtual register in the entry block, so now we copy the value out
-    // and into $v0.
-    if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
-      MachineFunction &MF      = DAG.getMachineFunction();
-      Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
-      unsigned Reg = Cpu0FI->getSRetReturnReg();
-  
-      if (!Reg)
-        llvm_unreachable("sret virtual register not created in the entry block");
-      SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, getPointerTy());
-  
-      Chain = DAG.getCopyToReg(Chain, DL, Cpu0::V0, Val, Flag);
-      Flag = Chain.getValue(1);
-      RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
-    }
-    ...
-  }
+
 
 In addition to above code, we have defined the calling convention at early of 
 this chapter as follows,
@@ -2392,8 +2012,9 @@ List the code and their effect as follows,
                        SmallVectorImpl<SDValue> &InVals)
                         const {
     ...
-    // The cpu0 ABIs for returning structs by value requires that we copy
-    // the sret argument into $v0 for the return. Save the argument into
+  #if 1 // Incomming. Without this, it will use $3 instead of $2 as return 
+    // register. The cpu0 ABIs for returning structs by value requires that we 
+    // copy the sret argument into $v0 for the return. Save the argument into
     // a virtual register so that we can access it from the return points.
     if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
       unsigned Reg = Cpu0FI->getSRetReturnReg();
@@ -2404,6 +2025,7 @@ List the code and their effect as follows,
       SDValue Copy = DAG.getCopyToReg(DAG.getEntryNode(), DL, Reg, InVals[0]);
       Chain = DAG.getNode(ISD::TokenFactor, DL, MVT::Other, Copy, Chain);
     }
+  #endif // lbd document - mark - endif - hasStructRetAttr()
     ...
   }
 
@@ -2416,7 +2038,7 @@ List the code and their effect as follows,
     ld  $t9, %call16(_Z8copyDate4Date)($gp)
 
 
-.. rubric:: lbdex/Chapter9_4/Cpu0ISelLowering.cpp
+.. rubric:: lbdex/Chapter3_6/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   SDValue
@@ -2426,23 +2048,25 @@ List the code and their effect as follows,
                   const SmallVectorImpl<SDValue> &OutVals,
                   SDLoc DL, SelectionDAG &DAG) const {
     ...
-    // The cpu0 ABIs for returning structs by value requires that we copy
-    // the sret argument into $v0 for the return. We saved the argument into
-    // a virtual register in the entry block, so now we copy the value out
-    // and into $v0.
+  #if 1 // structure return begin. Without this, it will use $3 instead of $2 
+    // as return register. The cpu0 ABIs for returning structs by value requires 
+    // that we copy the sret argument into $v0 for the return. We saved the 
+    // argument into a virtual register in the entry block, so now we copy the 
+    // value out and into $v0.
     if (DAG.getMachineFunction().getFunction()->hasStructRetAttr()) {
       MachineFunction &MF      = DAG.getMachineFunction();
       Cpu0FunctionInfo *Cpu0FI = MF.getInfo<Cpu0FunctionInfo>();
       unsigned Reg = Cpu0FI->getSRetReturnReg();
-    
+
       if (!Reg)
         llvm_unreachable("sret virtual register not created in the entry block");
       SDValue Val = DAG.getCopyFromReg(Chain, DL, Reg, getPointerTy());
-    
+
       Chain = DAG.getCopyToReg(Chain, DL, Cpu0::V0, Val, Flag);
       Flag = Chain.getValue(1);
       RetOps.push_back(DAG.getRegister(Cpu0::V0, getPointerTy()));
     }
+  #endif // structure return end
     ...
   }
 

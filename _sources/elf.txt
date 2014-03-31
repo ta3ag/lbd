@@ -551,7 +551,7 @@ To support llvm-objdump, the following code added to Chapter10_1/
            InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
            bit isComm = 0>:
     FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, "\t$ra, $rb"), [], itin> {
+     !strconcat(instr_asm, "\t$sw, $ra, $rb"), [], itin> {
     ...
     let DecoderMethod = "DecodeCMPInstruction";
   }
@@ -583,12 +583,6 @@ To support llvm-objdump, the following code added to Chapter10_1/
 
 .. rubric:: lbdex/Chapter10_1/Disassembler/Cpu0Disassembler.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
-    :end-before: // lbd document - mark - declare DecodeCMPInstruction
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
-    :start-after: // lbd document - mark - declare DecodeBranch16Target
-    :end-before: static DecodeStatus DecodeBranch16Target(MCInst &Inst,
-.. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
-    :start-after: // lbd document - mark - DecodeBranch16Target
   
 
 As above code, it add directory Disassembler for handling the obj to assembly 
@@ -608,21 +602,67 @@ LLVM will call these DecodeMethod when user use Disassembler job in tools, like
 ``llvm-objdump -d``.
 You can check the comments above these DecodeMethod functions to see how it 
 work.
-For the CMP instruction, since there are 3 operand $rc, $ra and $rb occurs in 
-CmpInstr<...>, and the assembler print $ra and $rb. 
-LLVM table generate system will print operand 1 and 2 
-($ra and $rb) in the table generated function printInstruction(). 
-The operand 0 ($rc) didn't be printed in printInstruction() since assembly 
-print $ra and $rb only. 
-In the CMP decode function, we didn't decode shamt field because we 
-don't want it to be displayed and it's not in the assembler print pattern of 
-Cpu0InstrInfo.td.
+For the CMP instruction, according the definiton of CmpInstr<...> in 
+Cpu0InstrInfo.td, the assembler will print as $sw, $ra, $rb. ($sw is a 
+fixed name operand and won't exists in instruction), and encode as "10230000" 
+in elf binary. Since $sw is a fixed operand, we choose assigning $rc to 0. 
+You can define the CmpInstr as follows,
+
+.. code-block:: c++
+
+  class CmpInstr<bits<8> op, string instr_asm, 
+                 InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
+                 bit isComm = 0>:
+    FA<op, (outs RD:$ra), (ins RC:$rb, RC:$rc),
+       !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], itin> {
+    let shamt = 0;
+  }
+
+Above definition will encode this CMP example instruction to "10a23000" and 
+no need the DecoderMethod function. Just like other instruction the TablGen 
+take care everthing on them. We choose not to encode $sw to show how to take 
+care the implicit operand in binary form. The following code can set operand 
+$sw as implicit operand (not shown) in assembly form as follows,
+
+.. code-block:: c++
+
+  class CmpInstr<bits<8> op, string instr_asm, 
+                 InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
+                 bit isComm = 0>:
+    FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
+       !strconcat(instr_asm, "\t$ra, $rb"), [], itin> { // without display $sw
+    ...
+  }
+
+It will display as "cmp $ra, $rb" in assembly form.
 
 The RET (Cpu0ISD::Ret) and JR (ISD::BRIND) are both for "ret" instruction. 
 The former is for instruction encode in assembly and obj while the latter is 
 for decode in disassembler. 
 The IR node Cpu0ISD::Ret is created in LowerReturn() which called at function 
 exit point.
+
+Finally cpu032II include all cpu032I instruction set and add some 
+instrucitons. When ``llvm-objdump -d`` invoked, function ParseCpu0Triple() as 
+the following will be called. Not like ``llc -mcpu=cpu032I`` can set mcpu type,
+so the varaible CPU in ParseCpu0Triple() is empty when invoked by 
+``llvm-objdump -d``. Set Cpu0ArchFeature to "+cpu032II" than it can disassemble 
+all instructions.
+
+.. rubric:: lbdex/Chapter10_1/MCTargetDesc/Cpu0MCTargetDesc.cpp
+.. code-block:: c++
+
+  static std::string ParseCpu0Triple(StringRef TT, StringRef CPU) {
+    ...
+    if (TheTriple == "cpu0" || TheTriple == "cpu0el") {
+      if (CPU.empty() || CPU == "cpu032II") {
+        Cpu0ArchFeature = "+cpu032II";
+      } else if (CPU == "cpu032I") {
+        Cpu0ArchFeature = "+cpu032I";
+      }
+    }
+    return Cpu0ArchFeature;
+  }
 
 Now, run Chapter10_1/ with command ``llvm-objdump -d ch8_1_1.cpu0.o`` will get 
 the following result.

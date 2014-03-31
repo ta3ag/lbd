@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.2',
+        VERSION:     '3.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -153,12 +153,18 @@ down for each type of instruction.</p>
 <img alt="_images/25.png" src="_images/25.png" />
 <p class="caption">Figure 2: Cpu0&#8217;s three instruction formats</p>
 </div>
-<p>The following table details the Cpu0 instruction set:</p>
+<p>The Cpu0 has two ISA, the first ISA-I is cpu032I which hired CMP instruction
+from ARM; the second ISA-II is cpu032II which hire SLT instruction from Mips.
+The cpu032II include all cpu032I instruction set and add SLT, BEQ, ...,
+instructions. The main purpose to add cpu032II is for instruction set design
+explanation. As you will see in later chapter, the SLT instruction will has
+better performance than CMP old style instruction.
+The following table details the cpu032I instruction set:</p>
 <ul class="simple">
 <li>First column F.: meaning Format.</li>
 </ul>
 <table border="1" class="docutils">
-<caption>Cpu0 Instruction Set</caption>
+<caption>cpu032I Instruction Set</caption>
 <colgroup>
 <col width="3%" />
 <col width="11%" />
@@ -550,6 +556,71 @@ down for each type of instruction.</p>
 </tr>
 </tbody>
 </table>
+<p>The following table details the cpu032II instruction set added:</p>
+<table border="1" class="docutils">
+<caption>cpu032II Instruction Set</caption>
+<colgroup>
+<col width="3%" />
+<col width="11%" />
+<col width="8%" />
+<col width="31%" />
+<col width="19%" />
+<col width="28%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">F.</th>
+<th class="head">Mnemonic</th>
+<th class="head">Opcode</th>
+<th class="head">Meaning</th>
+<th class="head">Syntax</th>
+<th class="head">Operation</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>L</td>
+<td>SLTi</td>
+<td>26</td>
+<td>Set less Then</td>
+<td>SLTi Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb &lt; Cx)</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>SLTiu</td>
+<td>27</td>
+<td>SLTi unsigned</td>
+<td>SLTiu Ra, Rb, Cx</td>
+<td>Ra &lt;= (Rb &lt; Cx)</td>
+</tr>
+<tr class="row-even"><td>A</td>
+<td>SLT</td>
+<td>28</td>
+<td>Set less Then</td>
+<td>SLT Ra, Rb, Rc</td>
+<td>Ra &lt;= (Rb &lt; Rc)</td>
+</tr>
+<tr class="row-odd"><td>A</td>
+<td>SLTu</td>
+<td>29</td>
+<td>SLT unsigned</td>
+<td>SLTu Ra, Rb, Rc</td>
+<td>Ra &lt;= (Rb &lt; Rc)</td>
+</tr>
+<tr class="row-even"><td>L</td>
+<td>BEQ</td>
+<td>37</td>
+<td>Jump if equal</td>
+<td>BEQ Ra, Rb, Cx</td>
+<td>if (Ra==Rb), PC &lt;= PC + Cx</td>
+</tr>
+<tr class="row-odd"><td>L</td>
+<td>BNE</td>
+<td>38</td>
+<td>Jump if not equal</td>
+<td>BNE Ra, Rb, Cx</td>
+<td>if (Ra!=Rb), PC &lt;= PC + Cx</td>
+</tr>
+</tbody>
+</table>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p><strong>Cpu0 unsigned instructions</strong></p>
@@ -810,9 +881,9 @@ into C++ source code written to files that have a .inc extension.  Please refer
 to <a class="footnote-reference" href="#tablegen" id="id13">[8]</a> for more information regarding how to use tablegen.</p>
 <p>Every backend has a .td which defines some target information, including what other .td
 files are used by the backend.  These files have a similar syntax to C++. For Cpu0, the
-target description file is called Cpu0.td, which is shown below:</p>
-<p class="rubric">lbdex/Chapter2/Cpu0.td</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0.td - Describe the Cpu0 Target Machine ---------*- tablegen -*-===//</span>
+target description file is called Cpu0Other.td, which is shown below:</p>
+<p class="rubric">lbdex/Chapter2/Cpu0Other.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0Other.td - Describe the Cpu0 Target Machine ----*- tablegen -*-===//</span>
 <span class="c1">//</span>
 <span class="c1">//                     The LLVM Compiler Infrastructure</span>
 <span class="c1">//</span>
@@ -830,10 +901,28 @@ target description file is called Cpu0.td, which is shown below:</p>
 <span class="n">include</span> <span class="s">&quot;llvm/Target/Target.td&quot;</span>
 
 <span class="c1">//===----------------------------------------------------------------------===//</span>
-<span class="c1">// Register File, Calling Conv, Instruction Descriptions</span>
+<span class="c1">// Target-dependent interfaces</span>
 <span class="c1">//===----------------------------------------------------------------------===//</span>
 
 <span class="n">include</span> <span class="s">&quot;Cpu0RegisterInfo.td&quot;</span>
+<span class="n">include</span> <span class="s">&quot;Cpu0RegisterInfoGPROutForOther.td&quot;</span> <span class="c1">// except AsmParser</span>
+<span class="n">include</span> <span class="s">&quot;Cpu0.td&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter2/Cpu0.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0.td - Describe the Cpu0 Target Machine ---------*- tablegen -*-===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Calling Conv, Instruction Descriptions</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
 <span class="n">include</span> <span class="s">&quot;Cpu0Schedule.td&quot;</span>
 <span class="n">include</span> <span class="s">&quot;Cpu0InstrInfo.td&quot;</span>
 </pre></div>
@@ -849,7 +938,8 @@ target description file is called Cpu0.td, which is shown below:</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span>
 </pre></div>
 </div>
-<p>Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the
+<p>Cpu0Other.td and Cpu0.td includes a few other .td files.
+Cpu0RegisterInfo.td (shown below) describes the
 Cpu0&#8217;s set of registers.  In this file, we see that registers have been given names, i.e.
 <tt class="docutils literal"><span class="pre">def</span> <span class="pre">PC</span></tt> indicates that there is a register called PC.  Also, there is a register class
 named <tt class="docutils literal"><span class="pre">CPURegs</span></tt> that contains all of the other registers.  You may have multiple
@@ -857,6 +947,14 @@ register classes (see the X86 backend, for example) which can help you if certai
 instructions can only write to specific registers.  In this case, there is only one set
 of general purpose registers for Cpu0, and some registers that are reserved so that they
 are not modified by instructions during execution.</p>
+<p class="rubric">lbdex/Chapter2/Cpu0RegisterInfoGPROutForOther.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">// Register Classes</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span> <span class="p">(</span><span class="n">sub</span> <span class="n">CPURegs</span><span class="p">,</span> <span class="n">SW</span><span class="p">))</span><span class="o">&gt;</span><span class="p">;</span>
+</pre></div>
+</div>
 <p class="rubric">lbdex/Chapter2/Cpu0RegisterInfo.td</p>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0RegisterInfo.td - Cpu0 Register defs -----------*- tablegen -*-===//</span>
 <span class="c1">//</span>
@@ -924,19 +1022,6 @@ are not modified by instructions during execution.</p>
   <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
   <span class="c1">// Callee save</span>
   <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">SW</span><span class="p">,</span> 
-  <span class="c1">// Reserved</span>
-  <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
-  <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
-
-<span class="n">def</span> <span class="n">GPROut</span> <span class="o">:</span> <span class="n">RegisterClass</span><span class="o">&lt;</span><span class="s">&quot;Cpu0&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">i32</span><span class="p">],</span> <span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="n">add</span>
-  <span class="c1">// Reserved</span>
-  <span class="n">ZERO</span><span class="p">,</span> <span class="n">AT</span><span class="p">,</span> 
-  <span class="c1">// Return Values and Arguments</span>
-  <span class="n">V0</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">A0</span><span class="p">,</span> <span class="n">A1</span><span class="p">,</span> 
-  <span class="c1">// Not preserved across procedure calls</span>
-  <span class="n">T9</span><span class="p">,</span> <span class="n">T0</span><span class="p">,</span>
-  <span class="c1">// Callee save</span>
-  <span class="n">S0</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> 
   <span class="c1">// Reserved</span>
   <span class="n">GP</span><span class="p">,</span> <span class="n">FP</span><span class="p">,</span> 
   <span class="n">SP</span><span class="p">,</span> <span class="n">LR</span><span class="p">,</span> <span class="n">PC</span><span class="p">)</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1151,7 +1236,6 @@ class RetBase&lt;RegisterClass RC&gt;: JumpFR&lt;0x3c, "ret", RC&gt; {
   let hasCtrlDep = 1;
   let hasExtraSrcRegAllocReq = 1;
 }
-
 </pre>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===----------------------------------------------------------------------===//</span>
@@ -1500,10 +1584,10 @@ as follows,</p>
 <p>Target/Cpu0 directory has two files CMakeLists.txt and LLVMBuild.txt,
 contents as follows,</p>
 <p class="rubric">lbdex/Chapter2/CMakeLists.txt</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp"># CMakeLists.txt</span>
-<span class="cp"># Our td all in Cpu0.td, Cpu0RegisterInfo.td and Cpu0InstrInfo.td included in </span>
-<span class="cp">#  Cpu0.td.</span>
-<span class="n">set</span><span class="p">(</span><span class="n">LLVM_TARGET_DEFINITIONS</span> <span class="n">Cpu0</span><span class="p">.</span><span class="n">td</span><span class="p">)</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">set</span><span class="p">(</span><span class="n">LLVM_TARGET_DEFINITIONS</span> <span class="n">Cpu0Asm</span><span class="p">.</span><span class="n">td</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmMatcher</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">matcher</span><span class="p">)</span>
+
+<span class="n">set</span><span class="p">(</span><span class="n">LLVM_TARGET_DEFINITIONS</span> <span class="n">Cpu0Other</span><span class="p">.</span><span class="n">td</span><span class="p">)</span>
 
 <span class="cp"># Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which included by </span>
 <span class="cp">#  your hand code C++ files. </span>
@@ -1514,9 +1598,55 @@ contents as follows,</p>
 </pre></div>
 </div>
 <div class="highlight-c++"><div class="highlight"><pre><span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenSubtargetInfo</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">subtarget</span><span class="p">)</span>
+
+<span class="cp"># Cpu0CommonTableGen must be defined</span>
+<span class="n">add_public_tablegen_target</span><span class="p">(</span><span class="n">Cpu0CommonTableGen</span><span class="p">)</span>
+
+<span class="cp"># Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen</span>
+<span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
+  <span class="n">Cpu0AnalyzeImmediate</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0AsmPrinter</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0DelUselessJMP</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0EmitGPRestore</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0InstrInfo</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0ISelDAGToDAG</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0ISelLowering</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0FrameLowering</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0MCInstLower</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0MachineFunction</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0RegisterInfo</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0Subtarget</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0TargetMachine</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0TargetObjectFile</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="n">Cpu0SelectionDAGInfo</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="p">)</span>
+
+<span class="cp"># Should match with &quot;subdirectories =  MCTargetDesc TargetInfo&quot; in LLVMBuild.txt</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">InstPrinter</span><span class="p">)</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">Disassembler</span><span class="p">)</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">TargetInfo</span><span class="p">)</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">MCTargetDesc</span><span class="p">)</span>
+<span class="n">add_subdirectory</span><span class="p">(</span><span class="n">AsmParser</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-c++"><div class="highlight"><pre><span class="cp"># Cpu0CommonTableGen must be defined</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">set</span><span class="p">(</span><span class="n">LLVM_TARGET_DEFINITIONS</span> <span class="n">Cpu0Other</span><span class="p">.</span><span class="n">td</span><span class="p">)</span>
+
+<span class="cp"># Generate Cpu0GenRegisterInfo.inc and Cpu0GenInstrInfo.inc which included by </span>
+<span class="cp">#  your hand code C++ files. </span>
+<span class="cp"># Cpu0GenRegisterInfo.inc came from Cpu0RegisterInfo.td, Cpu0GenInstrInfo.inc </span>
+<span class="cp">#  came from Cpu0InstrInfo.td.</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenRegisterInfo</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">register</span><span class="o">-</span><span class="n">info</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenInstrInfo</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">instr</span><span class="o">-</span><span class="n">info</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenDisassemblerTables</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">disassembler</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenCodeEmitter</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">emitter</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenMCCodeEmitter</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">emitter</span> <span class="o">-</span><span class="n">mc</span><span class="o">-</span><span class="n">emitter</span><span class="p">)</span>
+
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenAsmWriter</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="k">asm</span><span class="o">-</span><span class="n">writer</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenDAGISel</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">dag</span><span class="o">-</span><span class="n">isel</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenCallingConv</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">callingconv</span><span class="p">)</span>
+<span class="n">tablegen</span><span class="p">(</span><span class="n">LLVM</span> <span class="n">Cpu0GenSubtargetInfo</span><span class="p">.</span><span class="n">inc</span> <span class="o">-</span><span class="n">gen</span><span class="o">-</span><span class="n">subtarget</span><span class="p">)</span>
+
+<span class="cp"># Cpu0CommonTableGen must be defined</span>
 <span class="n">add_public_tablegen_target</span><span class="p">(</span><span class="n">Cpu0CommonTableGen</span><span class="p">)</span>
 
 <span class="cp"># Cpu0CodeGen should match with LLVMBuild.txt Cpu0CodeGen</span>
@@ -2026,7 +2156,8 @@ ch3.cpu0.s
 </div>
 <p>At this point, we finish the Target Registration for Cpu0 backend.
 The backend compiler command llc can recognize cpu0 backend now.
-Currently we just define target td files (Cpu0.td, Cpu0RegisterInfo.td, ...).
+Currently we just define target td files (Cpu0.td, Cpu0Other.td,
+Cpu0RegisterInfo.td, ...).
 According to LLVM structure, we need to define our target machine and include
 those td related files.
 The error message say we didn&#8217;t define our target machine.

@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.2',
+        VERSION:     '3.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -546,10 +546,17 @@ gar   gelfedit  gobjcopy  granlib gsize   gstrip
 </pre></div>
 </div>
 <p>After cmake, run command <tt class="docutils literal"><span class="pre">make</span></tt>, then you can get clang, llc, llvm-as, ...,
-in cmake_release_build/bin/ after a few tens minutes of build. Next, edit
+in cmake_release_build/bin/ after a few tens minutes of build.
+To speed up make process via SMP power, please check your core numbers by the
+following command then do make the next.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost cmake_release_build<span class="o">]</span><span class="nv">$ </span>cat /proc/cpuinfo | grep processor | wc -l
+8
+<span class="o">[</span>Gamma@localhost cmake_release_build<span class="o">]</span><span class="nv">$ </span>make -j8 -l8
+</pre></div>
+</div>
+<p>Next, edit
 /home/Gamma/.bash_profile with adding /usr/local/llvm/release/cmake_release_build/
-bin to PATH
-to enable the clang, llc, ..., command search path, as follows,</p>
+bin to PATH to enable the clang, llc, ..., command search path, as follows,</p>
 <div class="highlight-bash"><div class="highlight"><pre><span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">pwd</span>
 /home/Gamma
 <span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ </span>cat .bash_profile
@@ -570,9 +577,8 @@ to enable the clang, llc, ..., command search path, as follows,</p>
 <span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ </span><span class="nb">source</span> .bash_profile
 <span class="o">[</span>Gamma@localhost ~<span class="o">]</span><span class="nv">$ $PATH</span>
 bash: /usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:
-/usr/sbin:/usr/local/sphinx/bin:/opt/mips_linux_toolchain_clang/mips_linux_tool
-chain/bin:/home/Gamma/.local/bin:/home/Gamma/bin:/usr/local/sphinx/bin:/usr/
-<span class="nb">local</span>/llvm/release/cmake_release_build/bin
+/usr/sbin:/usr/local/sphinx/bin:/home/Gamma/.local/bin:/home/Gamma/bin:
+/usr/local/sphinx/bin:/usr/local/llvm/release/cmake_release_build/bin
 </pre></div>
 </div>
 </div>
@@ -684,7 +690,7 @@ _build
 [Gamma@localhost cmake_debug_build]$</pre>
 </div>
 <p>Then do make as follows,</p>
-<div class="highlight-bash"><pre>[Gamma@localhost cmake_debug_build]$ make
+<div class="highlight-bash"><pre>[Gamma@localhost cmake_debug_build]$ make -j8 -l8
 Scanning dependencies of target LLVMSupport
 [ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APFloat.cpp.o
 [ 0%] Building CXX object lib/Support/CMakeFiles/LLVMSupport.dir/APInt.cpp.o
@@ -701,6 +707,10 @@ TestMain.cpp.o Linking CXX static library ../../lib/libgtest_main.a
 [100%] Built target gtest_main
 [Gamma@localhost cmake_debug_build]$</pre>
 </div>
+<p>Since the clang invoke the /usr/local/llvm/cmake_release_build/bin/clang where
+is built by <tt class="docutils literal"><span class="pre">cmake</span> <span class="pre">-DCMAKE_BUILD_TYPE=Release</span></tt>, it is 4 times speed up more
+than <tt class="docutils literal"><span class="pre">make</span></tt> (default use 1 thread only). But if you make with debug
+clang build, it won&#8217;t speed up too much.</p>
 <p>Now, we are ready for the cpu0 backend development. We can run gdb debug as
 follows.
 If your setting has anything about gdb errors, please follow the errors indication

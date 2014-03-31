@@ -272,24 +272,15 @@ lhu instructions exist. Their difference have explained in Chapter 2.
 To support load bool type, the following code added.
 
 .. rubric:: lbdex/Chapter7_1/Cpu0ISelLowering.cpp
-.. code-block:: c++
-
-  Cpu0TargetLowering::
-  Cpu0TargetLowering(Cpu0TargetMachine &TM)
-    : TargetLowering(TM, new Cpu0TargetObjectFile()),
-      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
-    ...
-    // Cpu0 does not have i1 type, so use i32 for
-    // setcc operations results (slt, sgt, ...).
-    setBooleanContents(ZeroOrOneBooleanContent);
-    setBooleanVectorContents(ZeroOrNegativeOneBooleanContent);
-
-    // Load extented operations for i1 types must be promoted
-    setLoadExtAction(ISD::EXTLOAD,  MVT::i1,  Promote);
-    setLoadExtAction(ISD::ZEXTLOAD, MVT::i1,  Promote);
-    setLoadExtAction(ISD::SEXTLOAD, MVT::i1,  Promote);
-    ...
-  }
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: } // lbd document - mark - getTargetNodeName
+    :end-before: // Set up the register classes
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: addRegisterClass(MVT::i32, &Cpu0::CPURegsRegClass);
+    :end-before: // Used by legalize types to correctly generate the setcc result.
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0ISelLowering.cpp
+    :start-after: computeRegisterProperties();
+    :end-before: static SDValue PerformDivRemCombine(SDNode *N, SelectionDAG& DAG,
 
 Above code setLoadExtAction() are work enough. The setBooleanContents() purpose
 as following, but I don't know it well. Without it, the ch7_3.ll still works 
@@ -412,10 +403,17 @@ Chapter7_1/.
       SDValue RHS = Node->getOperand(1);
   
       EVT VT = LHS.getValueType();
-      SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
-      SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
-      SDNode *Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
-                                             SDValue(StatusWord,0), Constant1);
+      const Cpu0TargetMachine &TM = getTargetMachine();
+      const Cpu0Subtarget &Subtarget = TM.getSubtarget<Cpu0Subtarget>();
+      SDNode *Carry;
+      if (Subtarget.hasCpu032II())
+        Carry = CurDAG->getMachineNode(Cpu0::SLTu, DL, VT, Ops);
+      else {
+        SDNode *StatusWord = CurDAG->getMachineNode(Cpu0::CMP, DL, VT, Ops);
+        SDValue Constant1 = CurDAG->getTargetConstant(1, VT);
+        Carry = CurDAG->getMachineNode(Cpu0::ANDi, DL, VT, 
+                                               SDValue(StatusWord,0), Constant1);
+      }
       SDNode *AddCarry = CurDAG->getMachineNode(Cpu0::ADDu, DL, VT,
                                                 SDValue(Carry,0), RHS);
   
@@ -455,7 +453,8 @@ Run Chapter7_1 with ch7_4.cpp to get the result as follows,
   1-160-134-62:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_4.cpp -emit-llvm -o ch7_4.bc
   1-160-134-62:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
-  bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_4.bc -o -
+  bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic -filetype=asm 
+  ch7_4.bc -o -
     .section .mdebug.abi32
     .previous
     .file "ch7_4.bc"

@@ -5,7 +5,13 @@ Control flow statements
 
 This chapter illustrates the corresponding IR for control flow statements, like 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
-translate these control flow statements of llvm IR into Cpu0 instructions. 
+translate these control flow statements of llvm IR into Cpu0 instructions in 
+section I. In section II, a optimiation pass of control flow for backend is 
+introduced. It's a simple tutorial program to let readers know how to add a 
+backend optimization pass and program it. Section III, include the conditional 
+instructions handle since the clang will generate specific IR select and 
+select_cc to support the backend optimiation in control flow statement.
+
 
 Control flow statement
 -----------------------
@@ -364,8 +370,8 @@ and dump it's content by gobjdump or hexdump as follows,
 .. code-block:: bash
     
     118-165-79-206:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
-    cmake_debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=obj 
-    ch8_1_1.bc -o ch8_1_1.cpu0.o
+    cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
+    -filetype=obj ch8_1_1.bc -o ch8_1_1.cpu0.o
 
     118-165-79-206:InputFiles Jonathan$ hexdump ch8_1_1.cpu0.o 
         // jmp offset is 0x10=16 bytes which is correct
@@ -403,12 +409,31 @@ List and explain this again as follows,
 If cpu0 do **"jne"** compare in execution stage, then we should set PC=PC+12, 
 offset of ($BB0_2, jn e $BB02) – 8, in this example.
 
-Cpu0 is for teaching purpose and didn't consider the performance with design. 
 In reality, the conditional branch is important in performance of CPU design. 
 According bench mark information, every 7 instructions will meet 1 branch 
 instruction in average. 
-Cpu0 take 2 instructions for conditional branch, (jne(cmp...)), while Mips use 
-one instruction (bne).
+The cpu032I take 2 instructions for conditional branch, (jne(cmp...)), while 
+cpu032II use one instruction (bne) as follws,
+
+.. code-block:: bash
+
+  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
+  cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032I -relocation-model=pic 
+  -filetype=asm ch8_1_1.bc -o -
+    ...
+  	cmp	$sw, $4, $3
+  	jne	$sw, $BB0_2
+  	jmp	$BB0_1
+  $BB0_1:
+  
+  JonathantekiiMac:InputFiles Jonathan$ /Users/Jonathan/llvm/test/
+  cmake_debug_build/bin/Debug/llc -march=cpu0 -mcpu=cpu032II -relocation-model=pic 
+  -filetype=asm ch8_1_1.bc -o -
+    ...
+  	bne	$4, $zero, $BB0_2
+  	jmp	$BB0_1
+  $BB0_1:
+
 
 Finally we list the code added for full support of control flow statement,
 
@@ -518,6 +543,13 @@ Finally we list the code added for full support of control flow statement,
 .. code-block:: c++
 
   // Cpu0InstrInfo.td
+  // BEQ, BNE
+  def brtarget16    : Operand<OtherVT> {
+    let EncoderMethod = "getBranch16TargetOpValue";
+    let OperandType = "OPERAND_PCREL";
+    let DecoderMethod = "DecodeBranch16Target";
+  }
+  
   // Instruction operand types
   def brtarget24    : Operand<OtherVT> {
     let EncoderMethod = "getBranchTargetOpValue";
@@ -531,77 +563,692 @@ Finally we list the code added for full support of control flow statement,
     let DecoderMethod = "DecodeJumpRelativeTarget";
   }
   ...
-    /// Conditional Branch
-	class CBranch24<bits<8> op, string instr_asm, RegisterClass RC,
-					   list<Register> UseRegs>:
-	  FJ<op, (outs), (ins RC:$ra, brtarget:$addr),
-				 !strconcat(instr_asm, "\t$addr"),
-				 [], IIBranch> {
-	  let isBranch = 1;
-	  let isTerminator = 1;
-	  let hasDelaySlot = 0;
-	  let neverHasSideEffects = 1;
-	}
-	
-	// Unconditional branch, such as JMP
-	class UncondBranch<bits<8> op, string instr_asm>:
-	  FJ<op, (outs), (ins brtarget:$addr),
-				 !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
-	  let isBranch = 1;
-	  let isTerminator = 1;
-	  let isBarrier = 1;
-	  let hasDelaySlot = 0;
-	}
-    ...
-    /// Jump and Branch Instructions
-    def JEQ     : CBranch<0x30, "jeq", CPURegs>;
-    def JNE     : CBranch<0x31, "jne", CPURegs>;
-    def JLT     : CBranch<0x32, "jlt", CPURegs>;
-    def JGT     : CBranch<0x33, "jgt", CPURegs>;
-    def JLE     : CBranch<0x34, "jle", CPURegs>;
-    def JGE     : CBranch<0x35, "jge", CPURegs>;
-    def JMP     : UncondBranch<0x36, "jmp">;
-    ...
-    // brcond patterns
-    multiclass BrcondPats<RegisterClass RC, Instruction JEQOp, 
-      Instruction JNEOp, Instruction JLTOp, Instruction JGTOp, 
-      Instruction JLEOp, Instruction JGEOp, Instruction CMPOp, 
-      Register ZEROReg> {          
-    def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
-              (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
-              (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
-              (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
-              (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
-              (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
-              (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
-              (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
-              (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
-              (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
-              (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
-              (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
-              (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
-    
-    def : Pat<(brcond RC:$cond, bb:$dst),
-              (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
-    }
-    
-    defm : BrcondPats<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
+  // Conditional Branch, e.g. JEQ brtarget24
+  class CBranch24<bits<8> op, string instr_asm, RegisterClass RC,
+                     list<Register> UseRegs>:
+    FJ<op, (outs), (ins RC:$ra, brtarget24:$addr),
+               !strconcat(instr_asm, "\t$ra, $addr"),
+               [], IIBranch>, Requires<[HasCmp]> {
+    let isBranch = 1;
+    let isTerminator = 1;
+    let hasDelaySlot = 0;
+    let neverHasSideEffects = 1;
+  //  let Predicates = [HasCmp]; // same effect as Requires
+  }
+  
+  // Conditional Branch, e.g. BEQ $r1, $r2, brtarget16
+  class CBranch16<bits<8> op, string instr_asm, PatFrag cond_op, RegisterClass RC>:
+    FL<op, (outs), (ins RC:$ra, RC:$rb, brtarget16:$imm16),
+               !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+               [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch>, 
+               Requires<[HasSlt]> {
+    let isBranch = 1;
+    let isTerminator = 1;
+    let hasDelaySlot = 1;
+    let Defs = [AT];
+  }
+  ...
+  // Unconditional branch, such as JMP
+  class UncondBranch<bits<8> op, string instr_asm>:
+    FJ<op, (outs), (ins brtarget:$addr),
+         !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch> {
+    let isBranch = 1;
+    let isTerminator = 1;
+    let isBarrier = 1;
+    let hasDelaySlot = 0;
+  }
+  ...
+  /// Jump and Branch Instructions
+  def JEQ     : CBranch<0x30, "jeq", CPURegs>;
+  def JNE     : CBranch<0x31, "jne", CPURegs>;
+  def JLT     : CBranch<0x32, "jlt", CPURegs>;
+  def JGT     : CBranch<0x33, "jgt", CPURegs>;
+  def JLE     : CBranch<0x34, "jle", CPURegs>;
+  def JGE     : CBranch<0x35, "jge", CPURegs>;
+  
+  def BEQ     : CBranch16<0x37, "beq", seteq, GPROut>;
+  def BNE     : CBranch16<0x38, "bne", setne, GPROut>;
+  
+  def JMP     : UncondBranch<0x36, "jmp">;
+  ...
+  // brcond patterns
+  // brcond for cmp instruction
+  multiclass BrcondPatsCmp<RegisterClass RC, Instruction JEQOp, Instruction JNEOp, 
+  Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp, 
+  Instruction CMPOp, Register ZEROReg> {
+  def : Pat<(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
+            (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
+            (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
+            (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
+            (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
+            (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
+            (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
+            (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
+            (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
+            (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
+            (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
+            (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
+            (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)>;
+  
+  def : Pat<(brcond RC:$cond, bb:$dst),
+            (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
+  }
+  
+  // brcond for slt instruction
+  multiclass BrcondPatsSlt<RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
+                        Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
+                        Instruction SLTiuOp, Register ZEROReg> {
+  def : Pat<(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
+                (BNEOp RC:$lhs, ZEROReg, bb:$dst)>;
+  def : Pat<(brcond (i32 (seteq RC:$lhs, 0)), bb:$dst),
+                (BEQOp RC:$lhs, ZEROReg, bb:$dst)>;
+  
+  def : Pat<(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
+                (BEQ (SLTOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)>;
+  def : Pat<(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
+                (BEQ (SLTuOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)>;
+  def : Pat<(brcond (i32 (setge RC:$lhs, immSExt16:$rhs)), bb:$dst),
+                (BEQ (SLTiOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
+  def : Pat<(brcond (i32 (setuge RC:$lhs, immSExt16:$rhs)), bb:$dst),
+                (BEQ (SLTiuOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)>;
+  
+  def : Pat<(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
+                (BEQ (SLTOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)>;
+  def : Pat<(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
+                (BEQ (SLTuOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)>;
+  
+  def : Pat<(brcond RC:$cond, bb:$dst),
+                (BNEOp RC:$cond, ZEROReg, bb:$dst)>;
+  }
+  
+  let Predicates = [HasSlt] in {
+  defm : BrcondPatsSlt<CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO>;
+  }
+  
+  let Predicates = [HasCmp] in {
+  defm : BrcondPatsCmp<CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO>;
+  }
+
 
 The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is the 
 **“for loop”** as well as **“while loop”**, **“continue”**, **“break”**, 
 **“goto”** test. The ch8_1_4.cpp is for **“goto”** test.
 You can run with them if you like to test more.
+
+
+Cpu0 backend Optimization: Remove useless JMP
+---------------------------------------------
+
+LLVM uses functional pass both in code generation and optimization. 
+Following the 3 tiers of compiler architecture, LLVM did much optimization in 
+middle tier of LLVM IR, SSA form. 
+Beyond middle tier optimization, there are opportunities in 
+optimization which depend on backend features. 
+Mips fill delay slot is an example of backend optimization used in pipeline 
+RISC machine.
+You can migrate from Mips if your backend is a pipeline RISC with 
+delay slot. 
+In this section, we apply the "delete useless jmp" in Cpu0 
+backend optimization. 
+This algorithm is simple and effective to be a perfect tutorial in optimization. 
+Through this example, you can understand how to add an optimization pass and 
+coding your complicate optimization algorithm on your backend in real project.
+
+Chapter12_1/ supports "delete useless jmp" optimization algorithm which add 
+codes as follows,
+
+.. rubric:: lbdex/Chapter12_1/CMakeLists.txt
+.. code-block:: c++
+
+  add_llvm_target(Cpu0CodeGen
+    ...
+    Cpu0DelUselessJMP.cpp
+    ...
+    )
+  
+.. rubric:: lbdex/Chapter12_1/Cpu0.h
+.. code-block:: c++
+
+  ...
+    FunctionPass *createCpu0DelJmpPass(Cpu0TargetMachine &TM);
+  
+.. rubric:: lbdex/Chapter8_2/Cpu0TargetMachine.cpp
+.. code-block:: c++
+
+  class Cpu0PassConfig : public TargetPassConfig {
+    ...
+    virtual bool addPreEmitPass();
+  };
+  ...
+  // Implemented by targets that want to run passes immediately before
+  // machine code is emitted. return true if -print-machineinstrs should
+  // print out the code after the passes.
+  bool Cpu0PassConfig::addPreEmitPass() {
+    Cpu0TargetMachine &TM = getCpu0TargetMachine();
+    addPass(createCpu0DelJmpPass(TM));
+    return true;
+  }
+
+.. rubric:: lbdex/Chapter8_2/Cpu0DelUselessJMP.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0DelUselessJMP.cpp
+
+
+As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 
+class DelJmp as a functional pass. 
+As the comment of above code, MBB is the current 
+block and MBBN is the next block. For each last instruction of every MBB, we 
+check if it is the JMP instruction as well as 
+its Operand is the next basic block. 
+By getMBB() in MachineOperand, you can get the MBB address. 
+For the member functions of MachineOperand, please check 
+include/llvm/CodeGen/MachineOperand.h
+Now, let's run Chapter12_1/ with ch12_1.cpp for explanation.
+
+.. rubric:: lbdex/InputFiles/ch8_2.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch8_2.cpp
+    :start-after: /// start
+
+.. code-block:: bash
+
+  118-165-78-10:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu 
+  -c ch12_1.cpp -emit-llvm -o ch12_1.bc
+  118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
+  bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
+  ch8_2.bc -o -
+    .section .mdebug.abi32
+    .previous
+    .file "ch8_2.bc"
+    .text
+    .globl  _Z18test_DelUselessJMPv
+    .align  2
+    .type _Z18test_DelUselessJMPv,@function
+    .ent  _Z18test_DelUselessJMPv # @_Z18test_DelUselessJMPv
+  _Z18test_DelUselessJMPv:
+    .frame  $sp,16,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -16
+    addiu $2, $zero, 1
+    st  $2, 12($sp)
+    addiu $3, $zero, 2
+    st  $3, 8($sp)
+    addiu $3, $zero, 3
+    st  $3, 4($sp)
+    addiu $3, $zero, 0
+    ld  $4, 12($sp)
+    cmp $sw, $4, $3
+    jne $sw, $BB0_2
+  # BB#1:
+    ld  $4, 12($sp)
+    addiu $4, $4, 1
+    st  $4, 12($sp)
+  $BB0_2:
+    ld  $4, 8($sp)
+    cmp $sw, $4, $3
+    jne $sw, $BB0_4
+    jmp $BB0_3
+  $BB0_4:
+    addiu $3, $zero, -1
+    ld  $4, 8($sp)
+    cmp $sw, $4, $3
+    jgt $sw, $BB0_6
+    jmp $BB0_5
+  $BB0_3:
+    ld  $3, 12($sp)
+    addiu $3, $3, 3
+    st  $3, 12($sp)
+    ld  $3, 8($sp)
+    addiu $3, $3, 1
+    st  $3, 8($sp)
+    jmp $BB0_6
+  $BB0_5:
+    ld  $3, 8($sp)
+    ld  $4, 12($sp)
+    addu  $3, $4, $3
+    st  $3, 12($sp)
+    ld  $3, 8($sp)
+    addiu $3, $3, -1
+    st  $3, 8($sp)
+  $BB0_6:
+    ld  $3, 4($sp)
+    cmp $sw, $3, $2
+    jlt $sw, $BB0_8
+  # BB#7:
+    ld  $2, 4($sp)
+    ld  $3, 12($sp)
+    addu  $2, $3, $2
+    st  $2, 12($sp)
+    ld  $2, 4($sp)
+    addiu $2, $2, 1
+    st  $2, 4($sp)
+  $BB0_8:
+    addiu $sp, $sp, 16
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z18test_DelUselessJMPv
+  $tmp1:
+    .size _Z18test_DelUselessJMPv, ($tmp1)-_Z18test_DelUselessJMPv
+  ...
+  ===-------------------------------------------------------------------------===
+                            ... Statistics Collected ...
+  ===-------------------------------------------------------------------------===
+   ...
+   2 del-jmp        - Number of useless jmp deleted
+   ...
+
+The terminal display "Number of useless jmp deleted" by ``llc -stats`` option 
+because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in 
+code. It deletes 2 jmp instructions from block "# BB#0" and "$BB0_6".
+You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
+the difference to non-optimization version.
+If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100 
+lines of assembly code, which meaning 10\% improvement in speed and code size 
+[#]_.
+
+
+Conditional instruction
+------------------------
+
+Since the clang optimization level O1 or above level will generate **select** 
+and **select_cc** to support conditional instruction, we add this feature in 
+Cpu0 backend too. 
+
+.. rubric:: lbdex/InputFiles/ch8_3.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch12_4.cpp
+    :start-after: /// start
+
+If you run Chapter12_2 with ch12_4.cpp will get the following result.
+
+.. code-block:: bash
+
+  114-37-150-209:InputFiles Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
+  -c ch12_4.cpp -emit-llvm -o ch12_4.bc
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
+  llvm-dis ch12_4.bc -o -
+  ...
+  define i32 @_Z8select_1ii(i32 %a, i32 %b) #0 {
+    %1 = icmp slt i32 %a, %b
+    %. = select i1 %1, i32 1, i32 2
+    ret i32 %.
+  }
+  
+  ; Function Attrs: nounwind readnone
+  define i32 @_Z8select_2i(i32 %a) #0 {
+    %1 = icmp eq i32 %a, 0
+    %. = select i1 %1, i32 3, i32 1
+    ret i32 %.
+  }
+  
+  ; Function Attrs: nounwind readnone
+  define i32 @_Z11test_selectii(i32 %a, i32 %b) #0 {
+    %1 = tail call i32 @_Z8select_1ii(i32 %a, i32 %b)
+    %2 = tail call i32 @_Z8select_2i(i32 %a)
+    %3 = add nsw i32 %2, %1
+    ret i32 %3
+  }
+  ...
+
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
+  llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc 
+  -debug -o -
+  ...
+  === _Z8select_1ii
+  Initial selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 14 nodes:
+    ...
+          0x39f3fc0: ch = setlt
+
+        0x39f40c0: i1 = setcc 0x39f3cc0, 0x39f3ec0, 0x39f3fc0 [ORD=1]
+
+        0x39f41c0: i32 = Constant<1>
+
+        0x39f42c0: i32 = Constant<2>
+
+      0x39f43c0: i32 = select 0x39f40c0, 0x39f41c0, 0x39f42c0 [ORD=2]
+    ...
+
+  Replacing.3 0x39f43c0: i32 = select 0x39f40c0, 0x39f41c0, 0x39f42c0 [ORD=2]
+
+  With: 0x39f47c0: i32 = select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0, 
+  0x39f3fc0 [ORD=2]
+  ...
+  Optimized lowered selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 13 nodes:
+    ...
+        0x39f41c0: i32 = Constant<1>
+
+        0x39f42c0: i32 = Constant<2>
+
+        0x39f3fc0: ch = setlt
+
+      0x39f47c0: i32 = select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0, 
+      0x39f3fc0 [ORD=2]
+    ...
+  LLVM ERROR: Cannot select: 0x39f47c0: i32 = select_cc 0x39f3cc0, 0x39f3ec0, 
+  0x39f41c0, 0x39f42c0, 0x39f3fc0 [ORD=2] [ID=10]
+
+
+As llvm IR of ch12_4.bc as above, clang generate **select** IR for small 
+basic control block (if statement only include one assign statement). 
+This **select** IR is optimization result for CPU which has conditional 
+instructions support. 
+And from above llc command debug trace message, IR **select** is changed to 
+**select_cc** during DAG optimization stages.
+
+
+Chapter12_3 support **select** with the following code added and changed.
+
+
+.. rubric:: lbdex/Chapter12_3/AsmParser/Cpu0AsmParser.cpp
+.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
+    :start-after: #define GET_REGISTER_MATCHER
+    :end-before: unsigned Cpu0AsmParser::
+
+.. rubric:: lbdex/Chapter12_3/Cpu0InstInfo.td
+.. code-block:: c++
+
+  include "Cpu0CondMov.td"
+
+.. rubric:: lbdex/Chapter12_3/Cpu0CondMov.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CondMov.td
+
+
+.. rubric:: lbdex/Chapter12_3/Cpu0ISelLowering.h
+.. code-block:: c++
+
+    SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
+
+
+.. rubric:: lbdex/Chapter12_3/Cpu0ISelLowering.h
+.. code-block:: c++
+
+  Cpu0TargetLowering::
+  Cpu0TargetLowering(Cpu0TargetMachine &TM)
+    : TargetLowering(TM, new Cpu0TargetObjectFile()),
+      Subtarget(&TM.getSubtarget<Cpu0Subtarget>()) {
+    ...
+    setOperationAction(ISD::SELECT,             MVT::i32,   Custom);
+    ...  
+    setOperationAction(ISD::SELECT_CC,         MVT::Other, Expand);
+    ...
+  }
+  ...
+  SDValue Cpu0TargetLowering::
+  LowerOperation(SDValue Op, SelectionDAG &DAG) const
+  {
+    switch (Op.getOpcode())
+    {
+      ...
+      case ISD::SELECT:             return lowerSELECT(Op, DAG);
+      ...
+    }
+    return SDValue();
+  }
+  ...
+  SDValue Cpu0TargetLowering::
+  lowerSELECT(SDValue Op, SelectionDAG &DAG) const
+  {
+    return Op;
+  }
+
+Set ISD::SELECT_CC to Expand will stop llvm optimization to merge setcc and 
+select into one IR select_cc [#]_. Next the LowerSELECT() return ISD::SELECT as 
+Op code directly. Finally the pattern define in Cpu0CondMov.td will 
+translate the **select** IR into **movz** or **movn** conditional instruction. 
+Let's run Chapter12_3 with ch12_4.cpp and ch_optimize.cpp to get the following 
+result. 
+Again, the cpu032II use **slt** instead of **cmp** has a little improved in 
+instructions number.
+
+.. code-block:: bash
+
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc -debug 
+  -o -
+  ...
+  === _Z8select_1ii
+  Initial selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 14 nodes:
+    ...
+          0x3d87fc0: ch = setlt
+
+        0x3d880c0: i1 = setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 [ORD=1]
+
+        0x3d881c0: i32 = Constant<1>
+
+        0x3d882c0: i32 = Constant<2>
+
+      0x3d883c0: i32 = select 0x3d880c0, 0x3d881c0, 0x3d882c0 [ORD=2]
+    ...
+  Optimized lowered selection DAG: BB#0 '_Z8select_1ii:'
+  SelectionDAG has 14 nodes:
+    ...
+          0x3d87fc0: ch = setlt
+
+        0x3d880c0: i1 = setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 [ORD=1]
+
+        0x3d881c0: i32 = Constant<1>
+
+        0x3d882c0: i32 = Constant<2>
+
+      0x3d883c0: i32 = select 0x3d880c0, 0x3d881c0, 0x3d882c0 [ORD=2]
+    ...
+
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3.bc -o -
+    .section .mdebug.abi32
+    .previous
+    .file "ch8_3.bc"
+    .text
+    .globl  _Z8select_1v
+    .align  2
+    .type _Z8select_1v,@function
+    .ent  _Z8select_1v            # @_Z8select_1v
+  _Z8select_1v:
+    .frame  $sp,0,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    lui $2, %hi(a)
+    addiu $2, $2, %lo(a)
+    ld  $2, 0($2)
+    lui $3, %hi(b)
+    addiu $3, $3, %lo(b)
+    ld  $3, 0($3)
+    cmp $sw, $2, $3
+    andi  $3, $sw, 1
+    addiu $2, $zero, 2
+    addiu $4, $zero, 1
+    movn  $2, $4, $3
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z8select_1v
+  $tmp0:
+    .size _Z8select_1v, ($tmp0)-_Z8select_1v
+  
+    .globl  _Z8select_2v
+    .align  2
+    .type _Z8select_2v,@function
+    .ent  _Z8select_2v            # @_Z8select_2v
+  _Z8select_2v:
+    .frame  $sp,0,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    lui $2, %hi(a)
+    addiu $2, $2, %lo(a)
+    ld  $3, 0($2)
+    addiu $2, $zero, 1
+    addiu $4, $zero, 3
+    movz  $2, $4, $3
+    ret $lr
+    .set  macro
+    .set  reorder
+    .end  _Z8select_2v
+  $tmp1:
+    .size _Z8select_2v, ($tmp1)-_Z8select_2v
+  
+    .type a,@object               # @a
+    .data
+    .globl  a
+    .align  2
+  a:
+    .4byte  1                       # 0x1
+    .size a, 4
+  
+    .type b,@object               # @b
+    .globl  b
+    .align  2
+  b:
+    .4byte  2                       # 0x2
+    .size b, 4
+
+  
+.. rubric:: lbdex/InputFiles/ch_optimize.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch_optimize.cpp
+    :start-after: /// start
+
+.. rubric:: lbdex/InputFiles/build-optimize.sh
+.. literalinclude:: ../lbdex/InputFiles/build-optimize.sh
+
+.. code-block:: bash
+
+  114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh 
+  OS = Darwin
+  CPU = cpu032I
+  ...
+  114-37-150-209:InputFiles Jonathan$ cd ../cpu0_verilog/
+  114-37-150-209:cpu0_verilog Jonathan$ iverilog -o cpu0Is cpu0Is.v
+  114-37-150-209:cpu0_verilog Jonathan$ ./cpu0Is
+  WARNING: ./cpu0.v:373: $readmemh(cpu0.hex): Not enough words in the file for 
+  the requested range [0:524287].
+  taskInterrupt(001)
+  2
+  RET to PC < 0, finished!
+  
+  114-37-150-209:cpu0_verilog Jonathan$ cd ../InputFiles/
+  114-37-150-209:InputFiles Jonathan$ bash build-optimize.sh cpu032II
+  OS = Darwin
+  CPU = cpu032II
+  ...
+  114-37-150-209:InputFiles Jonathan$ cd ../cpu0_verilog/
+  114-37-150-209:cpu0_verilog Jonathan$ iverilog -o cpu0IIs cpu0IIs.v
+  114-37-150-209:cpu0_verilog Jonathan$ ./cpu0IIs
+  WARNING: ./cpu0.v:373: $readmemh(cpu0.hex): Not enough words in the file for 
+  the requested range [0:524287].
+  taskInterrupt(001)
+  2
+  RET to PC < 0, finished!
+
+
+Compare to the non-optimize version which don't use conditional move 
+instructions as the following. The clang use **select** IR in small basic block 
+to reduce the branch cost in pipeline machine since the branch will make the 
+pipeline stall. 
+But it needs the conditional instruction support [#Quantitative]_. 
+If your backend has no conditional instruction and want the clang compiler with 
+optimization option **O1** level above, you can change clang to force it 
+generate traditional branch basic block instead of IR **select**.
+RISC CPU came from pipeline advantage and add more and more instruction as time 
+passed. Compare Mips and ARM, the Mips has only **movz** and **movn** two 
+instructions while ARM has many. We create Cpu0 instructions as a RISC pipeline 
+machine as well as simple instructions for compiler toolchain tutorial. 
+Anyway the **cmp** instruction hired because many programmer used 
+it in pass and now (ARM use it). It match the thinking in assembly programming. 
+But the **slt** instruction is more efficient in RISC pipleline.
+If you designed a backend aimed for C/C++ highlevel language, you should 
+consider **slt** instead **cmp**. Assembly is rare case in programming and 
+the assembly programmer can accept **slt** too since usually they are 
+professional.
+
+ 
+.. code-block:: bash
+
+  114-37-150-209:InputFiles Jonathan$ clang -O0 -target mips-unknown-linux-gnu 
+  -c ch8_3.cpp -emit-llvm -o ch8_3.bc
+  
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
+  llvm-dis ch8_3.bc -o -
+  ...
+  define i32 @_Z8select_1v() #0 {
+    %1 = alloca i32, align 4
+    %c = alloca i32, align 4
+    store i32 0, i32* %c, align 4
+    %2 = load volatile i32* @a, align 4
+    %3 = load volatile i32* @b, align 4
+    %4 = icmp slt i32 %2, %3
+    br i1 %4, label %5, label %6
+  
+  ; <label>:5                                       ; preds = %0
+    store i32 1, i32* %1
+    br label %7
+  
+  ; <label>:6                                       ; preds = %0
+    store i32 2, i32* %1
+    br label %7
+  
+  ; <label>:7                                       ; preds = %6, %5
+    %8 = load i32* %1
+    ret i32 %8
+  }
+  ...
+  
+  114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
+  -march=cpu0 -mcpu=cpu032II -relocation-model=static -filetype=asm ch8_3.bc -o -
+    .section .mdebug.abi32
+    .previous
+    .file "ch8_3.bc"
+    .text
+    .globl  _Z8select_1v
+    .align  2
+    .type _Z8select_1v,@function
+    .ent  _Z8select_1v            # @_Z8select_1v
+  _Z8select_1v:
+    .frame  $sp,8,$lr
+    .mask   0x00000000,0
+    .set  noreorder
+    .set  nomacro
+  # BB#0:
+    addiu $sp, $sp, -8
+    addiu $2, $zero, 0
+    st  $2, 0($sp)
+    lui $2, %hi(a)
+    addiu $2, $2, %lo(a)
+    ld  $2, 0($2)
+    lui $3, %hi(b)
+    addiu $3, $3, %lo(b)
+    ld  $3, 0($3)
+    cmp $sw, $2, $3
+    jge $sw, $BB0_2
+  # BB#1:
+    addiu $2, $zero, 1
+    st  $2, 4($sp)
+    jmp $BB0_3
+  $BB0_2:
+    addiu $2, $zero, 2
+    st  $2, 4($sp)
+  $BB0_3:
+    ld  $2, 4($sp)
+    addiu $sp, $sp, 8
+    ret $lr
+    ...
 
 
 RISC CPU knowledge
@@ -638,3 +1285,14 @@ reading now.
 ARM System Developer's Guide: Designing and Optimizing System Software 
 (The Morgan Kaufmann Series in Computer Architecture and Design).
 
+
+
+.. [#] On a platform with cache and DRAM, the cache miss cost serveral tens 
+       time of instruction cycle. The compiler engineers work in the vendor of 
+       platform solution spend much effort try to reduce the cache miss for 
+       speed. Reduce code size will cut down the cache miss frequency too.
+
+.. [#] http://llvm.org/docs/WritingAnLLVMBackend.html#expand
+
+.. [#Quantitative] See book Computer Architecture: A Quantitative Approach (The Morgan 
+       Kaufmann Series in Computer Architecture and Design) 

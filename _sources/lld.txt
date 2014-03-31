@@ -13,7 +13,8 @@ to Verilog Cpu0 machine and run on your PC/Laptop.
 
 About lld please refer LLD web site here [#]_ and LLD install requirement on 
 Linux here [#]_. 
-Currently, lld can be built by gcc and clang 3.4 compiler on Linux. 
+Currently, lld can be built by gcc and clang 3.4 compiler on Ubuntu Linux and 
+gcc on Fedora Linux. 
 On iMac, lld can be built by clang with the OS X and Xcode version as the next 
 sub section.
 If you run with Virtual Machine (VM), please keep your phisical memory size 
@@ -751,6 +752,10 @@ below.
 .. literalinclude:: ../lbdex/InputFiles/printf-stdarg-2.cpp
     :start-after: /// start
 
+.. rubric:: lbdex/InputFiles/printf-stdarg-def.c
+.. literalinclude:: ../lbdex/InputFiles/printf-stdarg-def.c
+    :start-after: /// start
+
 .. rubric:: lbdex/InputFiles/printf-stdarg.c
 .. literalinclude:: ../lbdex/InputFiles/printf-stdarg.c
     :start-after: /// start
@@ -920,12 +925,11 @@ for this purpose.
   393307
   16777222
   51
+  2
   2147483647
   -2147483648
   7
   15
-  2
-  1
   test_nolld(): PASS
   test_alloc() = 31, PASS
   global variable gI = 100, PASS
@@ -935,6 +939,7 @@ for this purpose.
   time3 = 1 10 12, PASS
   date1 = 2013 1 26 12 21 10, PASS
   date2 = 2013 1 26 12 21 10, PASS
+  test_select() = 2, PASS
   test_template() = 15, PASS
   test_inlineasm() = 53, PASS
   test_select() = 2, PASS
@@ -1503,7 +1508,7 @@ implementation.
 Summary
 --------
 
-LLVM judgement
+LLVM evaluation
 ~~~~~~~~~~~~~~~~~
 
 Thanks the llvm open source project. 
@@ -1542,14 +1547,15 @@ most important thing to improve the open source code development.
 The Open Source Organization recognized this point before us and set 
 Open Source Document Project years ago [#]_ [#]_ [#]_ [#]_ [#]_.
 Open Source grows up and becomes a giant software infrastructure with the forces 
-of company [#]_  [#]_, school research team and countless talent engineers passion. 
+of company [#]_  [#]_, school research team and countless talent engineers 
+passion. 
 It terminated the situation of everyone trying to re-invent wheels during 10 
 years ago.
 Extend your software from the re-usable source code is the right way. 
 Of course you should consider an open source license if you are working 
 with business.
 Actually anyone can contribute back to open source through the learning process. 
-We write this book through the process of learning llvm backend and contribute 
+This book is written through the process of learning llvm backend and contribute 
 back to llvm open source project.
 We think this book cannot exists in traditional paper book form since only 
 few number of readers interested in study llvm backend even 

@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.2',
+        VERSION:     '3.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -365,12 +365,14 @@ be finished with an Cpu0 lb efficient instruction. That&#8217;s why the lb, lbu,
 lhu instructions exist. Their difference have explained in Chapter 2.</p>
 <p>To support load bool type, the following code added.</p>
 <p class="rubric">lbdex/Chapter7_1/Cpu0ISelLowering.cpp</p>
-<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">// lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &amp;TM) - begin</span>
+<span class="n">Cpu0TargetLowering</span><span class="o">::</span>
 <span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
   <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
     <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
-  <span class="p">...</span>
-  <span class="c1">// Cpu0 does not have i1 type, so use i32 for</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// Cpu0 does not have i1 type, so use i32 for</span>
   <span class="c1">// setcc operations results (slt, sgt, ...).</span>
   <span class="n">setBooleanContents</span><span class="p">(</span><span class="n">ZeroOrOneBooleanContent</span><span class="p">);</span>
   <span class="n">setBooleanVectorContents</span><span class="p">(</span><span class="n">ZeroOrNegativeOneBooleanContent</span><span class="p">);</span>
@@ -379,8 +381,9 @@ lhu instructions exist. Their difference have explained in Chapter 2.</p>
   <span class="n">setLoadExtAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">EXTLOAD</span><span class="p">,</span>  <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span><span class="p">,</span>  <span class="n">Promote</span><span class="p">);</span>
   <span class="n">setLoadExtAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">ZEXTLOAD</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span><span class="p">,</span>  <span class="n">Promote</span><span class="p">);</span>
   <span class="n">setLoadExtAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SEXTLOAD</span><span class="p">,</span> <span class="n">MVT</span><span class="o">::</span><span class="n">i1</span><span class="p">,</span>  <span class="n">Promote</span><span class="p">);</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">}</span> <span class="c1">// lbd document - mark - Cpu0TargetLowering(Cpu0TargetMachine &amp;TM)</span>
 </pre></div>
 </div>
 <p>Above code setLoadExtAction() are work enough. The setBooleanContents() purpose
@@ -502,10 +505,17 @@ Chapter7_1/.</p>
     <span class="n">SDValue</span> <span class="n">RHS</span> <span class="o">=</span> <span class="n">Node</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
 
     <span class="n">EVT</span> <span class="n">VT</span> <span class="o">=</span> <span class="n">LHS</span><span class="p">.</span><span class="n">getValueType</span><span class="p">();</span>
-    <span class="n">SDNode</span> <span class="o">*</span><span class="n">StatusWord</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
-    <span class="n">SDValue</span> <span class="n">Constant1</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
-    <span class="n">SDNode</span> <span class="o">*</span><span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
-                                           <span class="n">SDValue</span><span class="p">(</span><span class="n">StatusWord</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Constant1</span><span class="p">);</span>
+    <span class="k">const</span> <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span> <span class="o">=</span> <span class="n">getTargetMachine</span><span class="p">();</span>
+    <span class="k">const</span> <span class="n">Cpu0Subtarget</span> <span class="o">&amp;</span><span class="n">Subtarget</span> <span class="o">=</span> <span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">();</span>
+    <span class="n">SDNode</span> <span class="o">*</span><span class="n">Carry</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">Subtarget</span><span class="p">.</span><span class="n">hasCpu032II</span><span class="p">())</span>
+      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">SLTu</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
+    <span class="k">else</span> <span class="p">{</span>
+      <span class="n">SDNode</span> <span class="o">*</span><span class="n">StatusWord</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">CMP</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span> <span class="n">Ops</span><span class="p">);</span>
+      <span class="n">SDValue</span> <span class="n">Constant1</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getTargetConstant</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">VT</span><span class="p">);</span>
+      <span class="n">Carry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ANDi</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
+                                             <span class="n">SDValue</span><span class="p">(</span><span class="n">StatusWord</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">Constant1</span><span class="p">);</span>
+    <span class="p">}</span>
     <span class="n">SDNode</span> <span class="o">*</span><span class="n">AddCarry</span> <span class="o">=</span> <span class="n">CurDAG</span><span class="o">-&gt;</span><span class="n">getMachineNode</span><span class="p">(</span><span class="n">Cpu0</span><span class="o">::</span><span class="n">ADDu</span><span class="p">,</span> <span class="n">DL</span><span class="p">,</span> <span class="n">VT</span><span class="p">,</span>
                                               <span class="n">SDValue</span><span class="p">(</span><span class="n">Carry</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="n">RHS</span><span class="p">);</span>
 
@@ -555,7 +565,8 @@ Chapter7_1/.</p>
 <div class="highlight-bash"><div class="highlight"><pre>1-160-134-62:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu -c
 ch7_4.cpp -emit-llvm -o ch7_4.bc
 1-160-134-62:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
-bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm ch7_4.bc -o -
+bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>asm
+ch7_4.bc -o -
   .section .mdebug.abi32
   .previous
   .file <span class="s2">&quot;ch7_4.bc&quot;</span>

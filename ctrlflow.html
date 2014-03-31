@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.2',
+        VERSION:     '3.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -54,7 +54,12 @@
 <span id="sec-controlflow"></span><h1>Control flow statements<a class="headerlink" href="#control-flow-statements" title="Permalink to this headline">¶</a></h1>
 <p>This chapter illustrates the corresponding IR for control flow statements, like
 <strong>“if else”</strong>, <strong>“while”</strong> and <strong>“for”</strong> loop statements in C, and how to
-translate these control flow statements of llvm IR into Cpu0 instructions.</p>
+translate these control flow statements of llvm IR into Cpu0 instructions in
+section I. In section II, a optimiation pass of control flow for backend is
+introduced. It&#8217;s a simple tutorial program to let readers know how to add a
+backend optimization pass and program it. Section III, include the conditional
+instructions handle since the clang will generate specific IR select and
+select_cc to support the backend optimiation in control flow statement.</p>
 <div class="section" id="control-flow-statement">
 <h2>Control flow statement<a class="headerlink" href="#control-flow-statement" title="Permalink to this headline">¶</a></h2>
 <p>Run ch8_1_1.cpp with clang will get result as follows,</p>
@@ -423,8 +428,8 @@ and dump it&#8217;s content by gobjdump or hexdump as follows,</p>
 </pre></div>
 </div>
 <div class="highlight-bash"><div class="highlight"><pre>118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
-cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>pic -filetype<span class="o">=</span>obj
-ch8_1_1.bc -o ch8_1_1.cpu0.o
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>pic
+-filetype<span class="o">=</span>obj ch8_1_1.bc -o ch8_1_1.cpu0.o
 
 118-165-79-206:InputFiles Jonathan<span class="nv">$ </span>hexdump ch8_1_1.cpu0.o
     // jmp offset is <span class="nv">0x10</span><span class="o">=</span>16 bytes which is correct
@@ -460,12 +465,29 @@ List and explain this again as follows,</p>
 </div>
 <p>If cpu0 do <strong>&#8220;jne&#8221;</strong> compare in execution stage, then we should set PC=PC+12,
 offset of ($BB0_2, jn e $BB02) – 8, in this example.</p>
-<p>Cpu0 is for teaching purpose and didn&#8217;t consider the performance with design.
-In reality, the conditional branch is important in performance of CPU design.
+<p>In reality, the conditional branch is important in performance of CPU design.
 According bench mark information, every 7 instructions will meet 1 branch
 instruction in average.
-Cpu0 take 2 instructions for conditional branch, (jne(cmp...)), while Mips use
-one instruction (bne).</p>
+The cpu032I take 2 instructions for conditional branch, (jne(cmp...)), while
+cpu032II use one instruction (bne) as follws,</p>
+<div class="highlight-bash"><div class="highlight"><pre>JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>pic
+-filetype<span class="o">=</span>asm ch8_1_1.bc -o -
+  ...
+      cmp     <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+      jne     <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
+      jmp     <span class="nv">$BB0_1</span>
+<span class="nv">$BB0_1</span>:
+
+JonathantekiiMac:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/
+cmake_debug_build/bin/Debug/llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>pic
+-filetype<span class="o">=</span>asm ch8_1_1.bc -o -
+  ...
+      bne     <span class="nv">$4</span>, <span class="nv">$zero</span>, <span class="nv">$BB0_2</span>
+      jmp     <span class="nv">$BB0_1</span>
+<span class="nv">$BB0_1</span>:
+</pre></div>
+</div>
 <p>Finally we list the code added for full support of control flow statement,</p>
 <p class="rubric">lbdex/Chapter8_1/MCTargetDesc/Cpu0MCCodeEmitter.cpp</p>
 <div class="highlight-c++"><div class="highlight"><pre>  <span class="c1">// getBranch24TargetOpValue - Return binary encoding of the branch</span>
@@ -621,6 +643,13 @@ one instruction (bne).</p>
 </div>
 <p class="rubric">lbdex/Chapter8_1/Cpu0InstrInfo.td</p>
 <div class="highlight-c++"><pre>// Cpu0InstrInfo.td
+// BEQ, BNE
+def brtarget16    : Operand&lt;OtherVT&gt; {
+  let EncoderMethod = "getBranch16TargetOpValue";
+  let OperandType = "OPERAND_PCREL";
+  let DecoderMethod = "DecodeBranch16Target";
+}
+
 // Instruction operand types
 def brtarget24    : Operand&lt;OtherVT&gt; {
   let EncoderMethod = "getBranchTargetOpValue";
@@ -634,77 +663,932 @@ def jmptarget    : Operand&lt;OtherVT&gt; {
   let DecoderMethod = "DecodeJumpRelativeTarget";
 }
 ...
-  /// Conditional Branch
-      class CBranch24&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
-                                         list&lt;Register&gt; UseRegs&gt;:
-        FJ&lt;op, (outs), (ins RC:$ra, brtarget:$addr),
-                               !strconcat(instr_asm, "\t$addr"),
-                               [], IIBranch&gt; {
-        let isBranch = 1;
-        let isTerminator = 1;
-        let hasDelaySlot = 0;
-        let neverHasSideEffects = 1;
-      }
+// Conditional Branch, e.g. JEQ brtarget24
+class CBranch24&lt;bits&lt;8&gt; op, string instr_asm, RegisterClass RC,
+                   list&lt;Register&gt; UseRegs&gt;:
+  FJ&lt;op, (outs), (ins RC:$ra, brtarget24:$addr),
+             !strconcat(instr_asm, "\t$ra, $addr"),
+             [], IIBranch&gt;, Requires&lt;[HasCmp]&gt; {
+  let isBranch = 1;
+  let isTerminator = 1;
+  let hasDelaySlot = 0;
+  let neverHasSideEffects = 1;
+//  let Predicates = [HasCmp]; // same effect as Requires
+}
 
-      // Unconditional branch, such as JMP
-      class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
-        FJ&lt;op, (outs), (ins brtarget:$addr),
-                               !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch&gt; {
-        let isBranch = 1;
-        let isTerminator = 1;
-        let isBarrier = 1;
-        let hasDelaySlot = 0;
-      }
-  ...
-  /// Jump and Branch Instructions
-  def JEQ     : CBranch&lt;0x30, "jeq", CPURegs&gt;;
-  def JNE     : CBranch&lt;0x31, "jne", CPURegs&gt;;
-  def JLT     : CBranch&lt;0x32, "jlt", CPURegs&gt;;
-  def JGT     : CBranch&lt;0x33, "jgt", CPURegs&gt;;
-  def JLE     : CBranch&lt;0x34, "jle", CPURegs&gt;;
-  def JGE     : CBranch&lt;0x35, "jge", CPURegs&gt;;
-  def JMP     : UncondBranch&lt;0x36, "jmp"&gt;;
-  ...
-  // brcond patterns
-  multiclass BrcondPats&lt;RegisterClass RC, Instruction JEQOp,
-    Instruction JNEOp, Instruction JLTOp, Instruction JGTOp,
-    Instruction JLEOp, Instruction JGEOp, Instruction CMPOp,
-    Register ZEROReg&gt; {
-  def : Pat&lt;(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
-            (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
-            (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
-            (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
-            (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
-            (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
-            (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
-            (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
-            (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
-            (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
-            (JLEOp (CMPOp RC:$rhs, RC:$lhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
-            (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
-  def : Pat&lt;(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
-            (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+// Conditional Branch, e.g. BEQ $r1, $r2, brtarget16
+class CBranch16&lt;bits&lt;8&gt; op, string instr_asm, PatFrag cond_op, RegisterClass RC&gt;:
+  FL&lt;op, (outs), (ins RC:$ra, RC:$rb, brtarget16:$imm16),
+             !strconcat(instr_asm, "\t$ra, $rb, $imm16"),
+             [(brcond (i32 (cond_op RC:$ra, RC:$rb)), bb:$imm16)], IIBranch&gt;,
+             Requires&lt;[HasSlt]&gt; {
+  let isBranch = 1;
+  let isTerminator = 1;
+  let hasDelaySlot = 1;
+  let Defs = [AT];
+}
+...
+// Unconditional branch, such as JMP
+class UncondBranch&lt;bits&lt;8&gt; op, string instr_asm&gt;:
+  FJ&lt;op, (outs), (ins brtarget:$addr),
+       !strconcat(instr_asm, "\t$addr"), [(br bb:$addr)], IIBranch&gt; {
+  let isBranch = 1;
+  let isTerminator = 1;
+  let isBarrier = 1;
+  let hasDelaySlot = 0;
+}
+...
+/// Jump and Branch Instructions
+def JEQ     : CBranch&lt;0x30, "jeq", CPURegs&gt;;
+def JNE     : CBranch&lt;0x31, "jne", CPURegs&gt;;
+def JLT     : CBranch&lt;0x32, "jlt", CPURegs&gt;;
+def JGT     : CBranch&lt;0x33, "jgt", CPURegs&gt;;
+def JLE     : CBranch&lt;0x34, "jle", CPURegs&gt;;
+def JGE     : CBranch&lt;0x35, "jge", CPURegs&gt;;
 
-  def : Pat&lt;(brcond RC:$cond, bb:$dst),
-            (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)&gt;;
-  }
+def BEQ     : CBranch16&lt;0x37, "beq", seteq, GPROut&gt;;
+def BNE     : CBranch16&lt;0x38, "bne", setne, GPROut&gt;;
 
-  defm : BrcondPats&lt;CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO&gt;;</pre>
+def JMP     : UncondBranch&lt;0x36, "jmp"&gt;;
+...
+// brcond patterns
+// brcond for cmp instruction
+multiclass BrcondPatsCmp&lt;RegisterClass RC, Instruction JEQOp, Instruction JNEOp,
+Instruction JLTOp, Instruction JGTOp, Instruction JLEOp, Instruction JGEOp,
+Instruction CMPOp, Register ZEROReg&gt; {
+def : Pat&lt;(brcond (i32 (seteq RC:$lhs, RC:$rhs)), bb:$dst),
+          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setueq RC:$lhs, RC:$rhs)), bb:$dst),
+          (JEQOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setne RC:$lhs, RC:$rhs)), bb:$dst),
+          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setune RC:$lhs, RC:$rhs)), bb:$dst),
+          (JNEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setlt RC:$lhs, RC:$rhs)), bb:$dst),
+          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setult RC:$lhs, RC:$rhs)), bb:$dst),
+          (JLTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setgt RC:$lhs, RC:$rhs)), bb:$dst),
+          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setugt RC:$lhs, RC:$rhs)), bb:$dst),
+          (JGTOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
+          (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
+          (JLEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
+          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
+          (JGEOp (CMPOp RC:$lhs, RC:$rhs), bb:$dst)&gt;;
+
+def : Pat&lt;(brcond RC:$cond, bb:$dst),
+          (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)&gt;;
+}
+
+// brcond for slt instruction
+multiclass BrcondPatsSlt&lt;RegisterClass RC, Instruction BEQOp, Instruction BNEOp,
+                      Instruction SLTOp, Instruction SLTuOp, Instruction SLTiOp,
+                      Instruction SLTiuOp, Register ZEROReg&gt; {
+def : Pat&lt;(brcond (i32 (setne RC:$lhs, 0)), bb:$dst),
+              (BNEOp RC:$lhs, ZEROReg, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (seteq RC:$lhs, 0)), bb:$dst),
+              (BEQOp RC:$lhs, ZEROReg, bb:$dst)&gt;;
+
+def : Pat&lt;(brcond (i32 (setge RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setuge RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTuOp RC:$lhs, RC:$rhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setge RC:$lhs, immSExt16:$rhs)), bb:$dst),
+              (BEQ (SLTiOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setuge RC:$lhs, immSExt16:$rhs)), bb:$dst),
+              (BEQ (SLTiuOp RC:$lhs, immSExt16:$rhs), ZERO, bb:$dst)&gt;;
+
+def : Pat&lt;(brcond (i32 (setle RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)&gt;;
+def : Pat&lt;(brcond (i32 (setule RC:$lhs, RC:$rhs)), bb:$dst),
+              (BEQ (SLTuOp RC:$rhs, RC:$lhs), ZERO, bb:$dst)&gt;;
+
+def : Pat&lt;(brcond RC:$cond, bb:$dst),
+              (BNEOp RC:$cond, ZEROReg, bb:$dst)&gt;;
+}
+
+let Predicates = [HasSlt] in {
+defm : BrcondPatsSlt&lt;CPURegs, BEQ, BNE, SLT, SLTu, SLTi, SLTiu, ZERO&gt;;
+}
+
+let Predicates = [HasCmp] in {
+defm : BrcondPatsCmp&lt;CPURegs, JEQ, JNE, JLT, JGT, JLE, JGE, CMP, ZERO&gt;;
+}</pre>
 </div>
 <p>The ch8_1_2.cpp is for <strong>“nest if”</strong> test. The ch8_1_3.cpp is the
 <strong>“for loop”</strong> as well as <strong>“while loop”</strong>, <strong>“continue”</strong>, <strong>“break”</strong>,
 <strong>“goto”</strong> test. The ch8_1_4.cpp is for <strong>“goto”</strong> test.
 You can run with them if you like to test more.</p>
+</div>
+<div class="section" id="cpu0-backend-optimization-remove-useless-jmp">
+<h2>Cpu0 backend Optimization: Remove useless JMP<a class="headerlink" href="#cpu0-backend-optimization-remove-useless-jmp" title="Permalink to this headline">¶</a></h2>
+<p>LLVM uses functional pass both in code generation and optimization.
+Following the 3 tiers of compiler architecture, LLVM did much optimization in
+middle tier of LLVM IR, SSA form.
+Beyond middle tier optimization, there are opportunities in
+optimization which depend on backend features.
+Mips fill delay slot is an example of backend optimization used in pipeline
+RISC machine.
+You can migrate from Mips if your backend is a pipeline RISC with
+delay slot.
+In this section, we apply the &#8220;delete useless jmp&#8221; in Cpu0
+backend optimization.
+This algorithm is simple and effective to be a perfect tutorial in optimization.
+Through this example, you can understand how to add an optimization pass and
+coding your complicate optimization algorithm on your backend in real project.</p>
+<p>Chapter12_1/ supports &#8220;delete useless jmp&#8221; optimization algorithm which add
+codes as follows,</p>
+<p class="rubric">lbdex/Chapter12_1/CMakeLists.txt</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">add_llvm_target</span><span class="p">(</span><span class="n">Cpu0CodeGen</span>
+  <span class="p">...</span>
+  <span class="n">Cpu0DelUselessJMP</span><span class="p">.</span><span class="n">cpp</span>
+  <span class="p">...</span>
+  <span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_1/Cpu0.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="p">...</span>
+  <span class="n">FunctionPass</span> <span class="o">*</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">);</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter8_2/Cpu0TargetMachine.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Cpu0PassConfig</span> <span class="o">:</span> <span class="k">public</span> <span class="n">TargetPassConfig</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="k">virtual</span> <span class="kt">bool</span> <span class="n">addPreEmitPass</span><span class="p">();</span>
+<span class="p">};</span>
+<span class="p">...</span>
+<span class="c1">// Implemented by targets that want to run passes immediately before</span>
+<span class="c1">// machine code is emitted. return true if -print-machineinstrs should</span>
+<span class="c1">// print out the code after the passes.</span>
+<span class="kt">bool</span> <span class="n">Cpu0PassConfig</span><span class="o">::</span><span class="n">addPreEmitPass</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span> <span class="o">=</span> <span class="n">getCpu0TargetMachine</span><span class="p">();</span>
+  <span class="n">addPass</span><span class="p">(</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">TM</span><span class="p">));</span>
+  <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter8_2/Cpu0DelUselessJMP.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="c1">//===-- Cpu0DelUselessJMP.cpp - Cpu0 DelJmp -------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">//                     The LLVM Compiler Infrastructure</span>
+<span class="c1">//</span>
+<span class="c1">// This file is distributed under the University of Illinois Open Source</span>
+<span class="c1">// License. See LICENSE.TXT for details.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+<span class="c1">//</span>
+<span class="c1">// Simple pass to fills delay slots with useful instructions.</span>
+<span class="c1">//</span>
+<span class="c1">//===----------------------------------------------------------------------===//</span>
+
+<span class="cp">#define DEBUG_TYPE &quot;del-jmp&quot;</span>
+
+<span class="cp">#include &quot;Cpu0.h&quot;</span>
+<span class="cp">#include &quot;Cpu0TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/CodeGen/MachineFunctionPass.h&quot;</span>
+<span class="cp">#include &quot;llvm/Support/CommandLine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetMachine.h&quot;</span>
+<span class="cp">#include &quot;llvm/Target/TargetInstrInfo.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/SmallSet.h&quot;</span>
+<span class="cp">#include &quot;llvm/ADT/Statistic.h&quot;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">llvm</span><span class="p">;</span>
+
+<span class="n">STATISTIC</span><span class="p">(</span><span class="n">NumDelJmp</span><span class="p">,</span> <span class="s">&quot;Number of useless jmp deleted&quot;</span><span class="p">);</span>
+
+<span class="k">static</span> <span class="n">cl</span><span class="o">::</span><span class="n">opt</span><span class="o">&lt;</span><span class="kt">bool</span><span class="o">&gt;</span> <span class="n">EnableDelJmp</span><span class="p">(</span>
+  <span class="s">&quot;enable-cpu0-del-useless-jmp&quot;</span><span class="p">,</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">init</span><span class="p">(</span><span class="nb">true</span><span class="p">),</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">desc</span><span class="p">(</span><span class="s">&quot;Delete useless jmp instructions: jmp 0.&quot;</span><span class="p">),</span>
+  <span class="n">cl</span><span class="o">::</span><span class="n">Hidden</span><span class="p">);</span>
+
+<span class="k">namespace</span> <span class="p">{</span>
+  <span class="k">struct</span> <span class="n">DelJmp</span> <span class="o">:</span> <span class="k">public</span> <span class="n">MachineFunctionPass</span> <span class="p">{</span>
+
+    <span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">;</span>
+    <span class="k">const</span> <span class="n">TargetInstrInfo</span> <span class="o">*</span><span class="n">TII</span><span class="p">;</span>
+
+    <span class="k">static</span> <span class="kt">char</span> <span class="n">ID</span><span class="p">;</span>
+    <span class="n">DelJmp</span><span class="p">(</span><span class="n">TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span>
+      <span class="o">:</span> <span class="n">MachineFunctionPass</span><span class="p">(</span><span class="n">ID</span><span class="p">),</span> <span class="n">TM</span><span class="p">(</span><span class="n">tm</span><span class="p">),</span> <span class="n">TII</span><span class="p">(</span><span class="n">tm</span><span class="p">.</span><span class="n">getInstrInfo</span><span class="p">())</span> <span class="p">{</span> <span class="p">}</span>
+
+    <span class="k">virtual</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">getPassName</span><span class="p">()</span> <span class="k">const</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="s">&quot;Cpu0 Del Useless jmp&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="kt">bool</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">);</span>
+    <span class="kt">bool</span> <span class="nf">runOnMachineFunction</span><span class="p">(</span><span class="n">MachineFunction</span> <span class="o">&amp;</span><span class="n">F</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">EnableDelJmp</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FJ</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">!=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+          <span class="n">FJ</span><span class="o">++</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">FJ</span> <span class="o">==</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">())</span>
+          <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">MachineFunction</span><span class="o">::</span><span class="n">iterator</span> <span class="n">FI</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">begin</span><span class="p">(),</span> <span class="n">FE</span> <span class="o">=</span> <span class="n">F</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+             <span class="n">FJ</span> <span class="o">!=</span> <span class="n">FE</span><span class="p">;</span> <span class="o">++</span><span class="n">FI</span><span class="p">,</span> <span class="o">++</span><span class="n">FJ</span><span class="p">)</span>
+          <span class="c1">// In STL style, F.end() is the dummy BasicBlock() like &#39;\0&#39; in </span>
+          <span class="c1">//  C string. </span>
+          <span class="c1">// FJ is the next BasicBlock of FI; When FI range from F.begin() to </span>
+          <span class="c1">//  the PreviousBasicBlock of F.end() call runOnMachineBasicBlock().</span>
+          <span class="n">Changed</span> <span class="o">|=</span> <span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="o">*</span><span class="n">FI</span><span class="p">,</span> <span class="o">*</span><span class="n">FJ</span><span class="p">);</span>
+      <span class="p">}</span>
+      <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+    <span class="p">}</span>
+
+  <span class="p">};</span>
+  <span class="kt">char</span> <span class="n">DelJmp</span><span class="o">::</span><span class="n">ID</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span> <span class="c1">// end of anonymous namespace</span>
+
+<span class="kt">bool</span> <span class="n">DelJmp</span><span class="o">::</span>
+<span class="n">runOnMachineBasicBlock</span><span class="p">(</span><span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBB</span><span class="p">,</span> <span class="n">MachineBasicBlock</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">bool</span> <span class="n">Changed</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+
+  <span class="n">MachineBasicBlock</span><span class="o">::</span><span class="n">iterator</span> <span class="n">I</span> <span class="o">=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">end</span><span class="p">();</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">I</span> <span class="o">!=</span> <span class="n">MBB</span><span class="p">.</span><span class="n">begin</span><span class="p">())</span>
+    <span class="n">I</span><span class="o">--</span><span class="p">;</span>	<span class="c1">// set I to the last instruction</span>
+  <span class="k">else</span>
+    <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+    
+  <span class="k">if</span> <span class="p">(</span><span class="n">I</span><span class="o">-&gt;</span><span class="n">getOpcode</span><span class="p">()</span> <span class="o">==</span> <span class="n">Cpu0</span><span class="o">::</span><span class="n">JMP</span> <span class="o">&amp;&amp;</span> <span class="n">I</span><span class="o">-&gt;</span><span class="n">getOperand</span><span class="p">(</span><span class="mi">0</span><span class="p">).</span><span class="n">getMBB</span><span class="p">()</span> <span class="o">==</span> <span class="o">&amp;</span><span class="n">MBBN</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// I is the instruction of &quot;jmp #offset=0&quot;, as follows,</span>
+    <span class="c1">//     jmp	$BB0_3</span>
+    <span class="c1">// $BB0_3:</span>
+    <span class="c1">//     ld	$4, 28($sp)</span>
+    <span class="o">++</span><span class="n">NumDelJmp</span><span class="p">;</span>
+    <span class="n">MBB</span><span class="p">.</span><span class="n">erase</span><span class="p">(</span><span class="n">I</span><span class="p">);</span>	<span class="c1">// delete the &quot;JMP 0&quot; instruction</span>
+    <span class="n">Changed</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>	<span class="c1">// Notify LLVM kernel Changed</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">Changed</span><span class="p">;</span>
+
+<span class="p">}</span>
+
+<span class="c1">/// createCpu0DelJmpPass - Returns a pass that DelJmp in Cpu0 MachineFunctions</span>
+<span class="n">FunctionPass</span> <span class="o">*</span><span class="n">llvm</span><span class="o">::</span><span class="n">createCpu0DelJmpPass</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">tm</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">DelJmp</span><span class="p">(</span><span class="n">tm</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>As above code, except Cpu0DelUselessJMP.cpp, other files changed for register
+class DelJmp as a functional pass.
+As the comment of above code, MBB is the current
+block and MBBN is the next block. For each last instruction of every MBB, we
+check if it is the JMP instruction as well as
+its Operand is the next basic block.
+By getMBB() in MachineOperand, you can get the MBB address.
+For the member functions of MachineOperand, please check
+include/llvm/CodeGen/MachineOperand.h
+Now, let&#8217;s run Chapter12_1/ with ch12_1.cpp for explanation.</p>
+<p class="rubric">lbdex/InputFiles/ch8_2.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">test_DelUselessJMP</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="p">;</span> <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">3</span><span class="p">;</span>
+    <span class="n">b</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">b</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+    <span class="n">b</span><span class="o">--</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">c</span><span class="p">;</span>
+    <span class="n">c</span><span class="o">++</span><span class="p">;</span>
+  <span class="p">}</span>
+  
+  <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>clang -target mips-unknown-linux-gnu
+-c ch12_1.cpp -emit-llvm -o ch12_1.bc
+118-165-78-10:InputFiles Jonathan<span class="nv">$ </span>/Users/Jonathan/llvm/test/cmake_debug_build/
+bin/Debug/llc -march<span class="o">=</span>cpu0 -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm -stats
+ch8_2.bc -o -
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch8_2.bc&quot;</span>
+  .text
+  .globl  _Z18test_DelUselessJMPv
+  .align  2
+  .type _Z18test_DelUselessJMPv,@function
+  .ent  _Z18test_DelUselessJMPv <span class="c"># @_Z18test_DelUselessJMPv</span>
+_Z18test_DelUselessJMPv:
+  .frame  <span class="nv">$sp</span>,16,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -16
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 3
+  st  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, 0
+  ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  jne <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:</span>
+  ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$4</span>, <span class="nv">$4</span>, 1
+  st  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_2</span>:
+  ld  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  jne <span class="nv">$sw</span>, <span class="nv">$BB0_4</span>
+  jmp <span class="nv">$BB0_3</span>
+<span class="nv">$BB0_4</span>:
+  addiu <span class="nv">$3</span>, <span class="nv">$zero</span>, -1
+  ld  <span class="nv">$4</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  jgt <span class="nv">$sw</span>, <span class="nv">$BB0_6</span>
+  jmp <span class="nv">$BB0_5</span>
+<span class="nv">$BB0_3</span>:
+  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 3
+  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, 1
+  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  jmp <span class="nv">$BB0_6</span>
+<span class="nv">$BB0_5</span>:
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$4</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$3</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  st  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, -1
+  st  <span class="nv">$3</span>, 8<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_6</span>:
+  ld  <span class="nv">$3</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  jlt <span class="nv">$sw</span>, <span class="nv">$BB0_8</span>
+<span class="c"># BB#7:</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$3</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addu  <span class="nv">$2</span>, <span class="nv">$3</span>, <span class="nv">$2</span>
+  st  <span class="nv">$2</span>, 12<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, 1
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_8</span>:
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 16
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  _Z18test_DelUselessJMPv
+<span class="nv">$tmp1</span>:
+  .size _Z18test_DelUselessJMPv, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z18test_DelUselessJMPv
+...
+<span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
+                          ... Statistics Collected ...
+<span class="o">===</span>-------------------------------------------------------------------------<span class="o">===</span>
+ ...
+ 2 del-jmp        - Number of useless jmp deleted
+ ...
+</pre></div>
+</div>
+<p>The terminal display &#8220;Number of useless jmp deleted&#8221; by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-stats</span></tt> option
+because we set the &#8220;STATISTIC(NumDelJmp, &#8220;Number of useless jmp deleted&#8221;)&#8221; in
+code. It deletes 2 jmp instructions from block &#8220;# BB#0&#8221; and &#8220;$BB0_6&#8221;.
+You can check it by <tt class="docutils literal"><span class="pre">llc</span> <span class="pre">-enable-cpu0-del-useless-jmp=false</span></tt> option to see
+the difference to non-optimization version.
+If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100
+lines of assembly code, which meaning 10% improvement in speed and code size
+<a class="footnote-reference" href="#id4" id="id1">[1]</a>.</p>
+</div>
+<div class="section" id="conditional-instruction">
+<h2>Conditional instruction<a class="headerlink" href="#conditional-instruction" title="Permalink to this headline">¶</a></h2>
+<p>Since the clang optimization level O1 or above level will generate <strong>select</strong>
+and <strong>select_cc</strong> to support conditional instruction, we add this feature in
+Cpu0 backend too.</p>
+<p class="rubric">lbdex/InputFiles/ch8_3.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="kt">int</span> <span class="nf">select_1</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="k">return</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">select_2</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="k">else</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="nf">test_select</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  
+  <span class="n">c</span> <span class="o">=</span> <span class="n">select_1</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+  <span class="n">c</span> <span class="o">+=</span> <span class="n">select_2</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>
+  
+  <span class="k">return</span> <span class="n">c</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you run Chapter12_2 with ch12_4.cpp will get the following result.</p>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>clang -O1 -target mips-unknown-linux-gnu
+-c ch12_4.cpp -emit-llvm -o ch12_4.bc
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
+llvm-dis ch12_4.bc -o -
+...
+define i32 @_Z8select_1ii<span class="o">(</span>i32 %a, i32 %b<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> icmp slt i32 %a, %b
+  %. <span class="o">=</span> <span class="k">select </span>i1 %1, i32 1, i32 2
+  ret i32 %.
+<span class="o">}</span>
+
+; Function Attrs: nounwind readnone
+define i32 @_Z8select_2i<span class="o">(</span>i32 %a<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> icmp eq i32 %a, 0
+  %. <span class="o">=</span> <span class="k">select </span>i1 %1, i32 3, i32 1
+  ret i32 %.
+<span class="o">}</span>
+
+; Function Attrs: nounwind readnone
+define i32 @_Z11test_selectii<span class="o">(</span>i32 %a, i32 %b<span class="o">)</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> tail call i32 @_Z8select_1ii<span class="o">(</span>i32 %a, i32 %b<span class="o">)</span>
+  %2 <span class="o">=</span> tail call i32 @_Z8select_2i<span class="o">(</span>i32 %a<span class="o">)</span>
+  %3 <span class="o">=</span> add nsw i32 %2, %1
+  ret i32 %3
+<span class="o">}</span>
+...
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
+llc -march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_4.bc
+-debug -o -
+...
+<span class="o">===</span> _Z8select_1ii
+Initial selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 14 nodes:
+  ...
+        0x39f3fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+      0x39f40c0: <span class="nv">i1</span> <span class="o">=</span> setcc 0x39f3cc0, 0x39f3ec0, 0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x39f41c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x39f42c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+    0x39f43c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x39f40c0, 0x39f41c0, 0x39f42c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+
+Replacing.3 0x39f43c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x39f40c0, 0x39f41c0, 0x39f42c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+
+With: 0x39f47c0: <span class="nv">i32</span> <span class="o">=</span> select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0,
+0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+...
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 13 nodes:
+  ...
+      0x39f41c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x39f42c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+      0x39f3fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+    0x39f47c0: <span class="nv">i32</span> <span class="o">=</span> select_cc 0x39f3cc0, 0x39f3ec0, 0x39f41c0, 0x39f42c0,
+    0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+LLVM ERROR: Cannot <span class="k">select</span>: 0x39f47c0: <span class="nv">i32</span> <span class="o">=</span> select_cc 0x39f3cc0, 0x39f3ec0,
+0x39f41c0, 0x39f42c0, 0x39f3fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span> <span class="o">[</span><span class="nv">ID</span><span class="o">=</span>10<span class="o">]</span>
+</pre></div>
+</div>
+<p>As llvm IR of ch12_4.bc as above, clang generate <strong>select</strong> IR for small
+basic control block (if statement only include one assign statement).
+This <strong>select</strong> IR is optimization result for CPU which has conditional
+instructions support.
+And from above llc command debug trace message, IR <strong>select</strong> is changed to
+<strong>select_cc</strong> during DAG optimization stages.</p>
+<p>Chapter12_3 support <strong>select</strong> with the following code added and changed.</p>
+<p class="rubric">lbdex/Chapter12_3/AsmParser/Cpu0AsmParser.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#define GET_MATCHER_IMPLEMENTATION</span>
+<span class="cp">#include &quot;Cpu0GenAsmMatcher.inc&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0InstInfo.td</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">include</span> <span class="s">&quot;Cpu0CondMov.td&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0CondMov.td</p>
+<div class="highlight-c++"><pre>//===-- Cpu0CondMov.td - Describe Cpu0 Conditional Moves --*- tablegen -*--===//
+//
+//                     The LLVM Compiler Infrastructure
+//
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+//
+// This is the Conditional Moves implementation.
+//
+//===----------------------------------------------------------------------===//
+
+// Conditional moves:
+// These instructions are expanded in
+// Cpu0ISelLowering::EmitInstrWithCustomInserter if target does not have
+// conditional move instructions.
+// cond:int, data:int
+class CondMovIntInt&lt;RegisterClass CRC, RegisterClass DRC, bits&lt;8&gt; op,
+                    string instr_asm&gt; :
+  FA&lt;op, (outs DRC:$ra), (ins DRC:$rb, CRC:$rc, DRC:$F),
+     !strconcat(instr_asm, "\t$ra, $rb, $rc"), [], IIAlu&gt; {
+  let shamt = 0;
+  let Constraints = "$F = $ra";
+}
+
+// select patterns
+multiclass MovzPats0Slt&lt;RegisterClass CRC, RegisterClass DRC,
+                     Instruction MOVZInst, Instruction SLTOp,
+                     Instruction SLTuOp, Instruction SLTiOp,
+                     Instruction SLTiuOp&gt; {
+  def : Pat&lt;(select (i32 (setge CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTOp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setuge CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTuOp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setge CRC:$lhs, immSExt16:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTiOp CRC:$lhs, immSExt16:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setuge CRC:$lh, immSExt16:$rh)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTiuOp CRC:$lh, immSExt16:$rh), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setle CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTOp CRC:$rhs, CRC:$lhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setule CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (SLTuOp CRC:$rhs, CRC:$lhs), DRC:$F)&gt;;
+}
+
+multiclass MovzPats1&lt;RegisterClass CRC, RegisterClass DRC,
+                     Instruction MOVZInst, Instruction XOROp&gt; {
+  def : Pat&lt;(select (i32 (seteq CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, (XOROp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (seteq CRC:$lhs, 0)), DRC:$T, DRC:$F),
+            (MOVZInst DRC:$T, CRC:$lhs, DRC:$F)&gt;;
+}
+
+multiclass MovnPats&lt;RegisterClass CRC, RegisterClass DRC, Instruction MOVNInst,
+                    Instruction XOROp&gt; {
+  def : Pat&lt;(select (i32 (setne CRC:$lhs, CRC:$rhs)), DRC:$T, DRC:$F),
+            (MOVNInst DRC:$T, (XOROp CRC:$lhs, CRC:$rhs), DRC:$F)&gt;;
+  def : Pat&lt;(select CRC:$cond, DRC:$T, DRC:$F),
+            (MOVNInst DRC:$T, CRC:$cond, DRC:$F)&gt;;
+  def : Pat&lt;(select (i32 (setne CRC:$lhs, 0)),DRC:$T, DRC:$F),
+            (MOVNInst DRC:$T, CRC:$lhs, DRC:$F)&gt;;
+}
+
+// Instantiation of instructions.
+def MOVZ_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0a, "movz"&gt;;
+
+def MOVN_I_I     : CondMovIntInt&lt;CPURegs, CPURegs, 0x0b, "movn"&gt;;
+
+// Instantiation of conditional move patterns.
+let Predicates = [HasSlt] in {
+defm : MovzPats0Slt&lt;CPURegs, CPURegs, MOVZ_I_I, SLT, SLTu, SLTi, SLTiu&gt;;
+}
+
+defm : MovzPats1&lt;CPURegs, CPURegs, MOVZ_I_I, XOR&gt;;
+
+defm : MovnPats&lt;CPURegs, CPURegs, MOVN_I_I, XOR&gt;;
+
+</pre>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">SDValue</span> <span class="n">lowerSELECT</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span><span class="p">;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/Chapter12_3/Cpu0ISelLowering.h</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">Cpu0TargetLowering</span><span class="p">(</span><span class="n">Cpu0TargetMachine</span> <span class="o">&amp;</span><span class="n">TM</span><span class="p">)</span>
+  <span class="o">:</span> <span class="n">TargetLowering</span><span class="p">(</span><span class="n">TM</span><span class="p">,</span> <span class="k">new</span> <span class="n">Cpu0TargetObjectFile</span><span class="p">()),</span>
+    <span class="n">Subtarget</span><span class="p">(</span><span class="o">&amp;</span><span class="n">TM</span><span class="p">.</span><span class="n">getSubtarget</span><span class="o">&lt;</span><span class="n">Cpu0Subtarget</span><span class="o">&gt;</span><span class="p">())</span> <span class="p">{</span>
+  <span class="p">...</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SELECT</span><span class="p">,</span>             <span class="n">MVT</span><span class="o">::</span><span class="n">i32</span><span class="p">,</span>   <span class="n">Custom</span><span class="p">);</span>
+  <span class="p">...</span>
+  <span class="n">setOperationAction</span><span class="p">(</span><span class="n">ISD</span><span class="o">::</span><span class="n">SELECT_CC</span><span class="p">,</span>         <span class="n">MVT</span><span class="o">::</span><span class="n">Other</span><span class="p">,</span> <span class="n">Expand</span><span class="p">);</span>
+  <span class="p">...</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">LowerOperation</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">Op</span><span class="p">.</span><span class="n">getOpcode</span><span class="p">())</span>
+  <span class="p">{</span>
+    <span class="p">...</span>
+    <span class="k">case</span> <span class="n">ISD</span>:<span class="o">:</span><span class="n">SELECT</span><span class="o">:</span>             <span class="k">return</span> <span class="n">lowerSELECT</span><span class="p">(</span><span class="n">Op</span><span class="p">,</span> <span class="n">DAG</span><span class="p">);</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">SDValue</span><span class="p">();</span>
+<span class="p">}</span>
+<span class="p">...</span>
+<span class="n">SDValue</span> <span class="n">Cpu0TargetLowering</span><span class="o">::</span>
+<span class="n">lowerSELECT</span><span class="p">(</span><span class="n">SDValue</span> <span class="n">Op</span><span class="p">,</span> <span class="n">SelectionDAG</span> <span class="o">&amp;</span><span class="n">DAG</span><span class="p">)</span> <span class="k">const</span>
+<span class="p">{</span>
+  <span class="k">return</span> <span class="n">Op</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Set ISD::SELECT_CC to Expand will stop llvm optimization to merge setcc and
+select into one IR select_cc <a class="footnote-reference" href="#id5" id="id2">[2]</a>. Next the LowerSELECT() return ISD::SELECT as
+Op code directly. Finally the pattern define in Cpu0CondMov.td will
+translate the <strong>select</strong> IR into <strong>movz</strong> or <strong>movn</strong> conditional instruction.
+Let&#8217;s run Chapter12_3 with ch12_4.cpp and ch_optimize.cpp to get the following
+result.
+Again, the cpu032II use <strong>slt</strong> instead of <strong>cmp</strong> has a little improved in
+instructions number.</p>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch12_4.bc -debug
+-o -
+...
+<span class="o">===</span> _Z8select_1ii
+Initial selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 14 nodes:
+  ...
+        0x3d87fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+      0x3d880c0: <span class="nv">i1</span> <span class="o">=</span> setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x3d881c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x3d882c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+    0x3d883c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x3d880c0, 0x3d881c0, 0x3d882c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+Optimized lowered selection DAG: BB#0 <span class="s1">&#39;_Z8select_1ii:&#39;</span>
+SelectionDAG has 14 nodes:
+  ...
+        0x3d87fc0: <span class="nv">ch</span> <span class="o">=</span> setlt
+
+      0x3d880c0: <span class="nv">i1</span> <span class="o">=</span> setcc 0x3d87cc0, 0x3d87ec0, 0x3d87fc0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>1<span class="o">]</span>
+
+      0x3d881c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;1&gt;
+
+      0x3d882c0: <span class="nv">i32</span> <span class="o">=</span> Constant&lt;2&gt;
+
+    0x3d883c0: <span class="nv">i32</span> <span class="o">=</span> <span class="k">select </span>0x3d880c0, 0x3d881c0, 0x3d882c0 <span class="o">[</span><span class="nv">ORD</span><span class="o">=</span>2<span class="o">]</span>
+  ...
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032I -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_3.bc -o -
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch8_3.bc&quot;</span>
+  .text
+  .globl  _Z8select_1v
+  .align  2
+  .type _Z8select_1v,@function
+  .ent  _Z8select_1v            <span class="c"># @_Z8select_1v</span>
+_Z8select_1v:
+  .frame  <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  lui <span class="nv">$2</span>, %hi<span class="o">(</span>a<span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>a<span class="o">)</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+  lui <span class="nv">$3</span>, %hi<span class="o">(</span>b<span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span>b<span class="o">)</span>
+  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  andi  <span class="nv">$3</span>, <span class="nv">$sw</span>, 1
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 1
+  movn  <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  _Z8select_1v
+<span class="nv">$tmp0</span>:
+  .size _Z8select_1v, <span class="o">(</span><span class="nv">$tmp0</span><span class="o">)</span>-_Z8select_1v
+
+  .globl  _Z8select_2v
+  .align  2
+  .type _Z8select_2v,@function
+  .ent  _Z8select_2v            <span class="c"># @_Z8select_2v</span>
+_Z8select_2v:
+  .frame  <span class="nv">$sp</span>,0,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  lui <span class="nv">$2</span>, %hi<span class="o">(</span>a<span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>a<span class="o">)</span>
+  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  addiu <span class="nv">$4</span>, <span class="nv">$zero</span>, 3
+  movz  <span class="nv">$2</span>, <span class="nv">$4</span>, <span class="nv">$3</span>
+  ret <span class="nv">$lr</span>
+  .set  macro
+  .set  reorder
+  .end  _Z8select_2v
+<span class="nv">$tmp1</span>:
+  .size _Z8select_2v, <span class="o">(</span><span class="nv">$tmp1</span><span class="o">)</span>-_Z8select_2v
+
+  .type a,@object               <span class="c"># @a</span>
+  .data
+  .globl  a
+  .align  2
+a:
+  .4byte  1                       <span class="c"># 0x1</span>
+  .size a, 4
+
+  .type b,@object               <span class="c"># @b</span>
+  .globl  b
+  .align  2
+b:
+  .4byte  2                       <span class="c"># 0x2</span>
+  .size b, 4
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/ch_optimize.cpp</p>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &quot;debug.h&quot;</span>
+<span class="cp">#include &quot;boot.cpp&quot;</span>
+
+<span class="cp">#include &quot;print.h&quot;</span>
+
+<span class="kt">int</span> <span class="nf">test_select</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">);</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">test_select</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span> <span class="c1">// 4</span>
+  <span class="n">print_integer</span><span class="p">(</span><span class="n">a</span><span class="p">);</span>  <span class="c1">// a = 4</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="cp">#include &quot;print.cpp&quot;</span>
+
+<span class="cp">#include &quot;ch12_4.cpp&quot;</span>
+</pre></div>
+</div>
+<p class="rubric">lbdex/InputFiles/build-optimize.sh</p>
+<div class="highlight-c++"><pre>#!/usr/bin/env bash
+OS=`uname -s`
+echo "OS =" ${OS}
+
+if [ "$OS" == "Linux" ]; then
+  TOOLDIR=/usr/local/llvm/test/cmake_debug_build/bin
+else
+  TOOLDIR=~/llvm/test/cmake_debug_build/bin/Debug
+fi
+
+if [ "$1" != "" ] &amp;&amp; [ $1 != cpu032I ] &amp;&amp; [ $1 != cpu032II ]; then
+  echo "1st argument is cpu032I (default) or cpu032II"
+  exit 1
+fi
+if [ "$1" == "" ]; then
+  CPU=cpu032I
+else
+  CPU=$1
+fi
+echo "CPU =" "${CPU}"
+
+bash rminput.sh
+
+clang -O1 -target mips-unknown-linux-gnu -c ch_optimize.cpp -emit-llvm -o \
+ch_optimize.bc
+${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+ch_optimize.bc -o ch_optimize.cpu0.o
+${TOOLDIR}/llvm-objdump -d ch_optimize.cpu0.o | tail -n +6| awk \
+'{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
+" $9" " $10 "\t*/"}' &gt; ../cpu0_verilog/cpu0.hex
+</pre>
+</div>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>bash build-optimize.sh
+<span class="nv">OS</span> <span class="o">=</span> Darwin
+<span class="nv">CPU</span> <span class="o">=</span> cpu032I
+...
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>iverilog -o cpu0Is cpu0Is.v
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0Is
+WARNING: ./cpu0.v:373: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
+the requested range <span class="o">[</span>0:524287<span class="o">]</span>.
+taskInterrupt<span class="o">(</span>001<span class="o">)</span>
+2
+RET to PC &lt; 0, finished!
+
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../InputFiles/
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>bash build-optimize.sh cpu032II
+<span class="nv">OS</span> <span class="o">=</span> Darwin
+<span class="nv">CPU</span> <span class="o">=</span> cpu032II
+...
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span><span class="nb">cd</span> ../cpu0_verilog/
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>iverilog -o cpu0IIs cpu0IIs.v
+114-37-150-209:cpu0_verilog Jonathan<span class="nv">$ </span>./cpu0IIs
+WARNING: ./cpu0.v:373: <span class="nv">$readmemh</span><span class="o">(</span>cpu0.hex<span class="o">)</span>: Not enough words in the file <span class="k">for</span>
+the requested range <span class="o">[</span>0:524287<span class="o">]</span>.
+taskInterrupt<span class="o">(</span>001<span class="o">)</span>
+2
+RET to PC &lt; 0, finished!
+</pre></div>
+</div>
+<p>Compare to the non-optimize version which don&#8217;t use conditional move
+instructions as the following. The clang use <strong>select</strong> IR in small basic block
+to reduce the branch cost in pipeline machine since the branch will make the
+pipeline stall.
+But it needs the conditional instruction support <a class="footnote-reference" href="#quantitative" id="id3">[3]</a>.
+If your backend has no conditional instruction and want the clang compiler with
+optimization option <strong>O1</strong> level above, you can change clang to force it
+generate traditional branch basic block instead of IR <strong>select</strong>.
+RISC CPU came from pipeline advantage and add more and more instruction as time
+passed. Compare Mips and ARM, the Mips has only <strong>movz</strong> and <strong>movn</strong> two
+instructions while ARM has many. We create Cpu0 instructions as a RISC pipeline
+machine as well as simple instructions for compiler toolchain tutorial.
+Anyway the <strong>cmp</strong> instruction hired because many programmer used
+it in pass and now (ARM use it). It match the thinking in assembly programming.
+But the <strong>slt</strong> instruction is more efficient in RISC pipleline.
+If you designed a backend aimed for C/C++ highlevel language, you should
+consider <strong>slt</strong> instead <strong>cmp</strong>. Assembly is rare case in programming and
+the assembly programmer can accept <strong>slt</strong> too since usually they are
+professional.</p>
+<div class="highlight-bash"><div class="highlight"><pre>114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>clang -O0 -target mips-unknown-linux-gnu
+-c ch8_3.cpp -emit-llvm -o ch8_3.bc
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/
+llvm-dis ch8_3.bc -o -
+...
+define i32 @_Z8select_1v<span class="o">()</span> <span class="c">#0 {</span>
+  %1 <span class="o">=</span> alloca i32, align 4
+  %c <span class="o">=</span> alloca i32, align 4
+  store i32 0, i32* %c, align 4
+  %2 <span class="o">=</span> load volatile i32* @a, align 4
+  %3 <span class="o">=</span> load volatile i32* @b, align 4
+  %4 <span class="o">=</span> icmp slt i32 %2, %3
+  br i1 %4, label %5, label %6
+
+; &lt;label&gt;:5                                       ; <span class="nv">preds</span> <span class="o">=</span> %0
+  store i32 1, i32* %1
+  br label %7
+
+; &lt;label&gt;:6                                       ; <span class="nv">preds</span> <span class="o">=</span> %0
+  store i32 2, i32* %1
+  br label %7
+
+; &lt;label&gt;:7                                       ; <span class="nv">preds</span> <span class="o">=</span> %6, %5
+  %8 <span class="o">=</span> load i32* %1
+  ret i32 %8
+<span class="o">}</span>
+...
+
+114-37-150-209:InputFiles Jonathan<span class="nv">$ </span>~/llvm/test/cmake_debug_build/bin/Debug/llc
+-march<span class="o">=</span>cpu0 -mcpu<span class="o">=</span>cpu032II -relocation-model<span class="o">=</span>static -filetype<span class="o">=</span>asm ch8_3.bc -o -
+  .section .mdebug.abi32
+  .previous
+  .file <span class="s2">&quot;ch8_3.bc&quot;</span>
+  .text
+  .globl  _Z8select_1v
+  .align  2
+  .type _Z8select_1v,@function
+  .ent  _Z8select_1v            <span class="c"># @_Z8select_1v</span>
+_Z8select_1v:
+  .frame  <span class="nv">$sp</span>,8,<span class="nv">$lr</span>
+  .mask   0x00000000,0
+  .set  noreorder
+  .set  nomacro
+<span class="c"># BB#0:</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, -8
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 0
+  st  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  lui <span class="nv">$2</span>, %hi<span class="o">(</span>a<span class="o">)</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$2</span>, %lo<span class="o">(</span>a<span class="o">)</span>
+  ld  <span class="nv">$2</span>, 0<span class="o">(</span><span class="nv">$2</span><span class="o">)</span>
+  lui <span class="nv">$3</span>, %hi<span class="o">(</span>b<span class="o">)</span>
+  addiu <span class="nv">$3</span>, <span class="nv">$3</span>, %lo<span class="o">(</span>b<span class="o">)</span>
+  ld  <span class="nv">$3</span>, 0<span class="o">(</span><span class="nv">$3</span><span class="o">)</span>
+  cmp <span class="nv">$sw</span>, <span class="nv">$2</span>, <span class="nv">$3</span>
+  jge <span class="nv">$sw</span>, <span class="nv">$BB0_2</span>
+<span class="c"># BB#1:</span>
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 1
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  jmp <span class="nv">$BB0_3</span>
+<span class="nv">$BB0_2</span>:
+  addiu <span class="nv">$2</span>, <span class="nv">$zero</span>, 2
+  st  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+<span class="nv">$BB0_3</span>:
+  ld  <span class="nv">$2</span>, 4<span class="o">(</span><span class="nv">$sp</span><span class="o">)</span>
+  addiu <span class="nv">$sp</span>, <span class="nv">$sp</span>, 8
+  ret <span class="nv">$lr</span>
+  ...
+</pre></div>
+</div>
 </div>
 <div class="section" id="risc-cpu-knowledge">
 <h2>RISC CPU knowledge<a class="headerlink" href="#risc-cpu-knowledge" title="Permalink to this headline">¶</a></h2>
@@ -733,6 +1617,28 @@ mobile phone and other portable devices. The following book is good which I am
 reading now.</p>
 <p>ARM System Developer&#8217;s Guide: Designing and Optimizing System Software
 (The Morgan Kaufmann Series in Computer Architecture and Design).</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>On a platform with cache and DRAM, the cache miss cost serveral tens
+time of instruction cycle. The compiler engineers work in the vendor of
+platform solution spend much effort try to reduce the cache miss for
+speed. Reduce code size will cut down the cache miss frequency too.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id5" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://llvm.org/docs/WritingAnLLVMBackend.html#expand">http://llvm.org/docs/WritingAnLLVMBackend.html#expand</a></td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="quantitative" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>See book Computer Architecture: A Quantitative Approach (The Morgan
+Kaufmann Series in Computer Architecture and Design)</td></tr>
+</tbody>
+</table>
 </div>
 </div>
 

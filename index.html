@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.4.2',
+        VERSION:     '3.4.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -93,6 +93,7 @@
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-cpu0dagtodagisel-class">Add Cpu0DAGToDAGISel class</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#handle-return-register-lr">Handle return register lr</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#add-prologue-epilogue-functions">Add Prologue/Epilogue functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backendstructure.html#lowerreturn">LowerReturn</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#data-operands-dags">Data operands DAGs</a></li>
 <li class="toctree-l2"><a class="reference internal" href="backendstructure.html#summary-of-this-chapter">Summary of this Chapter</a></li>
 </ul>
@@ -135,6 +136,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ctrlflow.html">Control flow statements</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#control-flow-statement">Control flow statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#cpu0-backend-optimization-remove-useless-jmp">Cpu0 backend Optimization: Remove useless JMP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#conditional-instruction">Conditional instruction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ctrlflow.html#risc-cpu-knowledge">RISC CPU knowledge</a></li>
 </ul>
 </li>
@@ -146,7 +149,6 @@
 <li class="toctree-l3"><a class="reference internal" href="funccall.html#fix-the-wrong-offset-in-storing-arguments-to-stack-frame">Fix the wrong offset in storing arguments to stack frame</a></li>
 <li class="toctree-l3"><a class="reference internal" href="funccall.html#pseudo-hook-instruction-adjcallstackdown-and-adjcallstackup">Pseudo hook instruction ADJCALLSTACKDOWN and ADJCALLSTACKUP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="funccall.html#handle-gp-register-in-pic-addressing-mode">Handle $gp register in PIC addressing mode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="funccall.html#correct-the-return-of-main">Correct the return of main()</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="funccall.html#support-features">Support features</a><ul>
@@ -170,23 +172,14 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="asm.html">Assember</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="asm.html#asmparser-support">AsmParser support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="asm.html#inline-assembly">Inline assembly</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="runbackend.html">Run backend</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="runbackend.html#asmparser-support">AsmParser support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="runbackend.html#inline-assembly">Inline assembly</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runbackend.html#verilog-of-cpu0">Verilog of CPU0</a></li>
 <li class="toctree-l2"><a class="reference internal" href="runbackend.html#run-program-on-cpu0-machine">Run program on CPU0 machine</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="optimize.html">Backend Optimization</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="optimize.html#cpu0-backend-optimization-remove-useless-jmp">Cpu0 backend Optimization: Remove useless JMP</a></li>
-<li class="toctree-l2"><a class="reference internal" href="optimize.html#cpu0-optimization-extends-instruction-sets">Cpu0 Optimization: Extends instruction sets</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-new-instruction-sets-table">Cpu0 new instruction sets table</a></li>
-<li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-code-changes">Cpu0 code changes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="optimize.html#cpu0-verilog-language-changes">Cpu0 Verilog language changes</a></li>
-<li class="toctree-l3"><a class="reference internal" href="optimize.html#run-the-cpu0ii">Run the Cpu0II</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="optimize.html#conditional-instruction">Conditional instruction</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="lld.html">LLD for Cpu0</a><ul>
@@ -209,7 +202,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="lld.html#summary">Summary</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="lld.html#llvm-judgement">LLVM judgement</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lld.html#llvm-evaluation">LLVM evaluation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="lld.html#contribute-back-to-open-source-through-working-and-learning">Contribute back to Open Source through working and learning</a></li>
 </ul>
 </li>

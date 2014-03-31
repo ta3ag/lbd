@@ -85,11 +85,17 @@ down for each type of instruction.
 
   Cpu0's three instruction formats
 
-The following table details the Cpu0 instruction set:
+The Cpu0 has two ISA, the first ISA-I is cpu032I which hired CMP instruction 
+from ARM; the second ISA-II is cpu032II which hire SLT instruction from Mips. 
+The cpu032II include all cpu032I instruction set and add SLT, BEQ, ..., 
+instructions. The main purpose to add cpu032II is for instruction set design 
+explanation. As you will see in later chapter, the SLT instruction will has 
+better performance than CMP old style instruction.
+The following table details the cpu032I instruction set:
 
 - First column F\.: meaning Format.
 
-.. list-table:: Cpu0 Instruction Set
+.. list-table:: cpu032I Instruction Set
   :widths: 1 4 3 11 7 10
   :header-rows: 1
 
@@ -418,6 +424,56 @@ The following table details the Cpu0 instruction set:
     - MTSW Ra
     - SW <= Ra
 
+
+The following table details the cpu032II instruction set added:
+
+.. list-table:: cpu032II Instruction Set
+  :widths: 1 4 3 11 7 10
+  :header-rows: 1
+
+  * - F\.
+    - Mnemonic
+    - Opcode
+    - Meaning
+    - Syntax
+    - Operation
+  * - L
+    - SLTi
+    - 26
+    - Set less Then
+    - SLTi Ra, Rb, Cx
+    - Ra <= (Rb < Cx)
+  * - L
+    - SLTiu
+    - 27
+    - SLTi unsigned 
+    - SLTiu Ra, Rb, Cx
+    - Ra <= (Rb < Cx)
+  * - A
+    - SLT
+    - 28
+    - Set less Then
+    - SLT Ra, Rb, Rc
+    - Ra <= (Rb < Rc)
+  * - A
+    - SLTu
+    - 29
+    - SLT unsigned
+    - SLTu Ra, Rb, Rc
+    - Ra <= (Rb < Rc)
+  * - L
+    - BEQ
+    - 37
+    - Jump if equal
+    - BEQ Ra, Rb, Cx
+    - if (Ra==Rb), PC <= PC + Cx
+  * - L
+    - BNE
+    - 38
+    - Jump if not equal
+    - BNE Ra, Rb, Cx
+    - if (Ra!=Rb), PC <= PC + Cx
+
 .. note:: **Cpu0 unsigned instructions**
 
   Like Mips, the mathematic unsigned instructions except DIVU, such as ADDu and 
@@ -693,7 +749,10 @@ to [#tablegen]_ for more information regarding how to use tablegen.
 
 Every backend has a .td which defines some target information, including what other .td 
 files are used by the backend.  These files have a similar syntax to C++. For Cpu0, the 
-target description file is called Cpu0.td, which is shown below:
+target description file is called Cpu0Other.td, which is shown below:
+
+.. rubric:: lbdex/Chapter2/Cpu0Other.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0Other.td
 
 .. rubric:: lbdex/Chapter2/Cpu0.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
@@ -707,7 +766,8 @@ target description file is called Cpu0.td, which is shown below:
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0.td
     :start-after: let AssemblyParserVariants = [Cpu0AsmParserVariant];
 
-Cpu0.td includes a few other .td files.  Cpu0RegisterInfo.td (shown below) describes the 
+Cpu0Other.td and Cpu0.td includes a few other .td files. 
+Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
 ``def PC`` indicates that there is a register called PC.  Also, there is a register class 
 named ``CPURegs`` that contains all of the other registers.  You may have multiple 
@@ -715,6 +775,9 @@ register classes (see the X86 backend, for example) which can help you if certai
 instructions can only write to specific registers.  In this case, there is only one set 
 of general purpose registers for Cpu0, and some registers that are reserved so that they 
 are not modified by instructions during execution.
+
+.. rubric:: lbdex/Chapter2/Cpu0RegisterInfoGPROutForOther.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfoGPROutForOther.td
 
 .. rubric:: lbdex/Chapter2/Cpu0RegisterInfo.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfo.td
@@ -783,7 +846,7 @@ The Cpu0 instructions td is named to Cpu0InstrInfo.td which contents as follows,
     :start-after: def Cpu0GPRel : SDNode<"Cpu0ISD::GPRel", SDTIntUnaryOp>;
     :end-before: // These are target-independent nodes, but have target-specific formats.
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
-    :start-after: disassembler for expectation. */
+    :start-after: def RelocPIC    :     Predicate<"TM.getRelocationModel() == Reloc::PIC_">;
     :end-before: // Instruction operand types
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrInfo.td
     :start-after: // lbd document - mark - def calltarget
@@ -1365,7 +1428,8 @@ Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,
 
 At this point, we finish the Target Registration for Cpu0 backend. 
 The backend compiler command llc can recognize cpu0 backend now. 
-Currently we just define target td files (Cpu0.td, Cpu0RegisterInfo.td, ...). 
+Currently we just define target td files (Cpu0.td, Cpu0Other.td, 
+Cpu0RegisterInfo.td, ...). 
 According to LLVM structure, we need to define our target machine and include 
 those td related files. 
 The error message say we didn't define our target machine.
