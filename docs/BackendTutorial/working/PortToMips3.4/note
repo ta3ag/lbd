@@ -1,0 +1,7 @@
+b SelectionDAGBuilder.cpp:7417
+b SelectionDAGBuilder.cpp:7410
+b FunctionLoweringInfo.h:150
+
+Mips will enter into SelectionDAGBuilder.cpp:7410 while Cpu0 didn't.
+Cpu0 Res.getOpcode() is 0x77=ISD::BITCAST (ISDOpcodes.h).
+
