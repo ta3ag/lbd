@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-#define N 128
+#define N 1024
 #define T 12
 
 //#define DATA_TYPE int

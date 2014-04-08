@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-#define N 128
+#define N 1024
 
 #define DATA_TYPE float
 #define DATA_PRINTF_MODIFIER "%lf "
