@@ -2,16 +2,13 @@
 // alias pollycc="${LLVM_INSTALL}/bin/clang++ -Xclang -load -Xclang ${LLVM_INSTALL}/lib/LLVMPolly.so"
 // pollycc -O3 ex1.cpp -o ex1-clangvec
 // pollycc -O3 -fno-vectorize ex1.cpp -o ex1-novec
-// pollycc -O3 -fno-vectorize -mllvm -polly -mllvm -polly-vectorizer=polly -mllvm -polly-ignore-aliasing ex1.cpp -o ex1-polly-vec
+// pollycc -O3 -fno-vectorize -mllvm -polly -mllvm -polly-vectorizer=polly -mllvm -polly-ignore-aliasing ex1.cpp -o ex1-pollyvec
 
 #define LOOPA 10000000
 #define LOOPB 2048
-// sudo time ./ex1-O3: 0.28 second
-// sudo time ./ex1-O3-novec: 1.08
-
-// #define LOOPA 100000000
-// sudo time ./ex1-O3: 2.80 second
-// sudo time ./ex1-O3-novec: 10.84
+// sudo time ./ex1-clangvec: 2.04 second
+// sudo time ./ex1-novec: 7.98
+// sudo time ./ex1-pollyvec: 2.78
 
 // clang++ -O3 -S ex1.cpp -emit-llvm -o ex1-O3.ll
 
