@@ -61,3 +61,6 @@ to:
 8. Document:
 http://polly.llvm.org/publications/grosser-diploma-thesis.pdf
 
+9. Gcc option -floop-strip-mine is for tiling.
+  You may run man gcc | grep '\-floop\-strip\-mine' to check if that is a supported option.
+
