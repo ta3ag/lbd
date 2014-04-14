@@ -30,6 +30,7 @@ time -f "%E real, %U user, %S sys" ./fusion_handcode > fusion_handcode.result
 #time -f "%E real, %U user, %S sys" ./fusion.polly > fusion.polly.result
 
 ${LLVM_INSTALL}/bin/clang -O3 fusion.c -o fusion
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -mllvm -polly-opt-fusion=max -mllvm -polly-no-tiling -O3 fusion.c -o fusion.polly
 ${LLVM_INSTALL}/bin/clang -O3 fusion_handcode.c -o fusion_handcode
 gcc -O3 fusion.c -o fusion.gcc
 #pollycc -mllvm -polly -O3 fusion.c -o fusion.polly

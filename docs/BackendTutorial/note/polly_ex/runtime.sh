@@ -17,25 +17,28 @@ opt -S -mem2reg -loop-simplify -polly-indvars matmul.polly.ll > matmul.preopt.ll
 echo "--> 4. Show the SCoPs detected by Polly"
 opt -basicaa -polly-cloog -analyze -q matmul.preopt.ll
 
-${LLVM_INSTALL}/bin/clang -O3 -DPOLYBENCH_DUMP_ARRAYS matmul.c -o matmul
-pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -DPOLYBENCH_DUMP_ARRAYS matmul.c -o matmul.polly
+${LLVM_INSTALL}/bin/clang -O3 -DTEST matmul.c -o matmul
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 -DTEST matmul.c -o matmul.polly
 
 echo "\nWith print result"
 echo "time ./matmul"
-time -f "%E real, %U user, %S sys" ./matmul > matmul.result
+#time -f "%E real, %U user, %S sys" ./matmul > matmul.result
 echo "time ./matmul.polly"
-time -f "%E real, %U user, %S sys" ./matmul.polly > matmul.polly.result
+#time -f "%E real, %U user, %S sys" ./matmul.polly > matmul.polly.result
 
 ${LLVM_INSTALL}/bin/clang -O3 matmul.c -o matmul
 pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -O3 matmul.c -o matmul.polly
+pollycc -mllvm -polly -mllvm -polly-ignore-aliasing -mllvm -polly-vectorizer=polly -mllvm -polly-no-tiling -O3 matmul.c -o matmul.polly.v
 
 echo "\n\nNo print result"
 echo "time ./matmul"
 time -f "%E real, %U user, %S sys" ./matmul
 echo "time ./matmul.polly"
 time -f "%E real, %U user, %S sys" ./matmul.polly
+echo "time ./matmul.polly.v"
+time -f "%E real, %U user, %S sys" ./matmul.polly.v
 
 echo "do diff matmul.result matmul.polly.result to ensure the output is same"
-diff matmul.result matmul.polly.result
+#diff matmul.result matmul.polly.result
 
 

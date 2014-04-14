@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define N 1536*1
+#define N 1024*1
 float A[N][N];
 float B[N][N];
 float C[N][N];
@@ -47,6 +47,7 @@ int main()
 
     init_array();
 
+#if 0
     for(i=0; i<N; i++)  {
         for(j=0; j<N; j++)  {
             C[i][j] = 0;
@@ -57,6 +58,22 @@ int main()
                 D[i][j] = D[i][j] + A[i][k] * 2.0;
         }
     }
+#else
+    for(i=0; i<N; i++)  {
+        for(j=0; j<N; j++)  {
+            C[i][j] = 0;
+            for(k=0; k<N; k++)
+                C[i][j] = C[i][j] + A[i][k] * B[k][j];
+        }
+    }
+    for(i=0; i<N; i++)  {
+        for(j=0; j<N; j++)  {
+            D[i][j] = 0;
+            for(k=0; k<N; k++)
+                D[i][j] = D[i][j] + A[i][k] * 2.0;
+        }
+    }
+#endif
 
 #ifdef TEST
     print_array();

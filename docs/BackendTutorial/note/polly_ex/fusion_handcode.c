@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define N 1536*1
+#define N 1024*1
 float A[N][N];
 float B[N][N];
 float C[N][N];
