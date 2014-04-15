@@ -3,11 +3,11 @@
 rm -rf polybench
 mkdir polybench
 
-#BUILD_ARM=0
-BUILD_ARM=1
+BUILD_ARM=0
+#BUILD_ARM=1
 
-DUMP_RESULT=0
-#DUMP_RESULT=1
+#DUMP="-DPOLYBENCH_DUMP_ARRAYS"
+DUMP=""
 
 if [ ${BUILD_ARM} == 1 ]; then
 CPU="-mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon"
@@ -18,15 +18,9 @@ CPU=""
 LLVM_INSTALL=~/test/polly/llvm_build
 fi
 
-if [ ${DUMP_RESULT} == 1 ]; then
-echo "DUMP_RESULT == 1"
-CFLAG="-O3 -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB ${CPU}"
-PCFLAG="-O3 -mllvm -polly -mllvm -polly-no-tiling -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB ${CPU}"
-PCFLAGV="-O3 -mllvm -polly -mllvm -polly-no-tiling -mllvm -polly-vectorizer=polly -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_DUMP_ARRAYS -DPOLYBENCH_USE_SCALAR_LB ${CPU}"
-else
-CFLAG="-O3 -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB ${CPU}"
-PCFLAG="-O3 -mllvm -polly -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB ${CPU}"
-fi
+CFLAG="-O3 -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -DLARGE_DATASET ${DUMP} ${CPU}"
+PCFLAG="-O3 -mllvm -polly -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -DLARGE_DATASET ${DUMP} ${CPU}"
+PCFLAGOMP="-O3 -mllvm -polly -mllvm -enable-polly-openmp -lgomp -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -DLARGE_DATASET ${DUMP} ${CPU}"
 
 pollycc="${LLVM_INSTALL}/bin/clang -Xclang -load -Xclang ${LLVM_INSTALL}/lib/LLVMPolly.so"
 
@@ -66,37 +60,74 @@ ${LLVM_INSTALL}/bin/clang ${CFLAG} stencils/seidel-2d/seidel-2d.c -o polybench/s
 
 
 
-${pollycc} ${PCFLAG} datamining/covariance/covariance.c -o polybench/covariance.polly
+${pollycc} ${PCFLAG} datamining/covariance/covariance.c -o polybench/covariance.tile
 
-${pollycc} ${PCFLAG} linear-algebra/kernels/2mm/2mm.c -o polybench/2mm.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/3mm/3mm.c -o polybench/3mm.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/atax/atax.c -o polybench/atax.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/bicg/bicg.c -o polybench/bicg.polly
-#${pollycc} ${PCFLAG} linear-algebra/kernels/cholesky/cholesky.c -o polybench/cholesky.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/doitgen/doitgen.c -o polybench/doitgen.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/gemm/gemm.c -o polybench/gemm.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/gemver/gemver.c -o polybench/gemver.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/gesummv/gesummv.c -o polybench/gesummv.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/mvt/mvt.c -o polybench/mvt.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/symm/symm.c -o polybench/symm.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/syr2k/syr2k.c -o polybench/syr2k.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/syrk/syrk.c -o polybench/syrk.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/trisolv/trisolv.c -o polybench/trisolv.polly
-${pollycc} ${PCFLAG} linear-algebra/kernels/trmm/trmm.c -o polybench/trmm.polly
+${pollycc} ${PCFLAG} linear-algebra/kernels/2mm/2mm.c -o polybench/2mm.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/3mm/3mm.c -o polybench/3mm.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/atax/atax.c -o polybench/atax.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/bicg/bicg.c -o polybench/bicg.tile
+#${pollycc} ${PCFLAG} linear-algebra/kernels/cholesky/cholesky.c -o polybench/cholesky.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/doitgen/doitgen.c -o polybench/doitgen.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/gemm/gemm.c -o polybench/gemm.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/gemver/gemver.c -o polybench/gemver.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/gesummv/gesummv.c -o polybench/gesummv.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/mvt/mvt.c -o polybench/mvt.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/symm/symm.c -o polybench/symm.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/syr2k/syr2k.c -o polybench/syr2k.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/syrk/syrk.c -o polybench/syrk.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/trisolv/trisolv.c -o polybench/trisolv.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/trmm/trmm.c -o polybench/trmm.tile
 
-${pollycc} ${PCFLAG} linear-algebra/solvers/durbin/durbin.c -o polybench/durbin.polly
-${pollycc} ${PCFLAG} linear-algebra/solvers/dynprog/dynprog.c -o polybench/dynprog.polly
-#${pollycc} ${PCFLAG} linear-algebra/solvers/gramschmidt/gramschmidt.c -o polybench/gramschmidt.polly
-${pollycc} ${PCFLAG} linear-algebra/solvers/lu/lu.c -o polybench/lu.polly
-${pollycc} ${PCFLAG} linear-algebra/solvers/ludcmp/ludcmp.c -o polybench/ludcmp.polly
+${pollycc} ${PCFLAG} linear-algebra/solvers/durbin/durbin.c -o polybench/durbin.tile
+${pollycc} ${PCFLAG} linear-algebra/solvers/dynprog/dynprog.c -o polybench/dynprog.tile
+#${pollycc} ${PCFLAG} linear-algebra/solvers/gramschmidt/gramschmidt.c -o polybench/gramschmidt.tile
+${pollycc} ${PCFLAG} linear-algebra/solvers/lu/lu.c -o polybench/lu.tile
+${pollycc} ${PCFLAG} linear-algebra/solvers/ludcmp/ludcmp.c -o polybench/ludcmp.tile
 
-${pollycc} ${PCFLAG} medley/floyd-warshall/floyd-warshall.c -o polybench/floyd-warshall.polly
-${pollycc} ${PCFLAG} medley/reg_detect/reg_detect.c -o polybench/reg_detect.polly
+${pollycc} ${PCFLAG} medley/floyd-warshall/floyd-warshall.c -o polybench/floyd-warshall.tile
+${pollycc} ${PCFLAG} medley/reg_detect/reg_detect.c -o polybench/reg_detect.tile
 
-${pollycc} ${PCFLAG} stencils/adi/adi.c -o polybench/adi.polly
-${pollycc} ${PCFLAG} stencils/fdtd-2d/fdtd-2d.c -o polybench/fdtd-2d.polly
-${pollycc} ${PCFLAG} stencils/fdtd-apml/fdtd-apml.c -o polybench/fdtd-apml.polly
-${pollycc} ${PCFLAG} stencils/jacobi-1d-imper/jacobi-1d-imper.c -o polybench/jacobi-1d-imper.polly
-${pollycc} ${PCFLAG} stencils/jacobi-2d-imper/jacobi-2d-imper.c -o polybench/jacobi-2d-imper.polly
-${pollycc} ${PCFLAG} stencils/seidel-2d/seidel-2d.c -o polybench/seidel-2d.polly
+${pollycc} ${PCFLAG} stencils/adi/adi.c -o polybench/adi.tile
+${pollycc} ${PCFLAG} stencils/fdtd-2d/fdtd-2d.c -o polybench/fdtd-2d.tile
+${pollycc} ${PCFLAG} stencils/fdtd-apml/fdtd-apml.c -o polybench/fdtd-apml.tile
+${pollycc} ${PCFLAG} stencils/jacobi-1d-imper/jacobi-1d-imper.c -o polybench/jacobi-1d-imper.tile
+${pollycc} ${PCFLAG} stencils/jacobi-2d-imper/jacobi-2d-imper.c -o polybench/jacobi-2d-imper.tile
+${pollycc} ${PCFLAG} stencils/seidel-2d/seidel-2d.c -o polybench/seidel-2d.tile
+
+
+
+
+${pollycc} ${PCFLAGOMP} datamining/covariance/covariance.c -o polybench/covariance.tile.parallel
+
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/2mm/2mm.c -o polybench/2mm.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/3mm/3mm.c -o polybench/3mm.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/atax/atax.c -o polybench/atax.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/bicg/bicg.c -o polybench/bicg.tile.parallel
+#${pollycc} ${PCFLAGOMP} linear-algebra/kernels/cholesky/cholesky.c -o polybench/cholesky.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/doitgen/doitgen.c -o polybench/doitgen.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/gemm/gemm.c -o polybench/gemm.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/gemver/gemver.c -o polybench/gemver.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/gesummv/gesummv.c -o polybench/gesummv.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/mvt/mvt.c -o polybench/mvt.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/symm/symm.c -o polybench/symm.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/syr2k/syr2k.c -o polybench/syr2k.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/syrk/syrk.c -o polybench/syrk.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/trisolv/trisolv.c -o polybench/trisolv.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/trmm/trmm.c -o polybench/trmm.tile.parallel
+
+${pollycc} ${PCFLAGOMP} linear-algebra/solvers/durbin/durbin.c -o polybench/durbin.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/solvers/dynprog/dynprog.c -o polybench/dynprog.tile.parallel
+#${pollycc} ${PCFLAGOMP} linear-algebra/solvers/gramschmidt/gramschmidt.c -o polybench/gramschmidt.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/solvers/lu/lu.c -o polybench/lu.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/solvers/ludcmp/ludcmp.c -o polybench/ludcmp.tile.parallel
+
+${pollycc} ${PCFLAGOMP} medley/floyd-warshall/floyd-warshall.c -o polybench/floyd-warshall.tile.parallel
+${pollycc} ${PCFLAGOMP} medley/reg_detect/reg_detect.c -o polybench/reg_detect.tile.parallel
+
+${pollycc} ${PCFLAGOMP} stencils/adi/adi.c -o polybench/adi.tile.parallel
+${pollycc} ${PCFLAGOMP} stencils/fdtd-2d/fdtd-2d.c -o polybench/fdtd-2d.tile.parallel
+${pollycc} ${PCFLAGOMP} stencils/fdtd-apml/fdtd-apml.c -o polybench/fdtd-apml.tile.parallel
+${pollycc} ${PCFLAGOMP} stencils/jacobi-1d-imper/jacobi-1d-imper.c -o polybench/jacobi-1d-imper.tile.parallel
+${pollycc} ${PCFLAGOMP} stencils/jacobi-2d-imper/jacobi-2d-imper.c -o polybench/jacobi-2d-imper.tile.parallel
+${pollycc} ${PCFLAGOMP} stencils/seidel-2d/seidel-2d.c -o polybench/seidel-2d.tile.parallel
 
