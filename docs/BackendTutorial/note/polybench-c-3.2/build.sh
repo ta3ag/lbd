@@ -131,3 +131,9 @@ ${pollycc} ${PCFLAGOMP} stencils/jacobi-1d-imper/jacobi-1d-imper.c -o polybench/
 ${pollycc} ${PCFLAGOMP} stencils/jacobi-2d-imper/jacobi-2d-imper.c -o polybench/jacobi-2d-imper.tile.parallel
 ${pollycc} ${PCFLAGOMP} stencils/seidel-2d/seidel-2d.c -o polybench/seidel-2d.tile.parallel
 
+
+if [ ${BUILD_ARM} == 1 ]; then
+tar -cf polybench.tar polybench
+scp run.sh polybench.tar root@10.19.132.196:/root/cschen/
+fi
+
