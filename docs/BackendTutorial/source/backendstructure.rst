@@ -3,20 +3,19 @@
 Backend structure
 ==================
 
-This chapter introduce the back end class inherit tree and class members first. 
+This chapter introduce the back end class inheritance tree and class members first. 
 Next, following the back end structure, adding individual class implementation 
 in each section. 
 There are compiler knowledge like DAG (Directed-Acyclic-Graph) and instruction 
-selection needed in this chapter. 
-This chapter explains these knowledge just when needed. 
+selection needed here, and they will be explained on demand. 
 At the end of this chapter, we will have a back end to compile llvm 
 intermediate code into cpu0 assembly code.
 
 Many code are added in this chapter. They almost are common in every back end 
 except the back end name (cpu0 or mips ...). Actually, we copy almost all the 
 code from mips and replace the name with cpu0. In addition to knowing the DAGs 
-pattern match in compiler code generation process and the llvm process phase, 
-please focus on the classes 
+pattern match in compiler code generation process as well as the llvm process 
+phase, please focus on the classes 
 relationship in this backend structure. Once knowing the structure, you can 
 create your backend structure as quickly as we did, even though there are 3000 
 lines of code in this chapter.
@@ -24,11 +23,9 @@ lines of code in this chapter.
 TargetMachine structure
 -----------------------
 
-Your back end should define a TargetMachine class, for example, we define the 
-Cpu0TargetMachine class. 
-Cpu0TargetMachine class contains it's own instruction class, frame/stack class, 
-DAG (Directed-Acyclic-Graph) class, and register class. 
-The Cpu0TargetMachine contents and it's own class as follows,
+Your back end should define a TargetMachine class. For example, we define the 
+Cpu0TargetMachine class which contains it's own instruction class, frame/stack 
+class, DAG (Directed-Acyclic-Graph) class, and register class as follows,
 
 .. rubric:: include/llvm/Target/TargetMachine.h
 .. code-block:: c++
@@ -319,24 +316,26 @@ The Cpu0TargetMachine contents and it's own class as follows,
 
   TargetMachine class diagram 1
 
-The Cpu0TargetMachine inherit tree is TargetMachine <- LLVMTargetMachine <- 
-Cpu0TargetMachine. 
+The Cpu0TargetMachine class inheritance tree is TargetMachine <- 
+LLVMTargetMachine <- Cpu0TargetMachine. 
 Cpu0TargetMachine has class Cpu0Subtarget, Cpu0InstrInfo, Cpu0FrameLowering, 
 Cpu0TargetLowering and Cpu0SelectionDAGInfo. 
 Class Cpu0Subtarget, Cpu0InstrInfo, Cpu0FrameLowering, Cpu0TargetLowering and 
 Cpu0SelectionDAGInfo are inherited from base class TargetSubtargetInfo, 
-TargetInstrInfo, TargetFrameLowering, TargetLowering and TargetSelectionDAGInfo.
+TargetInstrInfo, TargetFrameLowering, TargetLowering and TargetSelectionDAGInfo, 
+respectively.
 
-:num:`Figure #backendstructure-f1` shows Cpu0TargetMachine inherit tree and it's 
-Cpu0InstrInfo class inherit tree. 
+:num:`Figure #backendstructure-f1` shows Cpu0TargetMachine class inheritance 
+tree and its own Cpu0InstrInfo class inheritance tree. 
 Cpu0TargetMachine contains Cpu0InstrInfo and ... other class. 
 Cpu0InstrInfo contains Cpu0RegisterInfo class, RI. 
 With TableGen tool, Cpu0InstrInfo.td and Cpu0RegisterInfo.td will generate 
 Cpu0GenInstrInfo.inc and Cpu0GenRegisterInfo.inc which contain some member 
-functions implementation for class Cpu0InstrInfo and Cpu0RegisterInfo.
+functions implementation for class Cpu0InstrInfo and Cpu0RegisterInfo, 
+repectively.
 
-:num:`Figure #backendstructure-f2` as below shows Cpu0TargetMachine contains 
-class 
+:num:`Figure #backendstructure-f2` as below shows class Cpu0TargetMachine which 
+contains class 
 TSInfo: Cpu0SelectionDAGInfo, FrameLowering: Cpu0FrameLowering, Subtarget: 
 Cpu0Subtarget and TLInfo: Cpu0TargetLowering.
 
@@ -364,7 +363,7 @@ Class DAGInfo is skipped here.
 
   Other class members and operators
 
-Benefit from the inherit tree structure, we just need to implement few code in 
+Benefit from the inheritance tree structure, we just need to implement few code in 
 instruction, frame/stack, select DAG class. 
 Many code implemented by their parent class. 
 The llvm-tblgen generate Cpu0GenInstrInfo.inc from Cpu0InstrInfo.td. 
@@ -372,7 +371,7 @@ Cpu0InstrInfo.h extract those code it need from Cpu0GenInstrInfo.inc by define
 “#define GET_INSTRINFO_HEADER”. 
 Following is the code fragment from Cpu0GenInstrInfo.inc. 
 Code between “#if def  GET_INSTRINFO_HEADER” and “#endif // GET_INSTRINFO_HEADER” 
-will be extracted by Cpu0InstrInfo.h.
+will be extracted to Cpu0InstrInfo.h.
 
 .. rubric:: cmake_debug_build/lib/Target/Cpu0/Cpu0GenInstInfo.inc
 .. code-block:: c++
@@ -390,7 +389,7 @@ will be extracted by Cpu0InstrInfo.h.
 Reference Write An LLVM Backend web site [#]_.
 
 Now, the code in Chapter3_1/ add class Cpu0TargetMachine(Cpu0TargetMachine.h and 
-cpp), Cpu0Subtarget (Cpu0Subtarget.h and .cpp), Cpu0InstrInfo (Cpu0InstrInfo.h 
+.cpp), Cpu0Subtarget (Cpu0Subtarget.h and .cpp), Cpu0InstrInfo (Cpu0InstrInfo.h 
 and .cpp), Cpu0FrameLowering (Cpu0FrameLowering.h and .cpp), Cpu0TargetLowering 
 (Cpu0ISelLowering.h and .cpp) and Cpu0SelectionDAGInfo ( Cpu0SelectionDAGInfo.h 
 and .cpp). 
@@ -452,10 +451,10 @@ With Chapter3_1 implementation, the Chapter2 error message
 The new errors say that we have not Target AsmPrinter. 
 We will add it in next section.
 
-Chapter3_1 create cpu032I and cpu032II two CPU and define two features with the 
+Chapter3_1 create cpu032I and cpu032II two CPU and defines two features with the 
 same name of CPU. With the added code of cpu032I and cpu32II in Cpu0.td and 
-Cpu0InstrInfo.td of Chapter3_1, the command `llc -march=cpu0 -mcpu=help` can 
-display message as follows,
+Cpu0InstrInfo.td from Chapter3_1, the command `llc -march=cpu0 -mcpu=help` can 
+display messages as follows,
 
 .. code-block:: bash
   
@@ -477,12 +476,13 @@ display message as follows,
   For example, llc -mcpu=mycpu -mattr=+feature1,-feature2
 
 
-When user input -mcpu=cpu032I, the IsCpu032I of Cpu0InstrInfo.td is true since 
-function isCpu032I() defined in Cpu0Subtarget.h is true by check CPU variable 
-in constructor function.
-Please notify the Cpu0ArchVersion must be initialized as Cpu0Subtarget.cpp, 
-otherwise the Cpu0ArchVersion can be any value and the functions 
-isCpu032I() and isCpu032II() which support `llc -mcpu=cpu032I` and 
+When user input -mcpu=cpu032I, variable IsCpu032I from Cpu0InstrInfo.td is true 
+since function isCpu032I() defined in Cpu0Subtarget.h is true by check variable 
+CPU in constructor function (the variable CPU is "cpu032I" when user input 
+-mcpu=cpu032I).
+Please notice variable Cpu0ArchVersion must be initialized as in 
+Cpu0Subtarget.cpp, otherwise variable Cpu0ArchVersion can be any value and  
+functions isCpu032I() and isCpu032II() which support `llc -mcpu=cpu032I` and 
 `llc -mcpu=cpu032II` will have trouble.
 
 
@@ -529,7 +529,7 @@ by Cpu0InstPrinter.cpp as follows,
 .. rubric:: lbdex/Chapter3_2/InstPrinter/LLVMBuild.txt
 .. literalinclude:: ../../../lib/Target/Cpu0/InstPrinter/LLVMBuild.txt
 
-Cpu0GenAsmWrite.inc has the implementation of 
+Cpu0GenAsmWrite.inc has the implementations of 
 Cpu0InstPrinter::printInstruction() and Cpu0InstPrinter::getRegisterName(). 
 Both of these functions can be auto-generated from the information we defined 
 in Cpu0InstrInfo.td and Cpu0RegisterInfo.td. 
@@ -539,7 +539,7 @@ class Cpu0InstPrinter and include them as did in Chapter3_1.
 File Chapter3_1/Cpu0/InstPrinter/Cpu0InstPrinter.cpp include Cpu0GenAsmWrite.inc and 
 call the auto-generated functions from TableGen.
 
-Next, add Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp), as well as 
+Next, add Cpu0MCInstLower (Cpu0MCInstLower.h, Cpu0MCInstLower.cpp) as well as 
 Cpu0BaseInfo.h, 
 Cpu0FixupKinds.h and Cpu0MCAsmInfo (Cpu0MCAsmInfo.h, Cpu0MCAsmInfo.cpp) in 
 sub-directory MCTargetDesc as follows,
@@ -628,8 +628,9 @@ follows,
                        Cpu0AsmPrinter 
 
 Now, it's time to work with AsmPrinter. According section 
-"section Target Registration" [#]_, we can register our AsmPrinter when we need it 
-as the following function of LLVMInitializeCpu0AsmPrinter(),
+"section Target Registration" [#]_, we can register our AsmPrinter when we need 
+it by the dynamic register mechanism as the following function of 
+LLVMInitializeCpu0AsmPrinter(),
 
 .. rubric:: lbdex/Chapter3_2/Cpu0AsmPrinter.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.h
@@ -655,8 +656,6 @@ as the following function of LLVMInitializeCpu0AsmPrinter(),
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.cpp
     :start-after: // lbd document - mark - EmitInstruction(*I)
 
-
-The dynamic register mechanism is a good idea, right.
 
 Add the following code to Cpu0ISelLowering.cpp.
 
@@ -799,8 +798,8 @@ If you don't feel comfortable, please check tricore_llvm.pdf section 4.2 first.
 You can  read “The LLVM Target-Independent Code Generator” from here [#]_ 
 and “LLVM Language Reference Manual” from here [#]_ 
 before go ahead, but we think read section 
-4.2 of tricore_llvm.pdf is enough. 
-We suggest you read the web site documents as above only when you are still not 
+4.2 of tricore_llvm.pdf is enough and suggesting you read the web site 
+documents as above only when you are still not 
 quite understand, even if you have read the articles of this section and 
 next 2 sections for DAG and Instruction Selection.
 
@@ -1035,7 +1034,7 @@ Selection Process as :num:`Figure #backendstructure-f7`.
 
   IR and it's corresponding machine instruction
 
-For machine instruction selection, the better solution is represent IR and 
+For machine instruction selection, the better solution is representing IR and 
 machine instruction by DAG. 
 In :num:`Figure #backendstructure-f8`, we skip the register leaf. 
 The rj + rk is IR DAG representation (for symbol notation, not llvm SSA form). 
@@ -1091,9 +1090,9 @@ previous chapter. List them again as follows,
   def ADDiu   : ArithLogicI<0x09, "addiu", add, simm16, immSExt16, CPURegs>;
 
 :num:`Figure #backendstructure-f9` shows how the pattern match work in the IR 
-node **add** and instruction **ADDiu** defined in Cpu0InstrInfo.td. This example 
-IR node "add %a, 5", will be translated to "addiu $r1, 5" after %a allcated to 
-register $r1 in regiter allocation stage since the IR 
+node **add** and instruction **ADDiu** defined in Cpu0InstrInfo.td. In this 
+example, IR node "add %a, 5" will be translated to "addiu $r1, 5" after %a 
+is allcated to register $r1 in regiter allocation stage since the IR 
 pattern[(set RC:$ra, (OpNode RC:$rb, imm_type:$imm16))] is set in ADDiu and the
 2nd operand is signed immediate which matched "%a, 5". In addition to pattern 
 match, the .td also set assembly string "addiu" and op code 0x09. 
@@ -1101,7 +1100,9 @@ With this information, the LLVM TableGen will generate instruction both in
 assembly and binary automatically (the binary instruction in obj file of ELF 
 format which will be shown at later chapter). 
 Similarly, the machine instruction DAG node LD and ST can be got from IR DAG 
-node **load** and **store**.
+node **load** and **store**. Notice that the $r1 in this case is virtual 
+register name (not machine register). SSA form allow unlimited register and 
+the register allocation stage come after instruction selection stage.
  
 .. _backendstructure-f9: 
 .. figure:: ../Fig/backendstructure/9.png
@@ -1139,19 +1140,20 @@ Now, for the following basic block notation IR and llvm SSA IR code,
   %e = fadd %d, %b
   ...
 
-The llvm SelectionDAG Optimization Phase (is part of Instruction Selection 
-Process) prefered to translate this 2 IR DAG node (fmul %a, %c) (fadd %d, %b) 
+The Instruction Selection Process will translate this 2 IR DAG node 
+(fmul %a, %c) (fadd %d, %b) 
 into one machine instruction DAG node (**fmadd** %a, %c, %b), than translate 
-them into 2 machine instruction nodes **fmul** and **fadd**.
+them into 2 machine instruction nodes **fmul** and **fadd** if the FMADDS is
+appear before FMUL and FADD in your td file.
 
 .. code-block:: c++
 
   %e = fmadd %a, %c, %b
   ...
 
-As you can see, the IR notation representation is easier to read then llvm SSA 
+As you can see, the IR notation representation is easier to read than llvm SSA 
 IR form. 
-So, we  use the notation form in this book sometimes.
+So, we  use this notation form in this book sometimes.
 
 For the following basic block code,
 
@@ -1190,9 +1192,10 @@ Now, let's check what IR DAG nodes the file ch3.bc has. List ch3.ll as follows,
   ret i32 0 
   } 
 
-As above, ch3.ll use the IR DAG node **store**, **ret**. Actually, it also use 
-**add** for sp (stack point) register adjust. 
-So, the definitions in Cpu0InstrInfo.td as follows is enough. 
+As above, ch3.ll use the IR DAG node **store**, **ret**. 
+So, the definitions in Cpu0InstrInfo.td as below is enough. 
+The ADDiu used for stack adjustment which will need in later section 
+"Add Prologue/Epilogue functions" of this chapter.
 IR DAG is defined in file  include/llvm/Target/TargetSelectionDAG.td.
 
 .. rubric:: lbdex/Chapter2/Cpu0InstrInfo.td
@@ -2445,7 +2448,7 @@ We are satisfied with this result.
 But you may think “After so many codes we program, and just get these 8 
 instructions”. 
 The point is we have created a frame work for cpu0 target machine (please 
-look back the llvm back end structure class inherit tree early in this 
+look back the llvm back end structure class inheritance tree early in this 
 chapter). 
 Until now, we have over 3000 lines of source code with comments which include 
 files \*.cpp, \*.h, \*.td, CMakeLists.txt and LLVMBuild.txt. 
