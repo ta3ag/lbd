@@ -257,7 +257,7 @@ are designed from two different hardware circuits, and more, their data path is
 separate. Cpu0 is same, so these two function units can be executed at same 
 time (instruction level parallelism). Reference [#]_ for instruction itineraries.
 
-This version can process **+, -, \*, <<,** and **>>** operators in C 
+Chapter4_1/ can handle **+, -, \*, <<,** and **>>** operators in C 
 language. 
 The corresponding llvm IR instructions are **add, sub, mul, 
 shl, ashr**. 
@@ -274,7 +274,8 @@ In brief, we call **ashr** is “shift with sign extension fill”.
     
     <result> = ashr i32 1, 32  ; undefined
 
-The C operator **>>** for negative operand is dependent on implementation. 
+The semantic of C operator **>>** for negative operand is dependent on 
+implementation. 
 Most compiler translate it into “shift with sign extension fill”, for example, 
 Mips **sra** is the instruction. 
 Following is the Micosoft web site explanation,
@@ -539,7 +540,7 @@ The `section Install other tools on iMac`_ mentioned the web for ``llc``
 graphic display information. 
 The ``llc`` graphic display with tool Graphviz is introduced in this section. 
 The graphic display is more readable by eye than display text in terminal. 
-It's not necessary, but helps a lot especially when you are tired in tracking 
+It's not a must-have, but helps a lot especially when you are tired in tracking 
 the DAG translation process. 
 List the ``llc`` graphic support options from the sub-section "SelectionDAG 
 Instruction Selection Process" of web "The LLVM Target-Independent Code Generator" 
@@ -947,13 +948,13 @@ the $rb and imm16 to 0.
     .size _Z8test_modv, ($tmp1)-_Z8test_modv
 
 
-Full support %, and /
+Full support \%, and /
 ++++++++++++++++++++++
 
 The sensitive readers may find the llvm using **“multiplication”** instead 
-of **“div”** to get the **“%”** result just because our example use constant as 
-divider, **“(b+1)%12”** in our example. 
-If programmer use variable as the divider like **“(b+1)%a”**, then: what will 
+of **“div”** to get the **“\%”** result just because our example use 
+constant as divider, **“(b+1)\%12”** in our example. 
+If programmer use variable as the divider like **“(b+1)\%a”**, then: what will 
 happen next? 
 The answer is our code will has error to handle this. 
 
@@ -962,9 +963,11 @@ Cpu0 just like Mips use LO and HI registers to hold the **"quotient"** and
 use instructions **“mflo”** and **“mfhi”** to get the result from LO or HI 
 registers. 
 With this solution, the **“c = a / b”** can be got by **“div a, b”** and 
-**“mflo c”**; the **“c = a % b”** can be got by **“div a, b”** and **“mfhi c”**.
+**“mflo c”**; the **“c = a \% b”** can be got by **“div a, b”** and 
+**“mfhi c”**.
  
-To support operators **“%”** and **“/”**, the following code added in Chapter4_1.
+To support operators **“\%”** and **“/”**, the following code added in 
+Chapter4_1.
 
 1. SDIV, UDIV and it's reference class, nodes in Cpu0InstrInfo.td.
 

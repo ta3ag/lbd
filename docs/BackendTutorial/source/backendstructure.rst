@@ -453,7 +453,7 @@ We will add it in next section.
 
 Chapter3_1 create cpu032I and cpu032II two CPU and defines two features with the 
 same name of CPU. With the added code of cpu032I and cpu32II in Cpu0.td and 
-Cpu0InstrInfo.td from Chapter3_1, the command `llc -march=cpu0 -mcpu=help` can 
+Cpu0InstrInfo.td from Chapter3_1, the command ``llc -march=cpu0 -mcpu=help`` can 
 display messages as follows,
 
 .. code-block:: bash
@@ -482,8 +482,8 @@ CPU in constructor function (the variable CPU is "cpu032I" when user input
 -mcpu=cpu032I).
 Please notice variable Cpu0ArchVersion must be initialized as in 
 Cpu0Subtarget.cpp, otherwise variable Cpu0ArchVersion can be any value and  
-functions isCpu032I() and isCpu032II() which support `llc -mcpu=cpu032I` and 
-`llc -mcpu=cpu032II` will have trouble.
+functions isCpu032I() and isCpu032II() which support ``llc -mcpu=cpu032I`` and 
+``llc -mcpu=cpu032II`` will have trouble.
 
 
 Add AsmPrinter
@@ -2459,9 +2459,9 @@ Don't feel down with this result.
 In reality, write a back end is warm up slowly but run fast. 
 Clang has over 500,000 lines of source code with comments in clang/lib 
 directory which include C++ and Obj C support. 
-Mips back end has only 15,000 lines with comments. 
+Mips back end of llvm 3.1 has only 15,000 lines with comments. 
 Even the complicate X86 CPU which CISC outside and RISC inside (micro 
-instruction), has only 45,000 lines with comments. 
+instruction), has only 45,000 lines in llvm 3.1 with comments. 
 In next chapter, we will show you that add a new instruction support is as easy 
 as 123.
 
