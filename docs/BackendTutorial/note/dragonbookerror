@@ -1,0 +1,20 @@
+ullman@gmail.com <ullman@gmail.com>;
+book error
+
+
+Hi,
+
+The book, Compilers: Principles, Techniques, and Tools, of 2nd edition has a error I am quite sure as follows,
+
+P865, Figure 11.51 (c),
+
+original:
+for (i = max(0, j); ...
+
+correction:
+
+for (i = max(0, j-n); ...
+
+Cheers
+
+cschen
