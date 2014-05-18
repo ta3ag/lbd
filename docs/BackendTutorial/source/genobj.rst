@@ -3,8 +3,8 @@
 Generating object files
 =======================
 
-The previous chapters only introduce the assembly code generated. 
-This chapter will introduce you the obj support first, and display the obj by 
+The previous chapters introducing the assembly code generated only. 
+This chapter adding the elf obj support and verify the generated obj by 
 objdump utility. With LLVM support, the cpu0 backend can generate both big 
 endian and little endian obj files with only a few code added.  
 The Target Registration mechanism and their structure will be introduced in 
@@ -208,8 +208,8 @@ Chapter5_1.
 
 
 The applyFixup() of Cpu0AsmBackend.cpp will fix up the **jeq**, **jub**, ... 
-instruction address in control flow statement or function call statement. 
-Although they are not used in here, part of code are added in here of Chapter5_1.
+instructions address control flow statements or function call statements used 
+in later chapters.
 
 When emit elf obj format instruction, the EncodeInstruction() of 
 Cpu0MCCodeEmitter.cpp will be called since it override the same name of 
@@ -258,8 +258,8 @@ Cpu0InstrInfo.td.
   }
 
 The "let EncoderMethod = "getMemEncoding";" in Cpu0InstrInfo.td as above will 
-make the getMemEncoding() is called when Cpu0 **ld** or **st** instructions 
-are issued in elf obj since these two instructions use **mem** Operand.
+make llvm calling function getMemEncoding() when ether **ld** or **st** instruction 
+generated in elf obj since these two instructions use **mem** Operand.
 
 The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.
 
@@ -379,12 +379,12 @@ In :num:`Figure #genobj-f1`, registering the object of class Cpu0AsmInfo for
 target TheCpu0Target and TheCpu0elTarget. 
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian. 
 Cpu0AsmInfo is derived from MCAsmInfo which is llvm built-in class. 
-Most code is implemented in it's parent, back end reuse those code by inherit.
+Most code is implemented in it's parent, back end reuse those code by inheritance.
 
 In :num:`Figure #genobj-f2`, instancing MCCodeGenInfo, and initialize it by 
-pass 
-Roloc::PIC because we use command ``llc -relocation-model=pic`` to tell ``llc`` 
-compile using position-independent code mode. 
+pass RM=Roloc::PIC because we use command ``llc -relocation-model=pic`` to tell 
+``llc`` do compile with position-independent code mode. 
+The default value of -relocation-model is PIC.
 Recall the addressing mode in system program book has two mode, one is PIC 
 mode, the other is absolute addressing mode. 
 MC stands for Machine Code.
@@ -405,8 +405,8 @@ So, it's not defined in Chapter4_2/ which support assembly code only.
 :num:`Figure #genobj-f6`, MCELFStreamer take care the obj format also. 
 :num:`Figure #genobj-f5` Cpu0MCCodeEmitter take care code emitter while 
 MCELFStreamer take care the obj output streamer. 
-:num:`Figure #genobj-f10` is MCELFStreamer inherit tree. 
-You can find a lot of operations in that inherit tree.
+:num:`Figure #genobj-f10` is MCELFStreamer inheritance tree. 
+You can find a lot of operations in that inheritance tree.
 
 Reader maybe has the question for what are the actual arguments in 
 createCpu0MCCodeEmitterEB(const MCInstrInfo &MCII,  const MCSubtargetInfo &STI, 
