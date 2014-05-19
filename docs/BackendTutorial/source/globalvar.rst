@@ -11,7 +11,7 @@ translation we have now.
 It create DAG nodes at run time in our backend C++ code according the 
 ``llc -relocation-model`` option while the others of DAG just do IR DAG to 
 Machine DAG translation directly according the input file IR DAG.
-Readers should focus on how to add code for create DAG nodes on run time and 
+Readers should focus on how to add code for create DAG nodes at run time and 
 how to define the pattern match in td for the run time created DAG nodes. 
 In addition, the machine instruction printing function for global variable 
 related assembly directive (macro) should cared if your backend have it.
@@ -21,7 +21,7 @@ Global variable
 ----------------
 
 Chapter6_1/ support the global variable, let's compile ch6_1.cpp with this version 
-first, and explain the code changes after that.
+first, then explain the code changes after that.
 
 .. rubric:: lbdex/InputFiles/ch6_1.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch6_1.cpp
@@ -59,7 +59,7 @@ Chapter6_1/ support the global variable translation.
 Let's run Chapter6_1/ with ch6_1.cpp via three different options 
 ``llc  -relocation-model=static -cpu0-use-small-section=false``, 
 ``llc  -relocation-model=static -cpu0-use-small-section=true`` and 
-``llc  -relocation-model=pic`` to trace the DAG and Cpu0 instructions.
+``llc  -relocation-model=pic`` to tracing the DAG and Cpu0 instructions.
 
 .. code-block:: bash
 
@@ -257,8 +257,8 @@ Summary above information to Table: Cpu0 global variable options.
   ============================  ====================  ===================  =================================================
   -relocation-model             pic                   static               - pic: Postion Independent Address
                                                                            - static: Absolute Address
-  -cpu0-use-small-section       false                 true                 - false: .data or .bss, 16 bits addressable
-                                                                           - true: .sdata or .sbss, 32 bits addressable
+  -cpu0-use-small-section       false                 true                 - false: .data or .bss, 32 bits addressable
+                                                                           - true: .sdata or .sbss, 16 bits addressable
   ============================  ====================  ===================  =================================================
   
 
@@ -474,8 +474,8 @@ Option cpu0-use-small-section=false will generate the following instructions.
   	.4byte	100                     # 0x64
   	.size	gI, 4
   	
-Above code, it loads the high address part of gI PC relative address (16 bits) 
-to register $2 and shift 16 bits. 
+As above code, it loads the high address part of gI PC relative address 
+(16 bits) to register $2 and shift 16 bits. 
 Now, the register $2 got it's high part of gI absolute address. 
 Next, it add register $2 and low part of gI absolute address into $2. 
 At this point, it get the gI memory address. Finally, it get the gI content by 
@@ -1057,7 +1057,7 @@ TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as follows,
     ...
 
 Remind in pic mode, Cpu0 use ".cpload" and "ld $2, %got(gI)($gp)" to access 
-global variable as Mips. It take 4 instructions in both Cpu0 and Mips. 
+global variable as Mips. It takes 4 instructions in both Cpu0 and Mips. 
 The cost came from we didn't assume the register $gp is always assigned to 
 address .sdata and fixed there. Even we reserve $gp in this function, the $gp
 register can be changed at other functions. In last sub-section, the $gp is

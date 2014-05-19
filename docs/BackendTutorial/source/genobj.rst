@@ -3,7 +3,7 @@
 Generating object files
 =======================
 
-The previous chapters introducing the assembly code generated only. 
+The previous chapters introducing the assembly code generation only. 
 This chapter adding the elf obj support and verify the generated obj by 
 objdump utility. With LLVM support, the cpu0 backend can generate both big 
 endian and little endian obj files with only a few code added.  
@@ -13,9 +13,9 @@ this chapter.
 Translate into obj file
 ------------------------
 
-Currently, we only support translate llvm IR code into assembly code. 
-If you try to run Chapter4_2/ to translate obj code will get the error message as 
-follows,
+Currently, we only support translation of llvm IR code into assembly code. 
+If you try to run Chapter4_2/ to translate it into obj code will get the error 
+message as follows,
 
 .. code-block:: bash
 
@@ -24,10 +24,10 @@ follows,
   /usr/local/llvm/test/cmake_debug_build/bin/llc: target does not 
   support generation of this file type! 
 	
-The Chapter5_1/ support obj file generated. 
-It can get result for big endian and little endian with command 
-``llc -march=cpu0`` and ``llc -march=cpu0el``. 
-Run it will get the obj files as follows,
+The Chapter5_1/ support obj file generation. 
+It can get results for big endian and little endian with command 
+``llc -march=cpu0`` and ``llc -march=cpu0el`` respectively. 
+Run with them will get the obj files as follows,
 
 .. code-block:: bash
 
@@ -106,7 +106,7 @@ objdump from B0 to B3 as 0xc8ffdd09.
 ELF obj related code
 ----------------------
 
-To support elf obj generated, the following code changed and added to 
+To support elf obj generation, the following code changed and added to 
 Chapter5_1.
 
 .. rubric:: lbdex/Chapter5_1/MCTargetDesc/CMakeLists.txt
@@ -214,9 +214,6 @@ in later chapters.
 When emit elf obj format instruction, the EncodeInstruction() of 
 Cpu0MCCodeEmitter.cpp will be called since it override the same name of 
 function in parent class MCCodeEmitter. 
-The getMemEncoding() of Cpu0MCCodeEmitter.cpp will be called when generate Cpu0 
-**ld** or **st** instructions since the following code defined in 
-Cpu0InstrInfo.td.
 
 .. code-block:: c++
 
@@ -258,8 +255,9 @@ Cpu0InstrInfo.td.
   }
 
 The "let EncoderMethod = "getMemEncoding";" in Cpu0InstrInfo.td as above will 
-make llvm calling function getMemEncoding() when ether **ld** or **st** instruction 
-generated in elf obj since these two instructions use **mem** Operand.
+making llvm call function getMemEncoding() when either **ld** or **st** 
+instruction is issued in elf obj since these two instructions use **mem** 
+Operand.
 
 The other functions in Cpu0MCCodeEmitter.cpp are called by these two functions.
 
@@ -378,14 +376,14 @@ before in Chapter4_2/ for assembly file generated support.
 In :num:`Figure #genobj-f1`, registering the object of class Cpu0AsmInfo for 
 target TheCpu0Target and TheCpu0elTarget. 
 TheCpu0Target is for big endian and TheCpu0elTarget is for little endian. 
-Cpu0AsmInfo is derived from MCAsmInfo which is llvm built-in class. 
+Cpu0AsmInfo is derived from MCAsmInfo which is an llvm built-in class. 
 Most code is implemented in it's parent, back end reuse those code by inheritance.
 
 In :num:`Figure #genobj-f2`, instancing MCCodeGenInfo, and initialize it by 
 pass RM=Roloc::PIC because we use command ``llc -relocation-model=pic`` to tell 
-``llc`` do compile with position-independent code mode. 
+``llc`` does compile with position-independent code mode. 
 The default value of -relocation-model is PIC.
-Recall the addressing mode in system program book has two mode, one is PIC 
+Recall there are two addressing mode in system program book, one is PIC 
 mode, the other is absolute addressing mode. 
 MC stands for Machine Code.
 
@@ -402,9 +400,9 @@ big endian and the other is for little endian.
 They take care the obj format generated. 
 So, it's not defined in Chapter4_2/ which support assembly code only.
 
-:num:`Figure #genobj-f6`, MCELFStreamer take care the obj format also. 
-:num:`Figure #genobj-f5` Cpu0MCCodeEmitter take care code emitter while 
-MCELFStreamer take care the obj output streamer. 
+:num:`Figure #genobj-f6`, MCELFStreamer takes care the obj format also. 
+:num:`Figure #genobj-f5` Cpu0MCCodeEmitter takes care code emitter while 
+MCELFStreamer takes care the obj output streamer. 
 :num:`Figure #genobj-f10` is MCELFStreamer inheritance tree. 
 You can find a lot of operations in that inheritance tree.
 
