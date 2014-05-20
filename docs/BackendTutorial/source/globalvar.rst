@@ -472,22 +472,22 @@ Option cpu0-use-small-section=false will generate the following instructions.
     ...
     lui $2, %hi(gI)
     addiu $2, $2, %lo(gI)
-  	ld	$2, 0($2)
-  	...
-  	.type	gStart,@object          # @gStart
-  	.data
-  	.globl	gStart
-  	.align	2
+    ld	$2, 0($2)
+    ...
+    .type	gStart,@object          # @gStart
+    .data
+    .globl	gStart
+    .align	2
   gStart:
-  	.4byte	2                       # 0x2
-  	.size	gStart, 4
+    .4byte	2                       # 0x2
+    .size	gStart, 4
   
-  	.type	gI,@object              # @gI
-  	.globl	gI
-  	.align	2
+    .type	gI,@object              # @gI
+    .globl	gI
+    .align	2
   gI:
-  	.4byte	100                     # 0x64
-  	.size	gI, 4
+    .4byte	100                     # 0x64
+    .size	gI, 4
   	
 As above code, it loads the high address part of gI PC relative address 
 (16 bits) to register $2 and shift 16 bits. 
@@ -522,7 +522,7 @@ stage "Legalized selection DAG" as below.
 .. code-block:: c++
 
     //  Cpu0ISelLowering.cpp
-    ...
+        ...
         // %hi/%lo relocation
         SDValue GAHi = DAG.getTargetGlobalAddress(GV, DL, MVT::i32, 0,
                                                   Cpu0II::MO_ABS_HI);
@@ -601,10 +601,10 @@ instructions as below.
 .. code-block:: bash
 
     ...
-  	addiu	$2, $zero, %hi(gI)
-  	shl	$2, $2, 16
-  	addiu	$2, $2, %lo(gI)
-  	...
+    addiu	$2, $zero, %hi(gI)
+    shl	$2, $2, 16
+    addiu	$2, $2, %lo(gI)
+    ...
 
 
 As above, Pat<(...),(...)> include two lists of DAGs. 
@@ -626,23 +626,23 @@ Option cpu0-use-small-section=true will generate the following instructions.
 
 .. code-block:: bash
 
-    	addiu	$2, $gp, %gp_rel(gI)
-    	ld	$2, 0($2)
-    	...
-  	.type	gStart,@object          # @gStart
-  	.section	.sdata,"aw",@progbits
-  	.globl	gStart
-  	.align	2
+    addiu	$2, $gp, %gp_rel(gI)
+    ld	$2, 0($2)
+    ...
+    .type	gStart,@object          # @gStart
+    .section	.sdata,"aw",@progbits
+    .globl	gStart
+    .align	2
   gStart:
-  	.4byte	2                       # 0x2
-  	.size	gStart, 4
+    .4byte	2                       # 0x2
+    .size	gStart, 4
   
-  	.type	gI,@object              # @gI
-  	.globl	gI
-  	.align	2
+    .type	gI,@object              # @gI
+    .globl	gI
+    .align	2
   gI:
-  	.4byte	100                     # 0x64
-  	.size	gI, 4
+    .4byte	100                     # 0x64
+    .size	gI, 4
 
 
 The code fragment of LowerGlobalAddress() as the following corresponding option 
@@ -746,8 +746,8 @@ GLOBAL_OFFSET_TABLE translate into $gp as below.
 
 .. code-block:: bash
 
-  	addiu	$2, $gp, %gp_rel(gI)
-  	...
+    addiu	$2, $gp, %gp_rel(gI)
+    ...
 
 Pat<(add CPURegs:$gp, (Cpu0GPRel tglobaladdr:$in)), (ADD CPURegs:$gp, (ADDiu 
 ZERO, tglobaladdr:$in))>; will translate (add $gp Cpu0ISD::GPRel tglobaladdr) 
@@ -814,27 +814,27 @@ generate the following instructions.
 .. code-block:: bash
 
     ...
-	  .set	noreorder
-	  .cpload	$6
-	  .set	nomacro
+    .set	noreorder
+    .cpload	$6
+    .set	nomacro
     ...
-  	ld	$2, %got(gI)($gp)
-  	ld	$2, 0($2)
+    ld	$2, %got(gI)($gp)
+    ld	$2, 0($2)
     ...
-  	.type	gStart,@object          # @gStart
-  	.data
-  	.globl	gStart
-  	.align	2
+    .type	gStart,@object          # @gStart
+    .data
+    .globl	gStart
+    .align	2
   gStart:
-  	.4byte	2                       # 0x2
-  	.size	gStart, 4
+    .4byte	2                       # 0x2
+    .size	gStart, 4
   
-  	.type	gI,@object              # @gI
-  	.globl	gI
-  	.align	2
+    .type	gI,@object              # @gI
+    .globl	gI
+    .align	2
   gI:
-  	.4byte	100                     # 0x64
-  	.size	gI, 4
+    .4byte	100                     # 0x64
+    .size	gI, 4
 
 The following code fragment of Cpu0AsmPrinter.cpp will emit **.cpload** asm 
 pseudo instruction at function entry point as below.
@@ -903,9 +903,9 @@ pseudo instruction at function entry point as below.
 .. code-block:: bash
 
     ...
-	  .set	noreorder
-	  .cpload	$6
-	  .set	nomacro
+    .set	noreorder
+    .cpload	$6
+    .set	nomacro
     ...
 
 The **.cpload** is the assembly directive (macro) which 
@@ -1068,7 +1068,7 @@ TargetGlobalAddress<i32* @gI> 0)) into Cpu0 instruction as follows,
 .. code-block:: bash
 
     ...
-  	ld	$2, %got(gI)($gp)
+    ld	$2, %got(gI)($gp)
     ...
 
 Remind in pic mode, Cpu0 use ".cpload" and "ld $2, %got(gI)($gp)" to access 
@@ -1181,10 +1181,10 @@ instructions as below.
 .. code-block:: bash
 
     ...
-	  addiu	$2, $zero, %got_hi(gI)
-	  shl	$2, $2, 16
-	  add	$2, $2, $gp
-	  ld	$2, %got_lo(gI)($2)
+    addiu	$2, $zero, %got_hi(gI)
+    shl	$2, $2, 16
+    add	$2, $2, $gp
+    ld	$2, %got_lo(gI)($2)
     ...
 
 
