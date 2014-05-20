@@ -39,6 +39,7 @@ void Cpu0TargetObjectFile::Initialize(MCContext &Ctx, const TargetMachine &TM){
 
 }
 
+// lbd document - mark - IsInSmallSection
 // A address must be loaded from a small section if its size is less than the
 // small section size threshold. Data in this section must be addressed using
 // gp_rel operator.

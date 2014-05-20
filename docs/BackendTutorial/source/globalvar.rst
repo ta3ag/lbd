@@ -4,13 +4,13 @@ Global variables
 ==================
 
 In the previous two chapters, we only access the local variables. 
-This chapter will deal global variable access translation. 
+This chapter will deals global variable access translation. 
 
 The global variable DAG translation is different from the previous DAG 
-translation we have now. 
-It create DAG nodes at run time in our backend C++ code according the 
+translation until now we have. 
+It create IR DAG nodes at run time in our backend C++ code according the 
 ``llc -relocation-model`` option while the others of DAG just do IR DAG to 
-Machine DAG translation directly according the input file IR DAG.
+Machine DAG translation directly according the input file of IR DAGs.
 Readers should focus on how to add code for create DAG nodes at run time and 
 how to define the pattern match in td for the run time created DAG nodes. 
 In addition, the machine instruction printing function for global variable 
@@ -59,7 +59,7 @@ Chapter6_1/ support the global variable translation.
 Let's run Chapter6_1/ with ch6_1.cpp via three different options 
 ``llc  -relocation-model=static -cpu0-use-small-section=false``, 
 ``llc  -relocation-model=static -cpu0-use-small-section=true`` and 
-``llc  -relocation-model=pic`` to tracing the DAG and Cpu0 instructions.
+``llc  -relocation-model=pic`` to tracing the DAGs and Cpu0 instructions.
 
 .. code-block:: bash
 
@@ -326,15 +326,30 @@ About the **cl::opt** command line variable, you can refer to [#]_ further.
     :start-after: using namespace llvm;
     :end-before: void Cpu0Subtarget::anchor()
 
-The ReserveGPOpt and NoCploadOpt are used in Cpu0 linker at later Chapter.
-Next add file Cpu0TargetObjectFile.h, Cpu0TargetObjectFile.cpp and the 
-following code to Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
+The options ReserveGPOpt and NoCploadOpt will used in Cpu0 linker at later 
+Chapter.
+Next add the following code to files Cpu0TargetObjectFile.h, 
+Cpu0TargetObjectFile.cpp, Cpu0RegisterInfo.cpp and Cpu0ISelLowering.cpp.
 
 .. rubric:: lbdex/Chapter6_1/Cpu0TargetObjectFile.h
-.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.h
+.. code-block:: c++
+
+    /// IsGlobalInSmallSection - Return true if this global address should be
+    /// placed into small data/bss section.
+    bool IsGlobalInSmallSection(const GlobalValue *GV,
+                                const TargetMachine &TM, SectionKind Kind)const;
+    bool IsGlobalInSmallSection(const GlobalValue *GV,
+                                const TargetMachine &TM) const;
+
+    const MCSection *SelectSectionForGlobal(const GlobalValue *GV,
+                                            SectionKind Kind,
+                                            Mangler *Mang,
+                                            const TargetMachine &TM) const;
+
 
 .. rubric:: lbdex/Chapter6_1/Cpu0TargetObjectFile.cpp
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0TargetObjectFile.cpp
+    :start-after: lbd document - mark - IsInSmallSection
 
 .. rubric:: lbdex/Chapter6_1/Cpu0RegisterInfo.cpp
 .. code-block:: c++
@@ -404,12 +419,12 @@ The setOperationAction(ISD::GlobalAddress, MVT::i32, Custom) tells ``llc`` that
 we implement global address operation in C++ function 
 Cpu0TargetLowering::LowerOperation(). LLVM will call this function only when 
 llvm want to translate IR DAG of loading global variable into machine code. 
-Since there are many Custom type of setOperationAction(ISD::XXX, MVT::XXX, 
-Custom) in construction function Cpu0TargetLowering(), and each of them will 
-trigger llvm calling Cpu0TargetLowering::LowerOperation() in stage 
-"Legalized selection DAG" . 
-The global address access can be identified by check if the DAG node of 
-opcode is equal to ISD::GlobalAddress. 
+All the Custom type of IR operations set by
+setOperationAction(ISD::XXX, MVT::XXX, Custom) in construction function 
+Cpu0TargetLowering() will invoke llvm to call 
+Cpu0TargetLowering::LowerOperation() in stage "Legalized selection DAG",
+but the global address access operation can be identified by checking the DAG 
+node of opcode is ISD::GlobalAddress. 
 
 Finally, add the following code in Cpu0InstrInfo.td.
 
