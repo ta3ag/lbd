@@ -4,8 +4,8 @@ Other data type
 =================
 
 Until now, we only handle the type int and long of 32 bits size. 
-This chapter introduce other type such as pointer, char, long long which are not
-32 bits size.
+This chapter introduce other type such as pointer and char, long long which 
+are not 32 bits size.
  
  
 Local variable pointer
@@ -266,7 +266,7 @@ Run Chapter7_1/ with ch7_2_2.cpp will get the following result.
 
 As you can see lb/lh are for signed byte/short type while lbu/lhu are for unsigned 
 byte/short type. Since C type-cast or type-conversion feature, the char to int can 
-be finished with an Cpu0 lb efficient instruction. That's why the lb, lbu, lh and 
+be finished with an single lb efficient instruction. That's why the lb, lbu, lh and 
 lhu instructions exist. Their difference have explained in Chapter 2.
 
 To support load bool type, the following code added.
@@ -286,8 +286,8 @@ Above code setLoadExtAction() are work enough. The setBooleanContents() purpose
 as following, but I don't know it well. Without it, the ch7_3.ll still works 
 as below. 
 The IR input file ch7_3.ll is used in testing here since the c++ version
-need flow control which is not support here. File ch_run_backend.cpp include the
-test fragment for bool as below.
+need flow control which is not support at this point. 
+File ch_run_backend.cpp include the test fragment for bool as below.
 
 .. rubric:: include/llvm/Target/TargetLowering.h
 .. code-block:: c++
@@ -365,8 +365,8 @@ test fragment for bool as below.
 long long
 ----------
 
-Cpu0 is like Mips which long is 32-bits and long long is 64-bits for C 
-language type. To support long long, we add the following code to 
+Like Mips, the type long of Cpu0 is 32-bits and type long long is 64-bits for C 
+language. To support long long, we add the following code to 
 Chapter7_1/.
 
 .. rubric:: lbdex/Chapter7_1/Cpu0ISelDAGToDAG.cpp
@@ -560,7 +560,8 @@ Run Chapter7_1 with ch7_4.cpp to get the result as follows,
 float and double
 -----------------
 
-Cpu0 only has integer instructions at this point. For float operations, the clang
+Cpu0 only has integer instructions at this point. 
+For float operations, Cpu0 backend
 will call the library function to translate integer to float. This float (or 
 double) function call for Cpu0 will be supported after the chapter of function 
 call.
