@@ -36,3 +36,6 @@
 	
     git clone https://github.com/azru0512/lbd.git
 
+5. Personal web:
+	  github:				https://github.com/Jonathan2251/web
+	  gh-pages:			http://jonathan2251.github.io/web/index.html
