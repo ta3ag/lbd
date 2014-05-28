@@ -23,7 +23,7 @@ bash rminput.sh
 
 clang -target mips-unknown-linux-gnu -c ch_run_backend.cpp -emit-llvm -o \
 ch_run_backend.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 ch_run_backend.bc -o ch_run_backend.cpu0.o
 ${TOOLDIR}/llvm-objdump -d ch_run_backend.cpu0.o | tail -n +6| awk \
 '{print "/* " $1 " */\t" $2 " " $3 " " $4 " " $5 "\t/* " $6"\t" $7" " $8" \
