@@ -54,6 +54,7 @@ Revision history
 
 Version 3.4.4, Not release yet
   Correct typing.
+  Add the reason of use SSA form.
 
 Version 3.4.3, Released March 31, 2014
   Fix Disassembly bug for GPROut register class.

@@ -877,6 +877,54 @@ next 2 sections for DAG and Instruction Selection.
     the end result is an assembly code file; for JIT compilation, the opcodes 
     of the machine instructions are written into memory. 
 
+SSA form which says that each variable is assigned exactly once. 
+LLVM IR is SSA form which has unbounded virtual registers (each variable is 
+assigned exactly once and keeped in different virtual register).
+Thus, the code generation sequence can use **Instruction Selection**, 
+**Scheduling and Formation** and then **Register Allocation** for optimization 
+without loss optimization opportunities. If use limited virtual registers to 
+generate the following code,
+
+.. code-block:: c++
+
+    %a = add nsw i32 1, i32 0
+    store i32 %a, i32* %c, align 4
+    %a = add nsw i32 2, i32 0
+    store i32 %a, i32* %c, align 4
+
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 1
+      %a = add i32 2, i32 0
+      st %a,  i32* %c, 2
+
+It must serialized. In contrast, the SSA form as the following can be 
+reodered with the following different version.
+
+.. code-block:: c++
+
+    %a = add nsw i32 1, i32 0
+    store i32 %a, i32* %c, align 4
+    %b = add nsw i32 2, i32 0
+    store i32 %b, i32* %d, align 4
+
+  // version 1
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 0
+      %b = add i32 2, i32 0
+      st %b,  i32* %d, 0
+
+  // version 2
+  => %a = add i32 1, i32 0
+      %b = add i32 2, i32 0
+      st %a,  i32* %c, 0
+      st %b,  i32* %d, 0
+
+  // version 3
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 0
+      %b = add i32 2, i32 0
+      st %b,  i32* %d, 0
+
 The llvm code generation sequence also can be obtained by 
 ``llc -debug-pass=Structure`` as the following. The first 4 code generation 
 sequences from :num:`Figure #backendstructure-f5` are in the 
