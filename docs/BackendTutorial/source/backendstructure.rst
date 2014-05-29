@@ -898,7 +898,7 @@ generate the following code,
       st %a,  i32* %c, 2
 
 It must serialized. In contrast, the SSA form as the following can be 
-reodered with the following different version.
+reodered with the following different version [#Dragonbooks]_.
 
 .. code-block:: c++
 
@@ -2522,3 +2522,7 @@ as 123.
 .. [#] http://llvm.org/docs/CodeGenerator.html
 
 .. [#] http://llvm.org/docs/LangRef.html
+
+.. [#Dragonbooks] Refer section 10.2.3 of book Compilers: Principles, 
+    Techniques, and Tools (2nd Edition) 
+
