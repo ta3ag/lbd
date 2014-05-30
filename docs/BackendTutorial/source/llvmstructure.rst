@@ -1748,7 +1748,7 @@ generate the following code,
 
 It must serialized. In contrast, the SSA form as the following can be 
 reodered and run in parallel with the following different version 
-[#Dragonbooks]_.
+[#dragonbooks-10.2.3]_.
 
 .. code-block:: c++
 
@@ -1780,7 +1780,7 @@ DAG (Directed Acyclic Graph)
 ----------------------------
 
 Many important techniques for local optimization begin by transforming a basic 
-block into DAG. For example, the basic block code and it's corresponding DAG as 
+block into DAG [#dragonbooks-8.5]_. For example, the basic block code and it's corresponding DAG as 
 :num:`Figure #llvmstructure-f10`.
 
 .. _llvmstructure-f10: 
@@ -1996,6 +1996,9 @@ following machine code,
 
 .. [#langref] http://llvm.org/docs/LangRef.html
 
-.. [#Dragonbooks] Refer section 10.2.3 of book Compilers: Principles, 
+.. [#dragonbooks-10.2.3] Refer section 10.2.3 of book Compilers: Principles, 
+    Techniques, and Tools (2nd Edition) 
+
+.. [#dragonbooks-8.5] Refer section 8.5 of book Compilers: Principles, 
     Techniques, and Tools (2nd Edition) 
 
