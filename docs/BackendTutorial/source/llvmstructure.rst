@@ -23,12 +23,14 @@ code using output provided by the compiler.
 This chapter details the Cpu0 instruction set and the structure of LLVM. 
 The LLVM structure information is adapted from Chris Lattner's LLVM chapter of the 
 Architecture of Open Source Applications book [#aosa-book]_. You can read 
-the original article from the AOSA website if you prefer. Finally, you will begin to 
+the original article from the AOSA website if you prefer. 
+
+Next, you will begin to 
 create a new LLVM backend by writing register and instruction definitions in the 
 Target Description files which will be used in next chapter.
 
 Finally, there are compiler knowledge like DAG (Directed-Acyclic-Graph) and 
-instruction selection needed in llvm backend design, and they will be explained 
+instruction selection needed in llvm backend design, and they are explained 
 here. 
 
 Cpu0 Processor Architecture Details
@@ -749,7 +751,7 @@ For example, these .td files may describe a target's register set, instruction s
 scheduling information for instructions, and calling conventions.  When your backend is 
 being compiled, the tablegen tool that ships with LLVM will translate these .td files 
 into C++ source code written to files that have a .inc extension.  Please refer 
-to [#tablegen]_ for more information regarding how to use tablegen.
+to [#tblgen]_ for more information regarding how to use tablegen.
 
 Every backend has a .td which defines some target information, including what other .td 
 files are used by the backend.  These files have a similar syntax to C++. For Cpu0, the 
@@ -1417,12 +1419,16 @@ input files are the Cpu0 backend \*.td files.
 The llvm-tblgen is invoked by **tablegen** of 
 /Users/Jonathan/llvm/test/src/lib/Target/Cpu0/CMakeLists.txt. 
 These \*.inc files will be included by Cpu0 backend \*.cpp or \*.h files and 
-compile into \*.o. That is the important tools illustrated in the previous 
+compile into \*.o further. 
+That is the important tool illustrated in the previous 
 section ".td: LLVM’s Target Description Files" of this chapter as follows,
  
 "The “mix and match” approach allows target authors to choose what makes sense 
 for their architecture and permits a large amount of code reuse across 
 different targets".
+
+Details about TableGen are here [#tblgen]_ [#tblgen-langintro]_ 
+[#tblgen-langref]_.
 
 
 Now try to run  command ``llc`` to compile input file ch3.cpp as follows,
@@ -1521,8 +1527,8 @@ Following is the llvm SSA instructions.
 
 We explain the code generation process as below. 
 If you don't feel comfortable, please check tricore_llvm.pdf section 4.2 first. 
-You can  read “The LLVM Target-Independent Code Generator” from here [#]_ 
-and “LLVM Language Reference Manual” from here [#]_ 
+You can  read “The LLVM Target-Independent Code Generator” from here [#codegen]_ 
+and “LLVM Language Reference Manual” from here [#langref]_ 
 before go ahead, but we think read section 
 4.2 of tricore_llvm.pdf is enough and suggesting you read the web site 
 documents as above only when you are still not 
@@ -1602,55 +1608,6 @@ next 2 sections for DAG and Instruction Selection.
     Finally, the completed machine code is emitted. For static compilation, 
     the end result is an assembly code file; for JIT compilation, the opcodes 
     of the machine instructions are written into memory. 
-
-SSA form which says that each variable is assigned exactly once. 
-LLVM IR is SSA form which has unbounded virtual registers (each variable is 
-assigned exactly once and keeped in different virtual register).
-Thus, the code generation sequence can use **Instruction Selection**, 
-**Scheduling and Formation** and then **Register Allocation** for optimization 
-without loss optimization opportunities. If use limited virtual registers to 
-generate the following code,
-
-.. code-block:: c++
-
-    %a = add nsw i32 1, i32 0
-    store i32 %a, i32* %c, align 4
-    %a = add nsw i32 2, i32 0
-    store i32 %a, i32* %c, align 4
-
-  => %a = add i32 1, i32 0
-      st %a,  i32* %c, 1
-      %a = add i32 2, i32 0
-      st %a,  i32* %c, 2
-
-It must serialized. In contrast, the SSA form as the following can be 
-reodered and run in parallel with the following different version 
-[#Dragonbooks]_.
-
-.. code-block:: c++
-
-    %a = add nsw i32 1, i32 0
-    store i32 %a, i32* %c, align 4
-    %b = add nsw i32 2, i32 0
-    store i32 %b, i32* %d, align 4
-
-  // version 1
-  => %a = add i32 1, i32 0
-      st %a,  i32* %c, 0
-      %b = add i32 2, i32 0
-      st %b,  i32* %d, 0
-
-  // version 2
-  => %a = add i32 1, i32 0
-      %b = add i32 2, i32 0
-      st %a,  i32* %c, 0
-      st %b,  i32* %d, 0
-
-  // version 3
-  => %a = add i32 1, i32 0
-      st %a,  i32* %c, 0
-      %b = add i32 2, i32 0
-      st %b,  i32* %d, 0
 
 The llvm code generation sequence also can be obtained by 
 ``llc -debug-pass=Structure`` as the following. The first 4 code generation 
@@ -1764,6 +1721,59 @@ time to time.
         Machine Natural Loop Construction
       * Mips Assembly Printer
         Delete Garbage Collector Information
+
+
+SSA form
+----------
+
+SSA form which says that each variable is assigned exactly once. 
+LLVM IR is SSA form which has unbounded virtual registers (each variable is 
+assigned exactly once and keeped in different virtual register).
+Thus, the code generation sequence can use **Instruction Selection**, 
+**Scheduling and Formation** and then **Register Allocation** for optimization 
+without loss optimization opportunities. If use limited virtual registers to 
+generate the following code,
+
+.. code-block:: c++
+
+    %a = add nsw i32 1, i32 0
+    store i32 %a, i32* %c, align 4
+    %a = add nsw i32 2, i32 0
+    store i32 %a, i32* %c, align 4
+
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 1
+      %a = add i32 2, i32 0
+      st %a,  i32* %c, 2
+
+It must serialized. In contrast, the SSA form as the following can be 
+reodered and run in parallel with the following different version 
+[#Dragonbooks]_.
+
+.. code-block:: c++
+
+    %a = add nsw i32 1, i32 0
+    store i32 %a, i32* %c, align 4
+    %b = add nsw i32 2, i32 0
+    store i32 %b, i32* %d, align 4
+
+  // version 1
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 0
+      %b = add i32 2, i32 0
+      st %b,  i32* %d, 0
+
+  // version 2
+  => %a = add i32 1, i32 0
+      %b = add i32 2, i32 0
+      st %a,  i32* %c, 0
+      st %b,  i32* %d, 0
+
+  // version 3
+  => %a = add i32 1, i32 0
+      st %a,  i32* %c, 0
+      %b = add i32 2, i32 0
+      st %b,  i32* %d, 0
 
 
 DAG (Directed Acyclic Graph)
@@ -1966,8 +1976,6 @@ following machine code,
 
 .. [#aosa-book] Chris Lattner, **LLVM**. Published in The Architecture of Open Source Applications. http://www.aosabook.org/en/llvm.html
 
-.. [#tablegen] http://llvm.org/docs/TableGenFundamentals.html
-
 .. [#cmake] http://llvm.org/docs/CMake.html
 
 .. [#llvmbuild] http://llvm.org/docs/LLVMBuild.html
@@ -1978,9 +1986,15 @@ following machine code,
 
 .. [#asadasd] http://jonathan2251.github.io/lbd/llvmstructure.html#target-registration
 
-.. [#] http://llvm.org/docs/CodeGenerator.html
+.. [#tblgen] http://llvm.org/docs/TableGen/index.html
 
-.. [#] http://llvm.org/docs/LangRef.html
+.. [#tblgen-langintro] http://llvm.org/docs/TableGen/LangIntro.html
+
+.. [#tblgen-langref] http://llvm.org/docs/TableGen/LangRef.html
+
+.. [#codegen] http://llvm.org/docs/CodeGenerator.html
+
+.. [#langref] http://llvm.org/docs/LangRef.html
 
 .. [#Dragonbooks] Refer section 10.2.3 of book Compilers: Principles, 
     Techniques, and Tools (2nd Edition) 
