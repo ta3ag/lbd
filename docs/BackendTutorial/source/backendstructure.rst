@@ -6,8 +6,6 @@ Backend structure
 This chapter introduce the back end class inheritance tree and class members first. 
 Next, following the back end structure, adding individual class implementation 
 in each section. 
-There are compiler knowledge like DAG (Directed-Acyclic-Graph) and instruction 
-selection needed here, and they will be explained on demand. 
 At the end of this chapter, we will have a back end to compile llvm 
 intermediate code into cpu0 assembly code.
 

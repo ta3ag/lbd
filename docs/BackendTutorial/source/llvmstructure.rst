@@ -27,6 +27,10 @@ the original article from the AOSA website if you prefer. Finally, you will begi
 create a new LLVM backend by writing register and instruction definitions in the 
 Target Description files which will be used in next chapter.
 
+Finally, there are compiler knowledge like DAG (Directed-Acyclic-Graph) and 
+instruction selection needed in llvm backend design, and they will be explained 
+here. 
+
 Cpu0 Processor Architecture Details
 -----------------------------------
 
