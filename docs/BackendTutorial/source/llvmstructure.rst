@@ -1620,7 +1620,8 @@ generate the following code,
       st %a,  i32* %c, 2
 
 It must serialized. In contrast, the SSA form as the following can be 
-reodered with the following different version [#Dragonbooks]_.
+reodered and run in parallel with the following different version 
+[#Dragonbooks]_.
 
 .. code-block:: c++
 
