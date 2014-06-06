@@ -4,8 +4,8 @@ Other data type
 =================
 
 Until now, we only handle the type int and long of 32 bits size. 
-This chapter introduce other type such as pointer and char, long long which 
-are not 32 bits size.
+This chapter introduce other type such as pointer and those 
+are not 32 bits size, like bool, char, short int and long long.
  
  
 Local variable pointer
@@ -264,10 +264,13 @@ Run Chapter7_1/ with ch7_2_2.cpp will get the following result.
     .end  _Z19test_unsigned_shortv
     ...
 
-As you can see lb/lh are for signed byte/short type while lbu/lhu are for unsigned 
-byte/short type. Since C type-cast or type-conversion feature, the char to int can 
-be finished with an single lb efficient instruction. That's why the lb, lbu, lh and 
-lhu instructions exist. Their difference have explained in Chapter 2.
+As you can see lb/lh are for signed byte/short type while lbu/lhu are for 
+unsigned byte/short type. 
+To support C type-cast or type-conversion feature efficiently, Cpu0 has the lb 
+instruction to make the char to int conversion in one single instruction. 
+The other instructions lbu, lh, lhu, sb and sh are for both signed/unsigned 
+byte/short int/int type conversion. 
+Their difference have explained in Chapter 2.
 
 To support load bool type, the following code added.
 
