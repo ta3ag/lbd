@@ -6,7 +6,7 @@ Control flow statements
 This chapter illustrates the corresponding IR for control flow statements, like 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
 translate these control flow statements of llvm IR into Cpu0 instructions in 
-section I. In section II, a optimiation pass of control flow for backend is 
+section I. In section II, a optimization pass of control flow for backend is 
 introduced. It's a simple tutorial program to let readers know how to add a 
 backend optimization pass and program it. Section III, include the conditional 
 instructions handle since the clang will generate specific IR select and 
@@ -183,9 +183,9 @@ Run ch8_1_1.cpp with clang will get result as follows,
 
 
 The **“icmp ne”** stand for integer compare NotEqual, **“slt”** stands for Set 
-Less Than, **“sle”** stands for Set Less Equal. 
+Less Than, **“sle”** stands for Set Less or Equal. 
 Run version Chapter8_1/ with ``llc  -view-isel-dags`` or ``-debug`` option, you 
-can see it has translated **if** statement into 
+can see the **if** statement is translated into 
 (br (brcond (%1, setcc(%2, Constant<c>, setne)), BasicBlock_02), BasicBlock_01).
 Ignore %1, we get the form (br (brcond (setcc(%2, Constant<c>, setne)), 
 BasicBlock_02), BasicBlock_01). 
@@ -205,20 +205,6 @@ We want to translate them into Cpu0 instructions DAG as follows,
     cmp %2, %3
     jne BasicBlock_02
     jmp BasicBlock_01
-
-For the first addiu instruction as above which move Constant<c> into register, 
-we have defined it before by the following code,
-
-.. rubric:: lbdex/Chapter3_5/Cpu0InstrInfo.td
-.. code-block:: c++
-
-    // Small immediates
-    def : Pat<(i32 immSExt16:$in),
-              (ADDiu ZERO, imm:$in)>;
-    
-    // Arbitrary immediates
-    def : Pat<(i32 imm:$imm),
-          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
 
 For the last IR br, we translate unconditional branch (br BasicBlock_01) into 
 jmp BasicBlock_01 by the following pattern definition,
@@ -240,7 +226,8 @@ jmp BasicBlock_01 by the following pattern definition,
 
 The pattern [(br bb:$imm24)] in class UncondBranch is translated into jmp 
 machine instruction.
-The other two Cpu0 instructions translation is more complicate than simple 
+The **cmp** and **jne** two Cpu0 instructions translation is more complicate 
+than simple 
 one-to-one IR to machine instruction translation we have experienced until now. 
 To solve this chained IR to machine instructions translation, we define the 
 following pattern,
@@ -259,10 +246,26 @@ following pattern,
     def : Pat<(brcond RC:$cond, bb:$dst),
               (JNEOp (CMPOp RC:$cond, ZEROReg), bb:$dst)>;
 
-Above definition support (setne RC:$lhs, RC:$rhs) register to register compare. 
-There are other compare pattern like, seteq, setlt, ... . In addition to seteq, 
-setne, ..., we define setueq, setune, ...,  by reference Mips code even though we 
-didn't find how setune came from. 
+Since the BrcondPats pattern as above use RC (Register Class) as operand, the 
+following ADDiu pattern defined in Chapter3_5 will generate instruction 
+**addiu** before the instruction **cmp** for the first IR, 
+**setcc(%2, Constant<c>, setne)** as above.
+
+.. rubric:: lbdex/Chapter3_5/Cpu0InstrInfo.td
+.. code-block:: c++
+
+    // Small immediates
+    def : Pat<(i32 immSExt16:$in),
+              (ADDiu ZERO, imm:$in)>;
+    
+    // Arbitrary immediates
+    def : Pat<(i32 imm:$imm),
+          (ORi (LUi (HI16 imm:$imm)), (LO16 imm:$imm))>;
+
+The definition BrcondPats support setne, seteq, setlt, ..., register operand 
+compare and setult, setugt, ..., for unsigned int type. In addition to seteq 
+and setne, we define setueq and setune, by reference Mips code even though 
+we didn't find how to generate setune IR from C language. 
 We have tried to define unsigned int type, but clang still generate setne 
 instead of setune. 
 Pattern search order is according their appear order in context. 
