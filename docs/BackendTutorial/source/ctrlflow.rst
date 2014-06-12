@@ -289,8 +289,12 @@ is correct even an instruction is inserted between CMP and JNE as follows,
 .. code-block:: c++
 
     cmp %2, %3
-    addiu $r1, $r2, 3   // $r1 register never be allocated to $SW
+    addiu $r1, $r2, 3   // $r1 register never be allocated to $SW because in 
+                        //  class ArithLogicI, GPROut is the output register 
+                        //  class and the GPROut is defined without $SW in 
+                        //  Cpu0RegisterInforGPROutForOther.td
     jne BasicBlock_02
+
 
 The reserved registers setting by the following 
 function code we defined before,
@@ -349,6 +353,10 @@ Class.
   // Status Registers
   def SR   : RegisterClass<"Cpu0", [i32], 32, (add SW)>;
   
+
+.. rubric:: lbdex/Chapter2/Cpu0RegisterInfoGPROutForOther.td
+.. literalinclude:: ../../../lib/Target/Cpu0/Cpu0RegisterInfoGPROutForOther.td
+
 
 Chapter8_1/ include support for control flow statement. 
 Run with it as well as the following ``llc`` option, you can get the obj file 
