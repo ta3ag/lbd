@@ -6,7 +6,7 @@ Control flow statements
 This chapter illustrates the corresponding IR for control flow statements, like 
 **“if else”**, **“while”** and **“for”** loop statements in C, and how to 
 translate these control flow statements of llvm IR into Cpu0 instructions in 
-section I. In section II, a optimization pass of control flow for backend is 
+section I. In section II, an optimization pass of control flow for backend is 
 introduced. It's a simple tutorial program to let readers know how to add a 
 backend optimization pass and program it. Section III, include the conditional 
 instructions handle since the clang will generate specific IR select and 
@@ -708,10 +708,10 @@ This algorithm is simple and effective to be a perfect tutorial in optimization.
 Through this example, you can understand how to add an optimization pass and 
 coding your complicate optimization algorithm on your backend in real project.
 
-Chapter12_1/ supports "delete useless jmp" optimization algorithm which add 
+Chapter8_2/ supports "delete useless jmp" optimization algorithm which add 
 codes as follows,
 
-.. rubric:: lbdex/Chapter12_1/CMakeLists.txt
+.. rubric:: lbdex/Chapter8_2/CMakeLists.txt
 .. code-block:: c++
 
   add_llvm_target(Cpu0CodeGen
@@ -720,7 +720,7 @@ codes as follows,
     ...
     )
   
-.. rubric:: lbdex/Chapter12_1/Cpu0.h
+.. rubric:: lbdex/Chapter8_2/Cpu0.h
 .. code-block:: c++
 
   ...
@@ -756,7 +756,7 @@ its Operand is the next basic block.
 By getMBB() in MachineOperand, you can get the MBB address. 
 For the member functions of MachineOperand, please check 
 include/llvm/CodeGen/MachineOperand.h
-Now, let's run Chapter12_1/ with ch12_1.cpp for explanation.
+Now, let's run Chapter8_2/ with ch8_2.cpp for explanation.
 
 .. rubric:: lbdex/InputFiles/ch8_2.cpp
 .. literalinclude:: ../lbdex/InputFiles/ch8_2.cpp
@@ -765,7 +765,7 @@ Now, let's run Chapter12_1/ with ch12_1.cpp for explanation.
 .. code-block:: bash
 
   118-165-78-10:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu 
-  -c ch12_1.cpp -emit-llvm -o ch12_1.bc
+  -c ch8_2.cpp -emit-llvm -o ch8_2.bc
   118-165-78-10:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=static -filetype=asm -stats 
   ch8_2.bc -o -
@@ -871,17 +871,17 @@ and **select_cc** to support conditional instruction, we add this feature in
 Cpu0 backend too. 
 
 .. rubric:: lbdex/InputFiles/ch8_3.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch12_4.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch8_3.cpp
     :start-after: /// start
 
-If you run Chapter12_2 with ch12_4.cpp will get the following result.
+If you run Chapter8_1 with ch8_3.cpp will get the following result.
 
 .. code-block:: bash
 
   114-37-150-209:InputFiles Jonathan$ clang -O1 -target mips-unknown-linux-gnu 
-  -c ch12_4.cpp -emit-llvm -o ch12_4.bc
+  -c ch8_3.cpp -emit-llvm -o ch8_3.bc
   114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
-  llvm-dis ch12_4.bc -o -
+  llvm-dis ch8_3.bc -o -
   ...
   define i32 @_Z8select_1ii(i32 %a, i32 %b) #0 {
     %1 = icmp slt i32 %a, %b
@@ -895,18 +895,10 @@ If you run Chapter12_2 with ch12_4.cpp will get the following result.
     %. = select i1 %1, i32 3, i32 1
     ret i32 %.
   }
-  
-  ; Function Attrs: nounwind readnone
-  define i32 @_Z11test_selectii(i32 %a, i32 %b) #0 {
-    %1 = tail call i32 @_Z8select_1ii(i32 %a, i32 %b)
-    %2 = tail call i32 @_Z8select_2i(i32 %a)
-    %3 = add nsw i32 %2, %1
-    ret i32 %3
-  }
   ...
 
   114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
-  llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc 
+  llc -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3.bc 
   -debug -o -
   ...
   === _Z8select_1ii
@@ -945,7 +937,7 @@ If you run Chapter12_2 with ch12_4.cpp will get the following result.
   0x39f41c0, 0x39f42c0, 0x39f3fc0 [ORD=2] [ID=10]
 
 
-As llvm IR of ch12_4.bc as above, clang generate **select** IR for small 
+As llvm IR of ch8_3.bc as above, clang generate **select** IR for small 
 basic control block (if statement only include one assign statement). 
 This **select** IR is optimization result for CPU which has conditional 
 instructions support. 
@@ -953,30 +945,24 @@ And from above llc command debug trace message, IR **select** is changed to
 **select_cc** during DAG optimization stages.
 
 
-Chapter12_3 support **select** with the following code added and changed.
+Chapter8_2 support **select** with the following code added and changed.
 
-
-.. rubric:: lbdex/Chapter12_3/AsmParser/Cpu0AsmParser.cpp
-.. literalinclude:: ../../../lib/Target/Cpu0/AsmParser/Cpu0AsmParser.cpp
-    :start-after: #define GET_REGISTER_MATCHER
-    :end-before: unsigned Cpu0AsmParser::
-
-.. rubric:: lbdex/Chapter12_3/Cpu0InstInfo.td
+.. rubric:: lbdex/Chapter8_2/Cpu0InstInfo.td
 .. code-block:: c++
 
   include "Cpu0CondMov.td"
 
-.. rubric:: lbdex/Chapter12_3/Cpu0CondMov.td
+.. rubric:: lbdex/Chapter8_2/Cpu0CondMov.td
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0CondMov.td
 
 
-.. rubric:: lbdex/Chapter12_3/Cpu0ISelLowering.h
+.. rubric:: lbdex/Chapter8_2/Cpu0ISelLowering.h
 .. code-block:: c++
 
     SDValue lowerSELECT(SDValue Op, SelectionDAG &DAG) const;
 
 
-.. rubric:: lbdex/Chapter12_3/Cpu0ISelLowering.h
+.. rubric:: lbdex/Chapter8_2/Cpu0ISelLowering.cpp
 .. code-block:: c++
 
   Cpu0TargetLowering::
@@ -1012,15 +998,14 @@ Set ISD::SELECT_CC to Expand will stop llvm optimization to merge setcc and
 select into one IR select_cc [#]_. Next the LowerSELECT() return ISD::SELECT as 
 Op code directly. Finally the pattern define in Cpu0CondMov.td will 
 translate the **select** IR into **movz** or **movn** conditional instruction. 
-Let's run Chapter12_3 with ch12_4.cpp and ch_optimize.cpp to get the following 
-result. 
+Let's run Chapter8_2 with ch8_3.cpp to get the following result. 
 Again, the cpu032II use **slt** instead of **cmp** has a little improved in 
 instructions number.
 
 .. code-block:: bash
 
   114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/llc 
-  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch12_4.bc -debug 
+  -march=cpu0 -mcpu=cpu032I -relocation-model=static -filetype=asm ch8_3.bc -debug 
   -o -
   ...
   === _Z8select_1ii
@@ -1123,13 +1108,6 @@ instructions number.
     .4byte  2                       # 0x2
     .size b, 4
 
-  
-.. rubric:: lbdex/InputFiles/ch_optimize.cpp
-.. literalinclude:: ../lbdex/InputFiles/ch_optimize.cpp
-    :start-after: /// start
-
-.. rubric:: lbdex/InputFiles/build-optimize.sh
-.. literalinclude:: ../lbdex/InputFiles/build-optimize.sh
 
 .. code-block:: bash
 
@@ -1161,7 +1139,7 @@ instructions number.
   RET to PC < 0, finished!
 
 
-Compare to the non-optimize version which don't use conditional move 
+Compare to the non-optimize version (clang -O0) which don't use conditional move 
 instructions as the following. The clang use **select** IR in small basic block 
 to reduce the branch cost in pipeline machine since the branch will make the 
 pipeline stall. 

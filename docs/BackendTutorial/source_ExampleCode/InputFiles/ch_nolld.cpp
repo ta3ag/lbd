@@ -12,6 +12,7 @@
 #include "ch7_4.cpp"
 #include "ch8_1_1.cpp"
 #include "ch8_2.cpp"
+#include "ch8_3.cpp"
 #include "ch9_1_4.cpp"
 #include "ch9_3.cpp"
 
@@ -60,6 +61,12 @@ int test_nolld()
   a = test_DelUselessJMP();
   print_integer(a); // a = 2
   if (a != 2) pass = false;
+  a = select_1();
+  print_integer(a); // a = 2
+  if (a != 2) pass = false;
+  a = select_2();
+  print_integer(a); // a = 1
+  if (a != 1) pass = false;
   print_integer(2147483647); // test mod % (mult) from itoa.cpp
   print_integer(-2147483648); // test mod % (multu) from itoa.cpp
   a = test_madd();

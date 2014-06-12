@@ -26,13 +26,13 @@ clang -target mips-unknown-linux-gnu -c printf-stdarg-def.c -emit-llvm \
 -o printf-stdarg-def.bc
 clang -target mips-unknown-linux-gnu -c printf-stdarg-2.cpp -emit-llvm -o \
 printf-stdarg-2.bc
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 start.bc -o start.cpu0.o
 ${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 printf-stdarg-def.bc -o printf-stdarg-def.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 printf-stdarg-2.bc -o printf-stdarg-2.cpu0.o
-${TOOLDIR}/llc -march=cpu0 -mcpu=${cpu} -relocation-model=static -filetype=obj \
+${TOOLDIR}/llc -march=cpu0 -mcpu=${CPU} -relocation-model=static -filetype=obj \
 lib_cpu0.ll -o lib_cpu0.o
 ${TOOLDIR}/lld -flavor gnu -target cpu0-unknown-linux-gnu start.cpu0.o \
 printf-stdarg-def.cpu0.o printf-stdarg-2.cpu0.o lib_cpu0.o -o a.out

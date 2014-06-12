@@ -133,6 +133,8 @@ difference for this option and default option.
   16777222
   51
   2
+  2
+  1
   2147483647
   -21474836487
   7
