@@ -697,6 +697,21 @@ The ch8_1_2.cpp is for **“nest if”** test. The ch8_1_3.cpp is the
 **“goto”** test. The ch8_1_4.cpp is for **“goto”** test.
 You can run with them if you like to test more.
 
+List the control flow statements of C, IR, DAG and Cpu0 instructions as the 
+following table.
+
+.. table:: Control flow statements of C, IR, DAG and Cpu0 instructions
+
+  ==================  ============================================================
+  C                   if, else, for, while, goto, switch, break
+  IR                  (icmp + (eq, ne, sgt, sge, slt, sle)0 + br
+  DAG                 (seteq, setne, setgt, setge, setlt, setle) + brcond, 
+  -                   (setueq, setune, setugt, setuge, setult, setule) + brcond
+  cpu032I             CMP + (JEQ, JNE, JGT, JGE, JLT, JLE)
+  cpu032II            (SLT, SLTu, SLTi, SLTiu) + (BEG, BNE)
+  ==================  ============================================================
+
+
 
 Cpu0 backend Optimization: Remove useless JMP
 ---------------------------------------------
@@ -903,6 +918,14 @@ If you run Chapter8_1 with ch8_3.cpp will get the following result.
     %. = select i1 %1, i32 3, i32 1
     ret i32 %.
   }
+  
+  ; Function Attrs: nounwind
+  define i32 @_Z8select_3v() #0 {
+    %1 = load volatile i32* @a, align 4, !tbaa !1
+    %2 = icmp ne i32 %1, 0
+    %3 = select i1 %2, i32 1, i32 3
+    ret i32 %3
+  }
   ...
 
   114-37-150-209:InputFiles Jonathan$ ~/llvm/test/cmake_debug_build/bin/Debug/
@@ -1100,6 +1123,29 @@ instructions number.
     .end  _Z8select_2v
   $tmp1:
     .size _Z8select_2v, ($tmp1)-_Z8select_2v
+
+	  .globl	_Z8select_3v
+	  .align	2
+	  .type	_Z8select_3v,@function
+	  .ent	_Z8select_3v            # @_Z8select_3v
+  _Z8select_3v:
+	  .frame	$sp,0,$lr
+	  .mask 	0x00000000,0
+	  .set	noreorder
+	  .set	nomacro
+  # BB#0:
+	  lui	$2, %hi(a)
+	  addiu	$2, $2, %lo(a)
+	  ld	$3, 0($2)
+	  addiu	$2, $zero, 3
+	  addiu	$4, $zero, 1
+	  movn	$2, $4, $3
+	  ret	$lr
+	  .set	macro
+	  .set	reorder
+	  .end	_Z8select_3v
+  $tmp2:
+	  .size	_Z8select_3v, ($tmp2)-_Z8select_3v
   
     .type a,@object               # @a
     .data
@@ -1238,6 +1284,20 @@ professional.
     addiu $sp, $sp, 8
     ret $lr
     ...
+
+
+List the conditional statements of C, IR, DAG and Cpu0 instructions as the 
+following table.
+
+.. table:: Conditional statements of C, IR, DAG and Cpu0 instructions
+
+  ==================  ============================================================
+  C                   if (a < b) c = 1; else c = 3;
+  -                   c = a ? 1:3;
+  IR                  icmp + (eq, ne, sgt, sge, slt, sle)0 + br
+  DAG                 ((seteq, setne, setgt, setge, setlt, setle) + setcc) + select
+  Cpu0                movz, movn
+  ==================  ============================================================
 
 
 RISC CPU knowledge

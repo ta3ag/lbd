@@ -50,7 +50,18 @@ label_1:
     }
   }
   if (a == 3)
-    goto label_1; 
+    goto label_1;
+
+  switch (a) {
+  case 1:
+    a = a+1;
+    break;
+  case 2:
+    a = a+2;
+    break;
+  default:
+    a = a+8;
+  }
   
-    return a;
+  return a;
 }

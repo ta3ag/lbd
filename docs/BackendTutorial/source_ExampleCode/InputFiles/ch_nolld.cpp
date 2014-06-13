@@ -67,6 +67,9 @@ int test_nolld()
   a = select_2();
   print_integer(a); // a = 1
   if (a != 1) pass = false;
+  a = select_3();
+  print_integer(a); // a = 1
+  if (a != 1) pass = false;
   print_integer(2147483647); // test mod % (mult) from itoa.cpp
   print_integer(-2147483648); // test mod % (multu) from itoa.cpp
   a = test_madd();

@@ -28,4 +28,12 @@ int select_2()
   return c;
 }
 
+int select_3()
+{
+  int c = 0;
+
+  c = a ? 1:3;
+
+  return c;
+}
 
