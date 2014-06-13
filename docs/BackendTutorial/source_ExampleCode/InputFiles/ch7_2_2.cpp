@@ -35,6 +35,7 @@ int test_unsigned_short()
   unsigned short c = 0x8000;
   unsigned int ui = (unsigned int)c;
   ui = ui + 2; // i = (32768+2) = 32770
+  c = (unsigned short)ui;
 
   return (int)ui;
 }

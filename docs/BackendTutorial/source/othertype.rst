@@ -394,22 +394,38 @@ File ch_run_backend.cpp include the test fragment for bool as below.
 
 Summary as the following table.
 
-.. table:: char, short and bool translation for ch7_2_2.cpp and ch7_3.ll.
+.. table:: The C, IR, and DAG translation for char, short and bool translation (ch7_2_2.cpp and ch7_3.ll).
 
-  ==================================  =================================  ====================================  ==========
-  C                                   .bc                                Optimized legalized selection DAG     Cpu0
-  ==================================  =================================  ====================================  ==========
-  char a =0x80;                       %1 = load i8* %a, align 1          -                                     -
-  int i = (signed int)a;              %2 = sext i8 %1 to i32             load ..., <..., sext from i8>         lb
-  unsigned char c = 0x80;             %1 = load i8* %c, align 1          -                                     -
-  unsigned int ui = (unsigned int)c;  %2 = zext i8 %1 to i32             load ..., <..., zext from i8>         lbu
-  short a =0x8000;                    %1 = load i16* %a, align 2         -                                     -
-  int i = (signed int)a;              %2 = sext i16 %1 to i32            load ..., <..., sext from i16>        lh
-  unsigned short c = 0x8000;          %1 = load i16* %c, align 2         -                                     -
-  unsigned int ui = (unsigned int)c;  %2 = zext i16 %1 to i32            load ..., <..., zext from i16>        lhu
-  return true;                        store i1 1, i1* %retval, align 1   store ...,<..., trunc to i8>          sb
-  ==================================  =================================  ====================================  ==========
+  ==================================  =================================  ====================================
+  C                                   .bc                                Optimized legalized selection DAG
+  ==================================  =================================  ====================================
+  char a =0x80;                       %1 = load i8* %a, align 1          - 
+  int i = (signed int)a;              %2 = sext i8 %1 to i32             load ..., <..., sext from i8>
+  unsigned char c = 0x80;             %1 = load i8* %c, align 1          -
+  unsigned int ui = (unsigned int)c;  %2 = zext i8 %1 to i32             load ..., <..., zext from i8>
+  short a =0x8000;                    %1 = load i16* %a, align 2         -
+  int i = (signed int)a;              %2 = sext i16 %1 to i32            load ..., <..., sext from i16>
+  unsigned short c = 0x8000;          %1 = load i16* %c, align 2         -
+  unsigned int ui = (unsigned int)c;  %2 = zext i16 %1 to i32            load ..., <..., zext from i16>
+  c = (unsigned short)ui;             %6 = trunc i32 %5 to i16           -
+  -                                   store i16 %6, i16* %c, align 2     store ...,<..., trunc to i16>
+  return true;                        store i1 1, i1* %retval, align 1   store ...,<..., trunc to i8>
+  ==================================  =================================  ====================================
 
+
+.. table:: The backend translation for char, short and bool translation (ch7_2_2.cpp and ch7_3.ll).
+
+  ====================================  =======  ============================================
+  Optimized legalized selection DAG     Cpu0     pattern in Cpu0InstrInfo.td
+  ====================================  =======  ============================================
+  load ..., <..., sext from i8>         lb       LB  : LoadM32<0x03, "lb",  sextloadi8>;
+  load ..., <..., zext from i8>         lbu      LBu : LoadM32<0x04, "lbu", zextloadi8>;
+  load ..., <..., sext from i16>        lh       LH  : LoadM32<0x06, "lh",  sextloadi16_a>;
+  load ..., <..., zext from i16>        lhu      LHu : LoadM32<0x07, "lhu", zextloadi16_a>;
+  store ...,<..., trunc to i16>         sh       SH  : StoreM32<0x08, "sh", truncstorei16_a>;
+  store ...,<..., trunc to i8>          sb       SB  : StoreM32<0x05, "sb", truncstorei8>;
+  ====================================  =======  ============================================
+  
 
 long long
 ----------
