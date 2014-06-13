@@ -392,6 +392,24 @@ File ch_run_backend.cpp include the test fragment for bool as below.
     return true;
   }
 
+Summary as the following table.
+
+.. table:: char, short and bool translation for ch7_2_2.cpp and ch7_3.ll.
+
+  ==================================  =================================  ====================================  ==========
+  C                                   .bc                                Optimized legalized selection DAG     Cpu0
+  ==================================  =================================  ====================================  ==========
+  char a =0x80;                       %1 = load i8* %a, align 1          -                                     -
+  int i = (signed int)a;              %2 = sext i8 %1 to i32             load ..., <..., sext from i8>         lb
+  unsigned char c = 0x80;             %1 = load i8* %c, align 1          -                                     -
+  unsigned int ui = (unsigned int)c;  %2 = zext i8 %1 to i32             load ..., <..., zext from i8>         lbu
+  short a =0x8000;                    %1 = load i16* %a, align 2         -                                     -
+  int i = (signed int)a;              %2 = sext i16 %1 to i32            load ..., <..., sext from i16>        lh
+  unsigned short c = 0x8000;          %1 = load i16* %c, align 2         -                                     -
+  unsigned int ui = (unsigned int)c;  %2 = zext i16 %1 to i32            load ..., <..., zext from i16>        lhu
+  return true;                        store i1 1, i1* %retval, align 1   store ...,<..., trunc to i8>          sb
+  ==================================  =================================  ====================================  ==========
+
 
 long long
 ----------
