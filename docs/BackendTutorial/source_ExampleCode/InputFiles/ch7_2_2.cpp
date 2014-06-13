@@ -5,7 +5,7 @@
 /// start
 int test_signed_char()
 {
-  char a =0x80;
+  char a = 0x80;
   int i = (signed int)a;
   i = i + 2; // i = (-128+2) = -126
 
@@ -23,7 +23,7 @@ int test_unsigned_char()
 
 int test_signed_short()
 {
-  short a =0x8000;
+  short a = 0x8000;
   int i = (signed int)a;
   i = i + 2; // i = (-32768+2) = -32766
 

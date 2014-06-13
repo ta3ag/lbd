@@ -35,7 +35,7 @@ Cpu0InstrInfo.td and Cpu0InstPrinter.cpp as follows,
     let isCodeGenOnly = 1;
   }
   
-.. rubric:: lbdex/Chapter7_1/Cpu0InstPrinter.td
+.. rubric:: lbdex/Chapter7_1/InstPrinter/Cpu0InstPrinter.cpp
 .. code-block:: c++
 
   void Cpu0InstPrinter::
@@ -59,6 +59,20 @@ will get result as follows,
 
   118-165-66-82:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
   ch7_1.cpp -emit-llvm -o ch7_1.bc
+  118-165-66-82:InputFiles Jonathan$ llvm-dis ch7_1.bc -o -
+  ...
+  ; Function Attrs: nounwind
+  define i32 @_Z18test_local_pointerv() #0 {
+    %b = alloca i32, align 4
+    %p = alloca i32*, align 4
+    store i32 3, i32* %b, align 4
+    store i32* %b, i32** %p, align 4
+    %1 = load i32** %p, align 4
+    %2 = load i32* %1, align 4
+    ret i32 %2
+  }
+  ...
+
   118-165-66-82:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_
   debug_build/bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm 
     ch7_1.bc -o ch7_1.cpu0.s
@@ -89,6 +103,20 @@ will get result as follows,
     .end  _Z18test_local_pointerv
   $tmp1:
     .size _Z18test_local_pointerv, ($tmp1)-_Z18test_local_pointerv
+
+
+Above part code of Chapter7_1 will translate local variable address &b in 
+ch7_1.cpp as the following table.
+
+.. table:: Local variable address &b in ch7_1.cpp of C, IR, DAG and Cpu0 instructions
+
+  =======  ==================================================
+  C        &b;
+  IR       store i32 3, i32* %b, align 4
+  DAG      0x3914a00: i32 = FrameIndex<0>
+  -        store 0x38f0198, 0x3914900, 0x3914a00
+  Cpu0     addiu $2, $sp, 4
+  =======  ==================================================
 
 
 char, short int and bool
@@ -122,7 +150,7 @@ Run Chapter7_1/ with ch7_2.cpp will get the following result.
 .. code-block:: bash
 
   118-165-64-245:InputFiles Jonathan$ clang -target mips-unknown-linux-gnu -c 
-  ch7_3.cpp -emit-llvm -o ch7_2.bc
+  ch7_2.cpp -emit-llvm -o ch7_2.bc
   118-165-64-245:InputFiles Jonathan$ /Users/Jonathan/llvm/test/cmake_debug_build/
   bin/Debug/llc -march=cpu0 -relocation-model=pic -filetype=asm ch7_2.bc -o -
     .section .mdebug.abi32

@@ -717,7 +717,7 @@ Cpu0 backend Optimization: Remove useless JMP
 ---------------------------------------------
 
 LLVM uses functional pass both in code generation and optimization. 
-Following the 3 tiers of compiler architecture, LLVM did much optimization in 
+Following the 3 tiers of compiler architecture, LLVM do much optimization in 
 middle tier of LLVM IR, SSA form. 
 Beyond middle tier optimization, there are opportunities in 
 optimization which depend on backend features. 
@@ -770,7 +770,7 @@ codes as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0DelUselessJMP.cpp
 
 
-As above code, except Cpu0DelUselessJMP.cpp, other files changed for register 
+As above code, except Cpu0DelUselessJMP.cpp, other files changed for registering  
 class DelJmp as a functional pass. 
 As the comment of above code, MBB is the current 
 block and MBBN is the next block. For each last instruction of every MBB, we 
@@ -881,8 +881,8 @@ because we set the "STATISTIC(NumDelJmp, "Number of useless jmp deleted")" in
 code. It deletes 2 jmp instructions from block "# BB#0" and "$BB0_6".
 You can check it by ``llc -enable-cpu0-del-useless-jmp=false`` option to see 
 the difference to non-optimization version.
-If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted in 100 
-lines of assembly code, which meaning 10\% improvement in speed and code size 
+If you run with ch8_1_1.cpp, will find 10 jmp instructions are deleted from 120 
+lines of assembly code, which meaning 8\% improvement in speed and code size 
 [#]_.
 
 
@@ -1193,20 +1193,20 @@ instructions number.
   RET to PC < 0, finished!
 
 
-Compare to the non-optimize version (clang -O0) which don't use conditional move 
-instructions as the following. The clang use **select** IR in small basic block 
+Compare to the non-optimize version, clang -O0 do not use **select** as the 
+following. The clang use **select** IR in small basic block 
 to reduce the branch cost in pipeline machine since the branch will make the 
 pipeline stall. 
 But it needs the conditional instruction support [#Quantitative]_. 
-If your backend has no conditional instruction and want the clang compiler with 
+If your backend has no conditional instruction and need clang compiler with 
 optimization option **O1** level above, you can change clang to force it 
 generate traditional branch basic block instead of IR **select**.
 RISC CPU came from pipeline advantage and add more and more instruction as time 
 passed. Compare Mips and ARM, the Mips has only **movz** and **movn** two 
 instructions while ARM has many. We create Cpu0 instructions as a RISC pipeline 
 machine as well as simple instructions for compiler toolchain tutorial. 
-Anyway the **cmp** instruction hired because many programmer used 
-it in pass and now (ARM use it). It match the thinking in assembly programming. 
+Anyway the **cmp** instruction hired because many programmer is used to 
+it in past and now (ARM use it). It match the thinking in assembly programming. 
 But the **slt** instruction is more efficient in RISC pipleline.
 If you designed a backend aimed for C/C++ highlevel language, you should 
 consider **slt** instead **cmp**. Assembly is rare case in programming and 
@@ -1294,7 +1294,7 @@ following table.
   ==================  ============================================================
   C                   if (a < b) c = 1; else c = 3;
   -                   c = a ? 1:3;
-  IR                  icmp + (eq, ne, sgt, sge, slt, sle)0 + br
+  IR                  icmp + (eq, ne, sgt, sge, slt, sle) + br
   DAG                 ((seteq, setne, setgt, setge, setlt, setle) + setcc) + select
   Cpu0                movz, movn
   ==================  ============================================================
@@ -1305,14 +1305,14 @@ RISC CPU knowledge
 
 As mentioned in the previous section, cpu0 is a RISC (Reduced Instruction Set 
 Computer) CPU with 3 stages of pipeline. 
-RISC CPU is full in world. 
+RISC CPU is full in the world. 
 Even the X86 of CISC (Complex Instruction Set Computer) is RISC inside. 
-(It translate CISC instruction into micro-instruction which do pipeline as 
+(It translate CISC instruction into micro-instructions which do pipeline as 
 RISC). Knowledge with RISC will make you satisfied in compiler design. 
 List these two excellent books we have read which include the real RISC CPU 
 knowledge needed for reference. 
 Sure, there are many books in Computer Architecture, and some of them contain 
-real RISC CPU knowledge needed, but these two are what we have read.
+real RISC CPU knowledge needed, but these two are excellent and popular.
 
 Computer Organization and Design: The Hardware/Software Interface (The Morgan 
 Kaufmann Series in Computer Architecture and Design)
