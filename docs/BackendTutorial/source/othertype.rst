@@ -378,19 +378,16 @@ File ch_run_backend.cpp include the test fragment for bool as below.
     .size verify_load_bool, ($tmp2)-verify_load_bool
     .cfi_endproc
 
-.. rubric:: lbdex/InputFiles/ch_run_backend.cpp
-.. code-block:: c++
 
-  ...
-  bool test_load_bool()
-  {
-    int a = 1;
+The ch7_3.cpp is the bool test version for C language. You can run with it to 
+get the similar result with ch7_3.ll.
 
-    if (a < 0)
-      return false;
+.. rubric:: lbdex/InputFiles/ch7_3.cpp
+.. literalinclude:: ../lbdex/InputFiles/ch7_3.cpp
+    :start-after: /// start
+    
+    
 
-    return true;
-  }
 
 Summary as the following table.
 
@@ -691,7 +688,7 @@ follows,
     addiu $sp, $sp, -8
     lui $2, %hi(date)
     addiu $2, $2, %lo(date)
-      ld  $2, 0($2)   // the correct one is   ld  $2, 8($2)
+    ld  $2, 0($2)   // the correct one is   ld  $2, 8($2)
     st  $2, 4($fp)
     lui $2, %hi(a)
     addiu $2, $2, %lo(a)
