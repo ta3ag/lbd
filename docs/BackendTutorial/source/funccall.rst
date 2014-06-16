@@ -188,7 +188,7 @@ Load incoming arguments from stack frame
 
 From last section, to support function call, we need implementing the arguments 
 pass mechanism with stack frame. Before do that, let's run the old version of 
-code Chapter8_1/ with ch9_1.cpp and see what happens.
+code Chapter8_2/ with ch9_1.cpp and see what happens.
 
 .. code-block:: bash
 
@@ -208,7 +208,7 @@ code Chapter8_1/ with ch9_1.cpp and see what happens.
   '@_Z5sum_iiiiiii'
   Illegal instruction: 4
 
-Since Chapter8_1/ define the LowerFormalArguments() with empty, we get the error 
+Since Chapter8_2/ define the LowerFormalArguments() with empty, we get the error 
 message as above. 
 Before define LowerFormalArguments(), we have to choose how to pass arguments 
 in function call. We choose pass arguments all in stack frame. 
@@ -241,16 +241,15 @@ for cpu0 passing rule as follows,
   ]>;
 
 
-As above, CC_Cpu0 is the cpu0 Calling Convention which delegate to CC_Cpu0EABI 
-and define the CC_Cpu0EABI. 
+As above, CC_Cpu0 is the cpu0 Calling Convention which delegate to CC_Cpu0EABI. 
 The reason we don't define the Calling Convention directly in CC_Cpu0 is that 
-a real general CPU like Mips can have several Calling Convention. 
+a real general CPU like Mips can has several Calling Convention. 
 Combine with the mechanism of "section Target Registration" [#]_ which llvm 
-supplied, we can use different Calling Convention in  different target. 
-Although cpu0 only have a Calling Convention right now, define with a dedicate 
+supplied, we can use different Calling Convention in different target. 
+Although cpu0 only has a Calling Convention right now, define with a dedicate 
 Call Convention name (CC_Cpu0EABI in this example) is a better solution for 
-system expand, and naming your Calling Convention. CC_Cpu0EABI as above, say it 
-pass arguments in stack frame.
+system expand. CC_Cpu0EABI as above, say it pass arguments in stack frame, 
+and allow Cpu0 have another ABI for passing first 4 registers in future.
 
 Function LowerFormalArguments() charge function incoming arguments creation. 
 We define it as follows,
@@ -297,17 +296,17 @@ function call and we use the stack frame only for arguments passing without
 any arguments pass in registers. 
 So ArgLocs.size() is 6, each argument information is in ArgLocs[i] and 
 ArgLocs[i].isMemLoc() is true. 
-In **“for loop”**, it create each frame index object by LastFI = 
+In **“for loop”**, it creates each frame index object by LastFI = 
 MFI->CreateFixedObject(ValVT.getSizeInBits()/8,VA.getLocMemOffset(), true) and 
 FIN = DAG.getFrameIndex(LastFI, getPointerTy()). 
-And then create IR DAG load node and put the load node into vector InVals by 
+And then creates IR DAG load node and puts the load node into vector InVals by 
 InVals.push_back(DAG.getLoad(ValVT, DL, Chain, FIN, 
 MachinePointerInfo::getFixedStack(LastFI), false, false, false, 0)). 
 Cpu0FI->setVarArgsFrameIndex(0) and Cpu0FI->setLastInArgFI(LastFI) are called 
-when before and after above work. In ch9_1.cpp example, LowerFormalArguments() 
+when before and after above work. In example ch9_1.cpp, LowerFormalArguments() 
 will be called twice. First time is for sum_i() which will create 6 load DAG 
 for 6 incoming arguments passing into this function. 
-Second time is for main() which didn't create any load DAG for no incoming 
+Second time is for main() which won't create any load DAG for no incoming 
 argument passing into main(). 
 In addition to LowerFormalArguments() which create the load DAG, we need to 
 define the loadRegFromStackSlot() to issue the machine instruction 
