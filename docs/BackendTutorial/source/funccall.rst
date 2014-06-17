@@ -285,10 +285,10 @@ We define it as follows,
 
 Refresh "section Global variable" [#]_, we handled global 
 variable translation by create the IR DAG in LowerGlobalAddress() first, and 
-then do the Instruction Selection by their corresponding machine instruction 
-DAG in Cpu0InstrInfo.td. 
+then finish the Instruction Selection according their corresponding machine 
+instruction DAG in Cpu0InstrInfo.td. 
 LowerGlobalAddress() is called when ``llc`` meet the global variable access. 
-LowerFormalArguments() work with the same way. 
+LowerFormalArguments() work in the same way. 
 It is called when function is entered. 
 It get incoming arguments information by CCInfo(CallConv,..., ArgLocs, ...) 
 before enter **“for loop”**. In ch9_1.cpp, there are 6 arguments in sum_i(...) 
@@ -303,12 +303,13 @@ And then creates IR DAG load node and puts the load node into vector InVals by
 InVals.push_back(DAG.getLoad(ValVT, DL, Chain, FIN, 
 MachinePointerInfo::getFixedStack(LastFI), false, false, false, 0)). 
 Cpu0FI->setVarArgsFrameIndex(0) and Cpu0FI->setLastInArgFI(LastFI) are called 
-when before and after above work. In example ch9_1.cpp, LowerFormalArguments() 
+when before and after above work. 
+For example code ch9_1.cpp, LowerFormalArguments() 
 will be called twice. First time is for sum_i() which will create 6 load DAG 
 for 6 incoming arguments passing into this function. 
 Second time is for main() which won't create any load DAG for no incoming 
 argument passing into main(). 
-In addition to LowerFormalArguments() which create the load DAG, we need to 
+In addition to LowerFormalArguments() which creates the load DAG, we need to 
 define the loadRegFromStackSlot() to issue the machine instruction 
 **“ld $r, offset($sp)”** to load incoming arguments from stack frame offset.
 GetMemOperand(..., FI, ...) return the Memory location of the frame index 
@@ -335,8 +336,8 @@ variable, which is the offset.
                                       const TargetRegisterInfo *TRI) const;
 
 In addition to Calling Convention and LowerFormalArguments(), Chapter9_1/ add the 
-following code for Cpu0 instructions **swi** (Software Interrupt), **jsub** and 
-**jalr** (function call) definition and printing.
+following code for the instruction selection and printing of Cpu0 instructions 
+**swi** (Software Interrupt), **jsub** and **jalr** (function call).
     
 .. rubric:: lbdex/Chapter9_1/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -562,10 +563,10 @@ The code tells TableGen generate pattern match pattern to match the "imm" for
 "tglobaladdr" pattern first. If it fails then try to match "texternalsym" next.
 The function you declared is "tglobaladdr", the function which implicit used by
 llvm most are "texternalsym" such as "memcpy". The "memcpy" will be generated
-when define a long string. The ch9_1_2.cpp is an example to generate "memcpy"
-function call. It will be shown in next section of Chapter9_2 example code.
-Even though SWI have no chance to match in C/C++ language. We define it for easy
-to implement assembly parser which introduced in Chapter 11. This
+when define a long string. The ch9_1_2.cpp is an example for generating "memcpy"
+function call. It will be shown in next section with Chapter9_2 example code.
+Even though SWI have no chance to be matched in C/C++ language. We define it 
+for implementing assembly parser easier which introduced in Chapter 11. This
 SWI definition will save us to implement the assembly parser for this
 instruction. TableGen will generate information for SWI instruction in assembly
 and ELF obj encode automatically. The Cpu0GenDAGISel.inc contains the TablGen
@@ -655,7 +656,7 @@ the correct number of values!
 Store outgoing arguments to stack frame
 ----------------------------------------
 
-:num:`Figure #funccall-f2` depicted two steps to take care arguments passing. 
+:num:`Figure #funccall-f2` depicts two steps to take care arguments passing. 
 One is store outgoing arguments in caller function, and the other is load 
 incoming arguments in callee function. 
 We defined LowerFormalArguments() for **“load incoming arguments”** in callee 
@@ -683,13 +684,14 @@ Just like load incoming arguments from stack frame, we call
 CCInfo(CallConv,..., ArgLocs, ...) to get outgoing arguments information before 
 enter **“for loop”** and set stack alignment with 8 bytes. 
 They're almost same in **“for loop”** with LowerFormalArguments(), except 
-LowerCall() create store DAG vector instead of load DAG vector. 
+LowerCall() creates store DAG vector instead of load DAG vector. 
 After the **“for loop”**, it create **“ld $t9, %call16(_Z5sum_iiiiiii)($gp)”** 
 and jalr $t9 for calling subroutine (the $6 is $t9) in PIC mode.
 DAG.getCALLSEQ_START() and DAG.getCALLSEQ_END() are set before the 
-**“for loop”** and after call subroutine, they insert CALLSEQ_START, 
-CALLSEQ_END, and translate into pseudo machine instructions !ADJCALLSTACKDOWN, 
-!ADJCALLSTACKUP later according Cpu0InstrInfo.td definition as follows.
+**“for loop”** and after call subroutine, respectively, they insert 
+CALLSEQ_START, CALLSEQ_END, and translate them into pseudo machine instructions 
+!ADJCALLSTACKDOWN, !ADJCALLSTACKUP later according Cpu0InstrInfo.td definition 
+as follows.
 
 .. rubric:: lbdex/Chapter9_2/Cpu0InstrInfo.td
 .. code-block:: c++
@@ -951,9 +953,9 @@ follows,
     ...
 
 
-The "isTailCall = false;" set in LowerCall() of Cpu0ISelLowering.cpp meaning Cpu0 
-don't support tail call optimization at this moment. About tail call 
-optimization please reference [#]_.
+The "isTailCall = false;" which set in LowerCall() of Cpu0ISelLowering.cpp 
+meaning Cpu0 don't support tail call optimization at this moment. 
+About tail call optimization please reference [#]_.
 
 
 Fix issues
@@ -1008,7 +1010,8 @@ Summary the issues for the code generated as above and in last section as follow
 
 1. It store the arguments to wrong offset. 
 2. !ADJCALLSTACKUP and !ADJCALLSTACKDOWN.
-3. The $gp is caller saved register. The caller main() didn't save $gp will has
+3. The $gp is caller saved register. The caller main() hasn't save $gp before 
+   calling sum_i() which will has
    bug if the callee sum_i() has changed $gp. Programmer can change $gp with 
    assembly code in sum_i().
 4. Return value of main().
@@ -1069,7 +1072,7 @@ arguments into spOffset($sp) (Chapter9_2/ set them to pOffset+stackSize($sp).
 
 
 Run Chapter9_3/ with ch9_1.cpp will get the following result. 
-It correct arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to 
+It corrects arguements offset im main() from (0+40)$sp, (8+40)$sp, ..., to 
 (0)$sp, (8)$sp, ..., where the stack size is 40 in main().
 
 .. code-block:: bash
@@ -1149,7 +1152,7 @@ function and define eliminateCallFramePseudoInstr() as follows,
   }
 
 With above definition, eliminateCallFramePseudoInstr() will be called when 
-llvm meet pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP. 
+llvm meets pseudo instructions ADJCALLSTACKDOWN and ADJCALLSTACKUP. 
 We just discard these 2 pseudo instructions. 
 Run Chapter9_3/ with ch9_1.cpp will discard these two Pseudo hook instructions.
 
@@ -1165,7 +1168,7 @@ Share library include a lots of dynamic link functions usually can be loaded
 at run time. 
 Since share library can be loaded in different memory address, the global 
 variable address it access cannot be decided at link time. 
-But, we can caculate the distance between the global variable address and 
+But, we still can caculate the distance between the global variable address and 
 the start address of shared library function when it be loaded.
 
 Let's run Chapter9_3/ with ch9_1.cpp to get the following correct result. 
@@ -1230,10 +1233,10 @@ In _Z5sum_iiiiiii() function, we translate global variable gI address by
 According the original cpu0 web site information, it only support **“jsub”** 24 
 bits address range access. 
 We add **“jalr”** to cpu0 and expand it to 32 bit address. We did this change for 
-two reason. One is cpu0 can be expand to 32 bit address space by only add this 
-instruction. 
+two reasons. One is cpu0 can be expanded to 32 bit address space by only adding 
+this instruction. 
 The other is cpu0 as well as this book are designed for teaching purpose. 
-We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrate: 
+We reserve **“jalr”** as PIC mode for dynamic linking function to demonstrates: 
 
 1. How caller handle the caller saved register $gp in calling the function
 
