@@ -81,7 +81,7 @@ bool Inserter::runOnMachineFunction(MachineFunction &F) {
       }
 
       DebugLoc dl = I->getDebugLoc();
-      // emit lw $gp, ($gp save slot on stack) after jalr
+      // emit ld $gp, ($gp save slot on stack) after jalr
       BuildMI(MBB, ++I, dl, TII->get(Cpu0::LD), Cpu0::GP).addFrameIndex(FI)
                                                          .addImm(0);
       Changed = true;

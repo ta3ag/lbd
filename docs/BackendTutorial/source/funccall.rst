@@ -1373,7 +1373,7 @@ after jalr by create file Cpu0EmitGPRestore.cpp which run as a function pass.
 
 The added code of Cpu0AsmPrinter.cpp as above will call the LowerCPRESTORE() when 
 user run with ``llc -filetype=obj``. 
-The added code of Cpu0MCInstLower.cpp as above take care the .cprestore machine 
+The added code of Cpu0MCInstLower.cpp as above takes care the .cprestore machine 
 instructions.
 
 .. code-block:: bash
@@ -2111,7 +2111,7 @@ List the code and their effect as follows,
 The ch9_2_2.cpp include C++ class "Date" implementation. 
 It can be translated into cpu0 backend too since the front end (clang in this 
 example) translate them into C language form.
-You can also mark the "hasStructRetAttr() if" part from both of above functions, 
+If you mark the "hasStructRetAttr() if" part from both of above functions, 
 the output cpu0 code for ch9_2_1.cpp will use $3 instead of $2 as return 
 register as follows,
 
@@ -2161,7 +2161,7 @@ Variable number of arguments
 
 Until now, we support fixed number of arguments in formal function definition 
 (Incoming Arguments). 
-This section support variable number of arguments since C language support 
+This subsection support variable number of arguments since C language support 
 this feature.
 
 Run Chapter9_4/ with ch9_3.cpp as well as clang option, 
@@ -2277,7 +2277,7 @@ Run Chapter9_4/ with ch9_3.cpp as well as clang option,
 The analysis of output ch9_3.cpu0.s as above in comment. 
 As above code, in # BB#0, we get the first argument **“amount”** from 
 **“ld $2, 24($sp)”** since the stack size of the callee function 
-**“_Z5sum_iiz()”** is 24. And set argument pointer, arg_ptr, to 28($sp), 
+**“_Z5sum_iiz()”** is 24. And then set argument pointer, arg_ptr, to 28($sp), 
 &arg[1]. 
 Next, check i < amount in block $BB0_1. If  i < amount, than enter into $BB0_2. 
 In $BB0_2, it do sum += \*arg_ptr as well as arg_ptr+=4.
@@ -2379,7 +2379,8 @@ backend code too.
     :start-after: /// start
 
 Mips qemu reference [#]_, you can download and run it with gcc to verify the 
-result with printf() function. We will verify the code correction in chapter 
+result with printf() function at this point. 
+We will verify the code correction in chapter 
 "Run backend" through the CPU0 Verilog language machine.
 
 
@@ -2584,19 +2585,20 @@ Run Chapter9_4 with ch9_4.cpp will get the following correct result.
   	.cfi_endproc
   ...
 
-As you can see, the dynamic stack allocation need frame pointer register **fp**
-support. As :num:`Figure #funccall-f4`, the sp is adjusted to sp - 56 when it 
+As you can see, the dynamic stack allocation needs frame pointer register **fp**
+support. As :num:`Figure #funccall-f4`, the sp is adjusted to (sp - 56) when it 
 entered the function as usual by instruction **addiu $sp, $sp, -56**. 
 Next, the fp is set to sp where is the position just above alloca() spaces area 
 when meet instruction **addu $fp, $sp, $zero**. 
-After that, the sp is changed to the just below of alloca() area.
+After that, the sp is changed to the area just below of alloca().
 Remind, the alloca() area which the b point to, 
-**"*b = (int*)alloca(sizeof(int) * x1)"** is 
+**"*b = (int*)alloca(sizeof(int) * x1)"**, is 
 allocated at run time since the spaces is variable size which depend on x1 
 variable and cannot be calculated at link time. 
 
 :num:`Figure #funccall-f5` depicted how the stack pointer changes back to the 
-caller stack bottom. As above, the **fp** is set to the just above of alloca(). 
+caller stack bottom. As above, the **fp** is set to the address just above of 
+alloca(). 
 The first step is changing the sp to fp by instruction **addu $sp, $fp, $zero**.
 Next, sp is changed back to caller stack bottom by instruction 
 **addiu $sp, $sp, 56**.
@@ -2628,8 +2630,10 @@ Next, sp is changed back to caller stack bottom by instruction
 
     fp and sp access areas
 
-Use fp to keep the old stack pointer value is not necessary. Actually, the sp 
-can back to the the old sp by add the alloca() spaces size. Most ABI like Mips
+Use fp to keep the old stack pointer value is not the only solution. 
+Actually, we can keep the alloca() spaces size on a specific memory address 
+and the sp can back to the the old sp by add the alloca() spaces size. 
+Most ABI like Mips
 and ARM access the above area of alloca() by fp and the below area of alloca()
 by sp, as :num:`Figure #funccall-f6` depicted. The reason for this definition 
 is the speed for local variable access. Since the RISC CPU use immediate offset
@@ -2658,15 +2662,15 @@ code with taking three instructions only.
 With this 95% more of code, it can translate tens of instructions, global 
 variable, control flow statement and function call.
 Now the cpu0 backend is not just a toy. 
-It can translate the C++ OOP language into Cpu0 instructions without much 
-effort.
+It can translate some of the C++ OOP language into Cpu0 instructions without 
+much effort in backend.
 Because the most complex things in language, such as C++ syntex, is handled by 
 front end. 
-LLVM is an real structure following the compiler theory, any backend of LLVM can 
+LLVM is a real structure following the compiler theory, any backend of LLVM can 
 benefit from this structure.
-A couple of thousands lines of code make OOP language translated into your backend.
-And your backend will grow up automatically through the front end support languages 
-more and more.
+The best part of 3 tiers compiler structure is the backend will grow up 
+automatically through the front end support languages more and more if the 
+front end has not add any new IR for a new language.
 
 
 .. [#] http://jonathan2251.github.io/lbd/ctrlflow.html#risc-cpu-knowledge
