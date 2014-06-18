@@ -45,7 +45,7 @@ With this tool, you can verify your generated ELF format.
 The cpu0 author has published a “System Software” book which introduce the 
 topics 
 of assembler, linker, loader, compiler and OS in concept, and at same time 
-demonstrate how to use binutils and gcc to analysis ELF through the example 
+demonstrates how to use binutils and gcc to analysis ELF through the example 
 code in his book. 
 It's a Chinese book of “System Software” in concept and practice. 
 This book does the real analysis through binutils. 
