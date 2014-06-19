@@ -19,7 +19,7 @@ But we didn't dig into the ELF file format like elf header and relocation
 record at that time. 
 This chapter will use the binutils which has been installed in 
 "sub-section Install other tools on iMac" of Appendix A: “Installing LLVM” 
-[#]_ to analysis cpu0 ELF file. 
+[#]_ to check the generated cpu0 ELF file. 
 You will learn the objdump, readelf, ..., tools and understand the ELF file 
 format itself through using these tools to analyze the cpu0 generated obj in 
 this chapter. 
@@ -30,9 +30,10 @@ function support.
 Linux platform has binutils already and no need to install it further.
 We use Linux binutils in this chapter just because iMac will display Chinese 
 text. 
-The iMac corresponding binutils have no problem except it add g in command name. 
-For example, use gobjdump instead of objdump, and display with your area 
-language instead of pure English on iMac.
+The iMac corresponding binutils have no problem except it add g in command name 
+and and display with your area language instead of pure English on iMac. 
+For example, to use gobjdump instead of objdump and I have the result of 
+chinese language unicode display instead of pure English on my iMac.
 
 The binutils tool we use is not a part of llvm tools, but it's a powerful tool 
 in ELF analysis. 
@@ -42,7 +43,7 @@ An LLVM compiler engineer has the responsibility to analyze the ELF since
 the obj is need to be handled by linker or loader later. 
 With this tool, you can verify your generated ELF format.
  
-The cpu0 author has published a “System Software” book which introduce the 
+The cpu0 author has published a “System Software” book which introduces the 
 topics 
 of assembler, linker, loader, compiler and OS in concept, and at same time 
 demonstrates how to use binutils and gcc to analysis ELF through the example 
@@ -79,8 +80,8 @@ As :num:`Figure #elf-f1`, the “Section header table” include sections .text,
 ..., .data which are sections layout for code, read only data, ..., and 
 read/write data. 
 “Program header table” include segments for run time code and data. 
-The definition of segments is run time layout for code and data while sections 
-is link time layout for code and data.
+The definition of segments is the run time layout for code and data while sections 
+is the link time layout for code and data.
 
 ELF header and Section header table
 ------------------------------------
@@ -159,7 +160,7 @@ The result is in expectation because cpu0 obj is for link only, not for
 execution. 
 So, the segments is empty. 
 Check ELF sections information as follows. 
-Every section contain offset and size information.
+Every section contains offset and size information.
 
 .. code-block:: bash
 
@@ -329,11 +330,11 @@ translate **“.cpload %reg”** into the following.
   //  "addu  $gp, $gp, $t9"
 
 The _gp_disp value is determined by loader. So, it's undefined in obj. 
-You can find the Relocation Records for offset 0 and 4 of .text section 
+You can find both the Relocation Records for offset 0 and 4 of .text section 
 referred to _gp_disp value. 
 The offset 0 and 4 of .text section are instructions "lui $gp, %hi(_gp_disp)"
 and "addiu $gp, $gp, %lo(_gp_disp)" which their corresponding obj 
-encode are 0fa00000 and  09aa0000. 
+encode are 0fa00000 and  09aa0000, respectively. 
 The obj translate the %hi(_gp_disp) and %lo(_gp_disp) into 0 since when loader 
 load this obj into memory, loader will know the _gp_disp value at run time and 
 will update these two offset relocation records into the correct offset value. 
@@ -344,7 +345,7 @@ The instruction **“ld $2, %got(gI)($gp)”** is same since we don't know what 
 address of .data section variable will load to. 
 So, translate the address to 0 and made a relocation record on 0x00000020 of 
 .text section. Linker or Loader will change this address when this program is 
-linked or loaded depend on the program is static link or dynamic link.
+linked or loaded depends on the program is static link or dynamic link.
 
 
 Cpu0 ELF related files
@@ -352,9 +353,9 @@ Cpu0 ELF related files
 
 Files Cpu0ELFObjectWrite.cpp and Cpu0MC*.cpp are the files take care the obj 
 format. 
-Most obj code translation are defined by Cpu0InstrInfo.td and 
-Cpu0RegisterInfo.td. 
-With these td description, LLVM translate Cpu0 instruction into obj format 
+Most obj code translation about specific instructions are defined by 
+Cpu0InstrInfo.td and Cpu0RegisterInfo.td. 
+With these td description, LLVM translate Cpu0 instructions into obj format 
 automatically.
 
 
@@ -417,8 +418,9 @@ Let's run gobjdump and llvm-objdump commands as follows to see the differences.
   00000000         *UND*	00000000 _gp_disp
 
 
-The latter llvm-objdump can display the file format and relocation records 
-information since we add the relocation records information in ELF.h as follows, 
+The llvm-objdump can display the file format and relocation records information 
+well while the objdump cannot since we add the relocation records information 
+in ELF.h as follows, 
 
 .. rubric:: include/support/ELF.h
 .. code-block:: c++
@@ -551,20 +553,12 @@ To support llvm-objdump, the following code added to Chapter10_1/
            InstrItinClass itin, RegisterClass RC, RegisterClass RD, 
            bit isComm = 0>:
     FA<op, (outs RD:$rc), (ins RC:$ra, RC:$rb),
-     !strconcat(instr_asm, "\t$sw, $ra, $rb"), [], itin> {
+       !strconcat(instr_asm, "\t$rc, $ra, $rb"), [], itin> {
+    let rc = 0;
     ...
     let DecoderMethod = "DecodeCMPInstruction";
   }
-  ...
-  let isBranch=1, isTerminator=1, isBarrier=1, imm16=0, hasDelaySlot = 1,
-    isIndirectBranch = 1 in
-  class JumpFR<bits<8> op, string instr_asm, RegisterClass RC>:
-    FL<op, (outs), (ins RC:$ra),
-     !strconcat(instr_asm, "\t$ra"), [(brind RC:$ra)], IIBranch> {
-    let rb = 0;
-    let imm16 = 0;
-  }
-  
+  ...  
   let isCall=1, hasDelaySlot=0 in {
     class JumpLink<bits<8> op, string instr_asm>:
     FJ<op, (outs), (ins calltarget:$target, variable_ops),
@@ -585,8 +579,8 @@ To support llvm-objdump, the following code added to Chapter10_1/
 .. literalinclude:: ../../../lib/Target/Cpu0/Disassembler/Cpu0Disassembler.cpp
   
 
-As above code, it add directory Disassembler for handling the obj to assembly 
-code reverse translation. So, add Disassembler/Cpu0Disassembler.cpp and modify 
+As above code, it adds directory Disassembler to handle the reverse translation 
+of obj to assembly. So, add Disassembler/Cpu0Disassembler.cpp and modify 
 the CMakeList.txt and LLVMBuild.txt to build with directory Disassembler and 
 enable the disassembler table generated by "has_disassembler = 1". 
 Most of code is handled by the table of \*.td files defined. 
@@ -598,10 +592,10 @@ In Cpu0 example, we define function DecodeCMPInstruction(), DecodeBranch24Target
 and DecodeJumpAbsoluteTarget() in Cpu0Disassembler.cpp and tell the LLVM table 
 driven system by write **"let DecoderMethod = ..."** in the corresponding 
 instruction definitions or ISD node of Cpu0InstrInfo.td. 
-LLVM will call these DecodeMethod when user use Disassembler job in tools, like 
-``llvm-objdump -d``.
+LLVM will call these DecodeMethod when user use Disassembler job in tools, such  
+as ``llvm-objdump -d``.
 You can check the comments above these DecodeMethod functions to see how it 
-work.
+works.
 For the CMP instruction, according the definiton of CmpInstr<...> in 
 Cpu0InstrInfo.td, the assembler will print as $sw, $ra, $rb. ($sw is a 
 fixed name operand and won't exists in instruction), and encode as "10230000" 
@@ -636,14 +630,14 @@ $sw as implicit operand (not shown) in assembly form as follows,
 
 It will display as "cmp $ra, $rb" in assembly form.
 
-The RET (Cpu0ISD::Ret) and JR (ISD::BRIND) are both for "ret" instruction. 
+The RetLR (Cpu0ISD::Ret) and JR (ISD::BRIND) are both for "ret" instruction. 
 The former is for instruction encode in assembly and obj while the latter is 
 for decode in disassembler. 
 The IR node Cpu0ISD::Ret is created in LowerReturn() which called at function 
-exit point.
+exit point. The details is explained in Chapter 3 here [#]_.
 
-Finally cpu032II include all cpu032I instruction set and add some 
-instrucitons. When ``llvm-objdump -d`` invoked, function ParseCpu0Triple() as 
+Finally cpu032II include all cpu032I instruction set and adds some instrucitons. 
+When ``llvm-objdump -d`` is invoked, function ParseCpu0Triple() as 
 the following will be called. Not like ``llc -mcpu=cpu032I`` can set mcpu type,
 so the varaible CPU in ParseCpu0Triple() is empty when invoked by 
 ``llvm-objdump -d``. Set Cpu0ArchFeature to "+cpu032II" than it can disassemble 
@@ -812,4 +806,6 @@ the following result.
 .. [#] http://ccckmit.wikidot.com/lk:objfile
 
 .. [#] http://ccckmit.wikidot.com/lk:elf
+
+.. [#] http://jonathan2251.github.io/lbd/backendstructure.html#handle-return-register-lr
 
