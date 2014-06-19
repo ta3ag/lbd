@@ -92,7 +92,7 @@ down for each type of instruction.
   Cpu0's three instruction formats
 
 The Cpu0 has two ISA, the first ISA-I is cpu032I which hired CMP instruction 
-from ARM; the second ISA-II is cpu032II which hire SLT instruction from Mips. 
+from ARM; the second ISA-II is cpu032II which hired SLT instruction from Mips. 
 The cpu032II include all cpu032I instruction set and add SLT, BEQ, ..., 
 instructions. The main purpose to add cpu032II is for instruction set design 
 explanation. As you will see in later chapter, the SLT instruction will has 
@@ -1527,9 +1527,9 @@ Following is the llvm SSA instructions.
 
 We explain the code generation process as below. 
 If you don't feel comfortable, please check tricore_llvm.pdf section 4.2 first. 
-You can  read “The LLVM Target-Independent Code Generator” from here [#codegen]_ 
+You can read “The LLVM Target-Independent Code Generator” from here [#codegen]_ 
 and “LLVM Language Reference Manual” from here [#langref]_ 
-before go ahead, but we think read section 
+before go ahead, but we think the section 
 4.2 of tricore_llvm.pdf is enough and suggesting you read the web site 
 documents as above only when you are still not 
 quite understand, even if you have read the articles of this section and 
@@ -1588,26 +1588,26 @@ next 2 sections for DAG and Instruction Selection.
 
 3. SSA-based Machine Code Optimization
 
-    For example, common expression remove, shown in next section DAG.
+   For example, common expression remove, shown in next section DAG.
   
 4. Register Allocation
 
-    Allocate real register for virtual register.
+   Allocate real register for virtual register.
   
 5. Prologue/Epilogue Code Insertion
 
-    Explain in section Add Prologue/Epilogue functions
+   Explain in section Add Prologue/Epilogue functions
   
 6. Late Machine Code Optimizations
 
-    Any “last-minute” peephole optimizations of the final machine code can be 
-    applied during this phase. 
-    For example, replace x = x * 2 by x = x < 1 for integer operand.
+   Any “last-minute” peephole optimizations of the final machine code can be 
+   applied during this phase. 
+   For example, replace x = x * 2 by x = x < 1 for integer operand.
   
 7. Code Emission
-    Finally, the completed machine code is emitted. For static compilation, 
-    the end result is an assembly code file; for JIT compilation, the opcodes 
-    of the machine instructions are written into memory. 
+   Finally, the completed machine code is emitted. For static compilation, 
+   the end result is an assembly code file; for JIT compilation, the opcodes 
+   of the machine instructions are written into memory. 
 
 The llvm code generation sequence also can be obtained by 
 ``llc -debug-pass=Structure`` as the following. The first 4 code generation 
@@ -1780,7 +1780,8 @@ DAG (Directed Acyclic Graph)
 ----------------------------
 
 Many important techniques for local optimization begin by transforming a basic 
-block into DAG [#dragonbooks-8.5]_. For example, the basic block code and it's corresponding DAG as 
+block into DAG [#dragonbooks-8.5]_. 
+For example, the basic block code and it's corresponding DAG as 
 :num:`Figure #llvmstructure-f10`.
 
 .. _llvmstructure-f10: 
@@ -1789,8 +1790,8 @@ block into DAG [#dragonbooks-8.5]_. For example, the basic block code and it's c
 
   DAG example
 
-If b is not live on exit from the block, then we can do common expression 
-remove to get the following code.
+If b is not live on exit from the block, then we can do "common expression 
+remove" to get the following code.
 
 .. code-block:: c++
 
@@ -1798,7 +1799,7 @@ remove to get the following code.
   d = a – d
   c = d + c
 
-As you can imagine, the common expression remove can apply in IR or machine 
+As you can imagine, the "common expression remove" can apply in IR or machine 
 code.
 
 DAG like a tree which opcode is the node and operand (register and 
