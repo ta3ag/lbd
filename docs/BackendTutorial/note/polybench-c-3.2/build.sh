@@ -15,7 +15,8 @@ DATASET=LARGE_DATASET
 
 if [ ${BUILD_ARM} == 1 ]; then
 CPU="-mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon"
-LLVM_INSTALL=~/test/polly/llvm_arm_build
+LLVM_INSTALL=~/test/0618-polly/llvm_arm_build
+#LLVM_INSTALL=~/test/polly/llvm_arm_build
 else
 CPU=""
 LLVM_INSTALL=~/test/0618-polly/llvm_build
