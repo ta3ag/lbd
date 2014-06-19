@@ -9,24 +9,30 @@ BUILD_ARM=0
 #DUMP="-DPOLYBENCH_DUMP_ARRAYS"
 DUMP=""
 
+#DATASET=SMALL_DATASET
+#DATASET=STANDARD_DATASET
+DATASET=LARGE_DATASET
+
 if [ ${BUILD_ARM} == 1 ]; then
 CPU="-mcpu=cortex-a9 -mfloat-abi=hard -mfpu=neon"
 LLVM_INSTALL=~/test/polly/llvm_arm_build
 else
 CPU=""
-#LLVM_INSTALL=~/test/0409-polly/llvm_build
-LLVM_INSTALL=~/test/polly/llvm_build
+LLVM_INSTALL=~/test/0618-polly/llvm_build
+#LLVM_INSTALL=~/test/0417-polly/llvm_build
+#LLVM_INSTALL=~/test/polly/llvm_build
 fi
 
-CFLAG="-O3 -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -DLARGE_DATASET ${DUMP} ${CPU}"
-PCFLAG="-O3 -mllvm -polly -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -DLARGE_DATASET ${DUMP} ${CPU}"
-PCFLAGOMP="-O3 -mllvm -polly -mllvm -enable-polly-openmp -lgomp -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -DLARGE_DATASET ${DUMP} ${CPU}"
+CFLAG="-O3 -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -D${DATASET} ${DUMP} ${CPU}"
+PCFLAG="-O3 -mllvm -polly -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -D${DATASET} ${DUMP} ${CPU}"
+PCFLAGOMP="-O3 -mllvm -polly -mllvm -enable-polly-openmp -lgomp -mllvm -polly-ignore-aliasing -I utilities -I datamining/covariance utilities/polybench.c -DPOLYBENCH_TIME -DPOLYBENCH_USE_SCALAR_LB -D${DATASET} ${DUMP} ${CPU}"
 
 pollycc="${LLVM_INSTALL}/bin/clang -Xclang -load -Xclang ${LLVM_INSTALL}/lib/LLVMPolly.so"
 
 ${LLVM_INSTALL}/bin/clang ${CFLAG} datamining/covariance/covariance.c -o polybench/covariance
 
 ${LLVM_INSTALL}/bin/clang ${CFLAG} linear-algebra/kernels/2mm/2mm.c -o polybench/2mm
+${LLVM_INSTALL}/bin/clang ${CFLAG} linear-algebra/kernels/2mm/ex11_41.c -o polybench/ex11_41
 ${LLVM_INSTALL}/bin/clang ${CFLAG} linear-algebra/kernels/3mm/3mm.c -o polybench/3mm
 ${LLVM_INSTALL}/bin/clang ${CFLAG} linear-algebra/kernels/atax/atax.c -o polybench/atax
 ${LLVM_INSTALL}/bin/clang ${CFLAG} linear-algebra/kernels/bicg/bicg.c -o polybench/bicg
@@ -63,6 +69,7 @@ ${LLVM_INSTALL}/bin/clang ${CFLAG} stencils/seidel-2d/seidel-2d.c -o polybench/s
 ${pollycc} ${PCFLAG} datamining/covariance/covariance.c -o polybench/covariance.tile
 
 ${pollycc} ${PCFLAG} linear-algebra/kernels/2mm/2mm.c -o polybench/2mm.tile
+${pollycc} ${PCFLAG} linear-algebra/kernels/2mm/ex11_41.c -o polybench/ex11_41.tile
 ${pollycc} ${PCFLAG} linear-algebra/kernels/3mm/3mm.c -o polybench/3mm.tile
 ${pollycc} ${PCFLAG} linear-algebra/kernels/atax/atax.c -o polybench/atax.tile
 ${pollycc} ${PCFLAG} linear-algebra/kernels/bicg/bicg.c -o polybench/bicg.tile
@@ -100,6 +107,7 @@ ${pollycc} ${PCFLAG} stencils/seidel-2d/seidel-2d.c -o polybench/seidel-2d.tile
 ${pollycc} ${PCFLAGOMP} datamining/covariance/covariance.c -o polybench/covariance.tile.parallel
 
 ${pollycc} ${PCFLAGOMP} linear-algebra/kernels/2mm/2mm.c -o polybench/2mm.tile.parallel
+${pollycc} ${PCFLAGOMP} linear-algebra/kernels/2mm/ex11_41.c -o polybench/ex11_41.tile.parallel
 ${pollycc} ${PCFLAGOMP} linear-algebra/kernels/3mm/3mm.c -o polybench/3mm.tile.parallel
 ${pollycc} ${PCFLAGOMP} linear-algebra/kernels/atax/atax.c -o polybench/atax.tile.parallel
 ${pollycc} ${PCFLAGOMP} linear-algebra/kernels/bicg/bicg.c -o polybench/bicg.tile.parallel
@@ -134,6 +142,6 @@ ${pollycc} ${PCFLAGOMP} stencils/seidel-2d/seidel-2d.c -o polybench/seidel-2d.ti
 
 if [ ${BUILD_ARM} == 1 ]; then
 tar -cf polybench.tar polybench
-scp run.sh polybench.tar root@10.19.132.196:/root/cschen/
+scp run.sh polybench.tar root@10.19.132.177:/root/cschen/
 fi
 

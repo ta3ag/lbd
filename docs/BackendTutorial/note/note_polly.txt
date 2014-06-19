@@ -17,8 +17,10 @@ http://comments.gmane.org/gmane.comp.compilers.llvm.devel/60547
 Polly-basic:  clang -Xclang -load -Xclang LLVMPolly.so -O3  (! load polly but no use of polly optimization)
 Polly-optimize: clang -Xclang -load -Xclang LLVMPolly.so -mllvm -polly -O3 (use polly optimization)
 
-5. Run polly_cschen.sh to get llvm/clang/polly source and build it on dir llvm_build.
-   Run polly_cschen_arm.sh to build it with llvm arm toolchain on dir llvm_arm_build.
+5. Build by polly_cschen.sh and polly_cschen_arm.sh in directory polybench-c-3.2/.
+   Run with command, ./polly_cschen.sh to get llvm/clang/polly source and build it on dir llvm_build.
+   Run with command, ./polly_cschen_arm.sh to build it with llvm arm toolchain on dir llvm_arm_build.
+
 6. Run example code for polly and compare the result with non-polly as the following commands
   cd polly_ex && ./runtime.sh  // for PC/X86
 
@@ -63,4 +65,12 @@ http://polly.llvm.org/publications/grosser-diploma-thesis.pdf
 
 9. Gcc option -floop-strip-mine is for tiling.
   You may run man gcc | grep '\-floop\-strip\-mine' to check if that is a supported option.
+
+10. Copy as follows, then can run polly parallel with omp api.
+~/test/llvm-arm-toolchain/1$ scp ./Marvell_toolchain_2013_04_12/arm-marvell-linux-gnueabi-hard_x86_64/arm-marvell-linux-gnueabi/libc/lib/libgomp.so.1 root@10.19.132.177:/usr/lib/
+
+11. Change tile size in tools/polly/lib/ScheduleOptimizer.cpp,
+  static isl_basic_map *getTileMap(isl_ctx *ctx, int scheduleDimensions,
+                                   isl_space *SpaceModel, int tileSize = 32/*12*/);
+
 
