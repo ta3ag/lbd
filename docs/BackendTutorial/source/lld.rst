@@ -11,10 +11,32 @@ With these two tools supported, the program with global variables of existed in
 section .data and .rodata can be accessed and transfered to Hex file which feeds  
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
+As the previouse chapters mentioned, Cpu0 has two relocation models for static 
+link and dynamic link, respectively, which controlled by option 
+``-relocation-model`` in ``llc``. 
+This chapter supports the static link fully, and part of dynamic link for 
+demostration purpose. Since the dynamic link needs the OS involement and the 
+Cpu0 is run on Verilog bare metal simulate machine, the dynamic linker program 
+is added and the Cpu0 Verilog code is extended to demostrate these Cpu0 PIC mode 
+instructions are work for dynamice linker. 
+However, these part of Cpu0 Verilog codes are not needed in a real machine with 
+OS support.
+Moreover, the Cpu0 lld's and elf2hex's dynamic linker function is not full 
+implemented. 
+They are programmed by a specific shared library name since the shared library 
+locating needs the OS's help (files management is part of OS's job). 
+Without OS, these things cannot be solved and dynamic link is 
+impossible to finished.
+Anyway, for the dynamic link demostration, we can implement dynamic linker 
+program and adapt lld, elf2hex, and Cpu0 Verilog code to support a specific 
+shared library and verify the dynamic link result.
+In reality, the Micro CPUs without OS or tiny OS inside have supported static 
+link alone as well as almost support C language only.
+
 About lld please refer LLD web site here [#]_ and LLD install requirement on 
 Linux here [#]_. 
 Currently, lld can be built by gcc and clang 3.4 compiler on Ubuntu Linux and 
-gcc on Fedora Linux. 
+gcc on Fedora Linux as I have tried. 
 On iMac, lld can be built by clang with the OS X and Xcode version as the next 
 sub section.
 If you run with Virtual Machine (VM), please keep your phisical memory size 
@@ -24,12 +46,13 @@ setting over 1GB to avoid insufficient memory link error.
 Install lld and build with Cpu0 lld
 ------------------------------------
 
-LLD project is underdevelopment and can be compiled only with c++11 standard (C++
-2011 year announced standard). For iMac, our software is OS X version 10.9.1 and 
-Xcode version 5.0.2. For old iMac software version, you can install VM (such as 
-Virtual Box) and build lld as Linux platform. Please download lld from llvm web 
-[#]_ and put lld souce code on {llvm-src}/tools/lld as follows like we download 
-llvm and clang as shown in Appendex A.
+LLD project is underdevelopment and can be compiled only with c++11 standard 
+(C++2011 year announced standard). 
+For iMac, our software is OS X version 10.9.1 and Xcode version 5.0.2. 
+For old iMac software version, you can install VM (such as Virtual Box) and 
+build lld as Linux platform. Please download lld from llvm web [#]_ and put lld 
+souce code on {llvm-src}/tools/lld as follows just like we download llvm and 
+clang as shown in Appendex A.
 
 .. code-block:: bash
 
@@ -56,7 +79,8 @@ Next, copy lld Cpu0 architecture ELF support as follows,
   lbdex/Cpu0_lld/Targets.h .
 
 
-Finally, update llvm-objdump to support convert ELF file to Hex file as follows,
+Finally, update llvm-objdump to support converting ELF file to Hex file as 
+follows,
 
 .. code-block:: bash
 
@@ -82,7 +106,7 @@ Now, build llvm/lld with Cpu0 support as follows,
   -- Generating done
   -- Build files have been written to: /Users/Jonathan/llvm/test/cmake_debug_build
 
-If use VM (guest machine is Linux) or Linux, build as follows,
+If using VM (guest machine is Linux) or Linux, build as follows,
 
 .. code-block:: bash
 
@@ -212,7 +236,7 @@ LLD introduction
 
 In general, linker do the Relocation Records Resolve as Chapter ELF support 
 depicted and optimization for those cannot finish in compiler stage. One of 
-the optimization opportunities in linker is Dead Code Stripping which will 
+the optimization opportunities in linker is Dead Code Stripping which is 
 explained in this section. List the LLD project status as follows,
 
 - The lld project aims to to be the built-in linker for clang/llvm.
@@ -231,7 +255,7 @@ explained in this section. List the LLD project status as follows,
     =c++11 -DCMAKE_BUILD_TYPE=Debug -G "Unix Makefiles" ../src/
 
 
-This whole book focus on backend design, and this chapter is same. 
+This whole book focuses on backend design, and this chapter is same. 
 To help readers 
 understand the lld document, first we list the linking steps from lld web. 
 After that, explain each step with the class of source code and what kind of 
@@ -239,7 +263,7 @@ Cpu0 lld backend implementation needed in each step.
 Please read the lld design web document first (only a few pages), 
 http://lld.llvm.org/design.html, then reading the following to 
 ensure you agree to our understanding from lld design document.
-Because some of the following came from our understanding.
+Because some of the following come from our understanding.
 
 
 How LLD do the linker job
@@ -327,7 +351,7 @@ Linking Steps
 
 - Passes/Optimizations
 
-  - Like llvm passes, give the backend chance to do something like optimization. 
+  - Like llvm passes, give backend a chance to do something like optimization. 
 
 - Generate output file
 
@@ -458,11 +482,11 @@ Resolving
 
 - Dead code stripping (if requested) is done at the end of resolving. 
 
-- The linker does a simple mark-and-sweep. It starts with “root” atoms (like 
+- The linker does a simple mark-and-sweep. It starts with **“root”** atoms (like 
   “main” in a main executable) and follows each references and marks each Atom 
-  that it visits as “live”. 
+  that it visits as **“live”**. 
 
-- When done, all atoms not marked “live” are removed.
+- When done, all atoms not marked **“live”** are removed.
 
 .. rubric:: Dead code stripping - example (modified from llvm lto document web)
 
@@ -489,9 +513,10 @@ mark and swip in graph for Dead Code Stripping.
 As above example, the foo2() is an isolated node without any reference. It's 
 dead code and can be removed in linker optimization. We test this example by 
 build-ch13_1.sh and find foo2() cannot be removed. 
-There are two possibilities. One is we do not trigger lld dead code stripping 
-optimization in command (the default is not do it). The other is lld didn't 
-implement it at this point. It's reasonable since the 
+There are two possibilities for this situation. 
+One is we do not trigger lld dead code stripping 
+optimization in command (the default is not do it). The other is lld hasn't 
+implemented it yet at this point. It's reasonable since the 
 lld is in its early stages of development. We didn't dig it more, since the 
 Cpu0 backend tutorial just need a linker to finish Relocation Records Resolve 
 and see how it runs on PC.
@@ -525,9 +550,9 @@ Passes/Optimizations
 
   - compact unwind encoding (Darwin specific)
 
-The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example code for lld 
+The Cpu0RelocationPass.cpp and Cpu0RelocationPass.h are example codes for lld 
 backend Passes. The Relocation Pass structure shown as :num:`Figure #lld-f3`. 
-The Cpu0 backend has two Relocation Pass and both of them are children of 
+The Cpu0 backend has two Relocation Passes and both of them are children of 
 RelocationPass. The StaticRelocationPass is for static linker and 
 DynamicRelocationPass is for dynamic linker. We will see how to register a 
 relocation pass according the staic or dynamic linker you like to do in
@@ -540,13 +565,13 @@ next section.
 
   Cpu0 lld RelocationPass
 
-All lld backends which like to handle the Relocation 
+All lld backends which want to handle the Relocation 
 Records Resolve need to register a pass when the lld backend code is up.
 After register the pass, LLD will do last two 
 steps, Passes/Optimization and Generate Output file, interactivly just like the 
 "Parsing and Generating code" in compiler. 
 LLD will do Passes/Optimization and call your
-lld backend hook function "applyRelocation()" (define in 
+lld backend hook function "applyRelocation()" (defined in 
 Cpu0TargetRelocationHandler.cpp) to finish the address binding in linker stage.
 Based on this understanding, we believe the "applyRelocation()" is at the step 
 of Generate output file rather than Passes/Optimization even LLD web document 
@@ -675,20 +700,20 @@ will be called by lld driver to finish the address binding in linker stage.
   /*0ba8 */6c 64 21 00  25 73 0a 00   /*  ld!.\%s..*/
 
 As you can see, applyRelocation() get four values for the Relocation Records 
-Solving. When meet R_CPU0_LO16, targetVAddress is the only one value needed for 
+Solving. When meets R_CPU0_LO16, targetVAddress is the only one value needed for 
 this Relocation Solving in these four values. For this ch_hello.c example code, 
 the lld set the "Hello world!" string begin at 0x0b98+7=0x0b9f. 
 So, targetVAddress is 0x0b9f. 
-The instructions 
-"lui" and "addiu" at address 0x9f0 and 0x9f4 loading the address of 
-"Hello world!" string to register \$2. The "lui" got the HI 16 bits while the 
+These two instructions "lui" and "addiu" at address 0x9f0 and 0x9f4, 
+respectively, loading the address of "Hello world!" string to register \$2. 
+The "lui" got the HI 16 bits while the 
 "addiu" got the LO 16 bits of address of "Hello world!" string. This "lui" 
 Relocation Record, R_CPU0_HI16, is 0 since the HI 16 bits of 0xb9f is 0 while 
 the "addiu" Relocation Record, R_CPU0_LO16, is 0xb9f.
 The instruction "jsub" at 0xa0c is an instruction jump to printf(). 
 This instruction is a PC relative address Relocation Record, R_CPU0_PC24, 
 while the R_CPU0_LO16 is an absolute address Relocation Record. 
-To solve this Relocation Record, it need "location" in addition to 
+To solve this Relocation Record, it needs "location" in addition to 
 targetVAddress. In this case, the targetVAddress is 0xb4 where is the printf 
 subroutine start address and the location is 0xa0c since the 
 instruction "jsub" sit at this address. 
@@ -736,11 +761,9 @@ Run
 ~~~~
 
 File printf-stdarg.c came from internet download which is GPL2 license. GPL2 
-is more restricted than LLVM license. File printf-stdarg-2.cpp is modified from 
-main() function of printf-stdarg.c and add some test function for 
-/demo/verification/debugpurpose on Cpu0 backend. 
-File printf-stdarg-1.c is the file for testing the printf()
-function implemented on PC OS platform. Let's run printf-stdarg-2.cpp on Cpu0 and
+is more restricted than LLVM license. 
+File printf-stdarg-1.c is the file for testing the printf() function 
+implemented on PC OS platform. Let's run printf-stdarg-2.cpp on Cpu0 and
 compare with the result of printf() function which implemented by PC OS as 
 below.
 
@@ -1496,8 +1519,8 @@ to load la() function, run la() and back to bar() as :num:`Figure #lld-f11`.
 
   Call la through "Plt la:" in bar()
   
-The dynamic linker implementation usually is not specified in ABI. It need the 
-co-work between linker and dynamic linker/loader. It use the pointers (the area 
+The dynamic linker implementation usually is not specified in ABI. It needs the 
+co-work between linker and dynamic linker/loader. It uses the pointers (the area 
 from gp+16+1*4 to gp+16+(numDynEntry-1)*4). When the code is loaded, this 
 corresponding pointer in this area point to the loaded memory. Otherwise, it 
 point to dynamic linker. The Plt or __plt_Z3fooii, __pltZ3barv are coding in 
@@ -1521,10 +1544,13 @@ machine of PC without any real hardware to investment.
 If you like to pay money to buy the FPGA development hardware, we believe these 
 code can run on FPGA CPU even though we didn't do it.
 Extend system program toolchain to support a new CPU instructions can be 
-designed just like we show you at this point. 
+finished just like we show you at this point. 
+Even though the Cpu0 backend has not full support C++ well but we think it has 
+support the C and assembly to static link ELF format and even more to generate 
+hex file format to run on Verilog virutal machine.
 School knowledges of system program, compiler, linker, loader, computer 
 architecture and CPU design has been translated into a real work and see how it 
-is run. Now, these school books knowledge is not limited on paper. 
+is running. Now, these school books knowledge is not limited on paper. 
 We design it, program it, and run it on real world.
 
 The total code size of llvm Cpu0 backend compiler, Cpu0 lld linker, llvm-objdump 
