@@ -775,8 +775,8 @@ target description file is called Cpu0Other.td, which is shown below:
 Cpu0Other.td and Cpu0.td includes a few other .td files. 
 Cpu0RegisterInfo.td (shown below) describes the 
 Cpu0's set of registers.  In this file, we see that registers have been given names, i.e.
-``def PC`` indicates that there is a register called PC.  Also, there is a register class 
-named ``CPURegs`` that contains all of the other registers.  You may have multiple 
+**"def PC"** indicates that there is a register called PC.  Also, there is a register class 
+named **"CPURegs"** that contains all of the other registers.  You may have multiple 
 register classes (see the X86 backend, for example) which can help you if certain 
 instructions can only write to specific registers.  In this case, there is only one set 
 of general purpose registers for Cpu0, and some registers that are reserved so that they 
@@ -806,40 +806,40 @@ example:
   }; 
   Date birthday;  // define birthday, an instance of Date
 
-The class ``Date`` has the members ``year``, ``month``, and ``day``, however these do not  
-yet belong to an actual object.  By defining an instance of ``Date`` called ``birthday``, 
-you have allocated memory for a specific object, and can set the ``year``, ``month``, and 
-``day`` of this instance of the class.
+The class **Date** has the members **year**, **month**, and **day**, however these do not  
+yet belong to an actual object.  By defining an instance of **Date** called **birthday**, 
+you have allocated memory for a specific object, and can set the **year**, **month**, and 
+**day** of this instance of the class.
 
 In .td files, classes describe the structure of how data is laid out, while definitions 
 act as the specific instances of the classes.  If we look back at the Cpu0RegisterInfo.td 
-file, we see a class called ``Cpu0Reg<string n>`` which is derived from the 
-``Register<n>`` class provided by LLVM.  ``Cpu0Reg`` inherits all the fields that exist 
-in the ``Register`` class, and also adds a new field called ``Num`` which is four bits 
+file, we see a class called **Cpu0Reg<string n>** which is derived from the 
+**Register<n>** class provided by LLVM.  **Cpu0Reg** inherits all the fields that exist 
+in the **Register** class, and also adds a new field called **Num** which is four bits 
 wide.
 
-The ``def`` keyword is used to create instances of classes.  In the following line, the 
-ZERO register is defined as a member of the ``Cpu0GPRReg`` class:
+The **def** keyword is used to create instances of classes.  In the following line, the 
+ZERO register is defined as a member of the **Cpu0GPRReg** class:
 
 .. code-block:: c++
 
   def ZERO : Cpu0GPRReg< 0, "ZERO">, DwarfRegNum<[0]>;
 
-The ``def ZERO`` indicates the name of this register.  ``< 0, "ZERO">`` are the 
-parameters used when creating this specific instance of the ``Cpu0GPRReg`` class, thus 
-the four bit ``Num`` field is set to 0, and the string ``n`` is set to ``ZERO``.
+The **def ZERO** indicates the name of this register.  **< 0, "ZERO">** are the 
+parameters used when creating this specific instance of the **Cpu0GPRReg** class, thus 
+the four bit **Num** field is set to 0, and the string **n** is set to **ZERO**.
 
-As the register lives in the ``Cpu0`` namespace, you can refer to the ZERO register in 
-C++ code in a backend using ``Cpu0::ZERO``.
+As the register lives in the **Cpu0** namespace, you can refer to the ZERO register in 
+C++ code in a backend using **Cpu0::ZERO**.
 
 .. todo:: I might want to re-edit the following paragraph
 
-Notice the use of the ``let`` expressions: these allow you to override values that are 
-initially defined in a superclass. For example, ``let Namespace = “Cpu0”`` in the 
-``Cpu0Reg`` class will override the default namespace declared in ``Register`` class. 
-The Cpu0RegisterInfo.td also defines that ``CPURegs`` is an instance of the class 
-``RegisterClass``, which is an built-in LLVM class.  A ``RegisterClass`` is a set of 
-``Register`` instances, thus ``CPURegs`` can be described as a set of registers.
+Notice the use of the **let** expressions: these allow you to override values that are 
+initially defined in a superclass. For example, **let Namespace = “Cpu0”** in the 
+**Cpu0Reg** class will override the default namespace declared in **Register** class. 
+The Cpu0RegisterInfo.td also defines that **CPURegs** is an instance of the class 
+**RegisterClass**, which is an built-in LLVM class.  A **RegisterClass** is a set of 
+**Register** instances, thus **CPURegs** can be described as a set of registers.
 
 .. end editing 1/23
 
@@ -911,7 +911,7 @@ The Cpu0InstrFormats.td is included by Cpu0InstInfo.td as follows,
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0InstrFormats.td
     :start-after: // lbd document - mark - class Cpu0AsmPseudoInst
 
-
+  
 ADDiu is class ArithLogicI inherited from FL, can be expanded and get member 
 value as follows,
 
@@ -930,17 +930,14 @@ value as follows,
   
 So,
 
-op = 0x09
-
-instr_asm = “addiu”
-
-OpNode = add
-
-Od = simm16
-
-imm_type = immSExt16
-
-RC = CPURegs
+.. code-block:: c++
+  
+  op = 0x09
+  instr_asm = “addiu”
+  OpNode = add
+  Od = simm16
+  imm_type = immSExt16
+  RC = CPURegs
 
 Expand with FL further,
 
@@ -967,33 +964,27 @@ Expand with FL further,
   
 So,
 
-op = 0x09
+.. code-block:: c++
+  
+  op = 0x09
+  outs = GPROut:$ra
+  ins = CPURegs:$rb,simm16:$imm16
+  asmstr = "addiu\t$ra, $rb, $imm16"
+  pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
+  itin = IIAlu
 
-outs = GPROut:$ra
 
-ins = CPURegs:$rb,simm16:$imm16
+The members of FL are,
 
-asmstr = "addiu\t$ra, $rb, $imm16"
-
-pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
-
-itin = IIAlu
-
-Members are,
-
-ra = GPROut:$ra
-
-rb = CPURegs:$rb
-
-imm16 = simm16:$imm16
-
-Opcode = 0x09;
-
-Inst{23-20} = GPROut:$ra; 
-
-Inst{19-16} = CPURegs:$rb; 
-
-Inst{15-0}  = simm16:$imm16; 
+.. code-block:: c++
+  
+  ra = GPROut:$ra
+  rb = CPURegs:$rb
+  imm16 = simm16:$imm16
+  Opcode = 0x09;
+  Inst{23-20} = GPROut:$ra; 
+  Inst{19-16} = CPURegs:$rb; 
+  Inst{15-0}  = simm16:$imm16; 
 
 
 Expand with Cpu0Inst further,
@@ -1040,69 +1031,50 @@ Expand with Cpu0Inst further,
   
 So,
 
-outs = CPURegs:$ra
+.. code-block:: c++
+  
+  outs = CPURegs:$ra
+  ins = CPURegs:$rb,simm16:$imm16
+  asmstr = "addiu\t$ra, $rb, $imm16"
+  pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
+  itin = IIAlu
+  f =  FrmL
 
-ins = CPURegs:$rb,simm16:$imm16
+The members of Cpu0Inst are,
 
-asmstr = "addiu\t$ra, $rb, $imm16"
-
-pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
-
-itin = IIAlu
-
-f =  FrmL
-
-Members are,
-
-Inst{31-24} = 0x09; 
-
-OutOperandList = GPROut:$ra 
-
-InOperandList  = CPURegs:$rb,simm16:$imm16
-
-AsmString = "addiu\t$ra, $rb, $imm16"
-
-Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
-
-Itinerary = IIAlu
+.. code-block:: c++
+  
+  Inst{31-24} = 0x09; 
+  OutOperandList = GPROut:$ra 
+  InOperandList  = CPURegs:$rb,simm16:$imm16
+  AsmString = "addiu\t$ra, $rb, $imm16"
+  Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
+  Itinerary = IIAlu
   
 Summary with all members are, 
 
-// Inherited from parent like Instruction
-
-Namespace = "Cpu0";
-
-DecoderNamespace = "Cpu0";
-
-Inst{31-24} = 0x08; 
-
-Inst{23-20} = GPROut:$ra; 
-
-Inst{19-16} = CPURegs:$rb; 
-
-Inst{15-0}  = simm16:$imm16; 
-
-OutOperandList = CPURegs:$ra 
-
-InOperandList  = CPURegs:$rb,simm16:$imm16
-
-AsmString = "addiu\t$ra, $rb, $imm16"
-
-Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
-
-Itinerary = IIAlu
-
-// From Cpu0Inst
-
-Opcode = 0x09;
-
-// From FL
-
-ra = CPURegs:$ra
-
-rb = CPURegs:$rb
-
-imm16 = simm16:$imm16
+.. code-block:: c++
+  
+  // Inherited from parent like Instruction
+  Namespace = "Cpu0";
+  DecoderNamespace = "Cpu0";
+  Inst{31-24} = 0x08; 
+  Inst{23-20} = GPROut:$ra; 
+  Inst{19-16} = CPURegs:$rb; 
+  Inst{15-0}  = simm16:$imm16; 
+  OutOperandList = CPURegs:$ra 
+  InOperandList  = CPURegs:$rb,simm16:$imm16
+  AsmString = "addiu\t$ra, $rb, $imm16"
+  Pattern = [(set GPROut:$ra, (add RC:$rb, immSExt16:$imm16))]
+  Itinerary = IIAlu
+  
+  // From Cpu0Inst
+  Opcode = 0x09;
+  
+  // From FL
+  ra = CPURegs:$ra
+  rb = CPURegs:$rb
+  imm16 = simm16:$imm16
 
 It's a lousy process. 
 Similarly, LD and ST instruction definition can be expanded in this way. 
@@ -1170,7 +1142,7 @@ contents as follows,
 CMakeLists.txt is the make information for cmake and # is comment.
 LLVMBuild.txt files are written in a simple variant of the INI or configuration 
 file format. 
-Comments are prefixed by ``#`` in both files. 
+Comments are prefixed by **#** in both files. 
 We explain the setting for these 2 files in comments. 
 Please spend a little time to read it. 
 This book has broken the backend function code, add code chapter by chapter and 
@@ -1183,10 +1155,10 @@ In programming, documentation cannot replace the source code totally.
 Reading source code is a big opportunity in the open source development. 
 
 Both CMakeLists.txt and LLVMBuild.txt coexist in sub-directories 
-``MCTargetDesc`` and ``TargetInfo``. 
+**MCTargetDesc** and **TargetInfo**. 
 Their contents indicate they will generate Cpu0Desc and Cpu0Info libraries. 
-After building, you will find three libraries: ``libLLVMCpu0CodeGen.a``, 
-``libLLVMCpu0Desc.a`` and ``libLLVMCpu0Info.a`` in lib/ of your build 
+After building, you will find three libraries: **libLLVMCpu0CodeGen.a**, 
+**libLLVMCpu0Desc.a** and **libLLVMCpu0Info.a** in lib/ of your build 
 directory. 
 For more details please see 
 "Building LLVM with CMake" [#cmake]_ and 
@@ -1480,7 +1452,7 @@ Now, compile ch3.bc into ch3.cpu0.s, we get the error message as follows,
   ...
 
 At this point, we finish the Target Registration for Cpu0 backend. 
-The backend compiler command llc can recognize cpu0 backend now. 
+The backend compiler command ``llc`` can recognize cpu0 backend now. 
 Currently we just define target td files (Cpu0.td, Cpu0Other.td, 
 Cpu0RegisterInfo.td, ...). 
 According to LLVM structure, we need to define our target machine and include 
