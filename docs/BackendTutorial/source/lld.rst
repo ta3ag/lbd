@@ -3,12 +3,12 @@
 LLD for Cpu0
 ==============
 
-This chapter add Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
+This chapter adds Cpu0 backend in lld. With this lld Cpu0 for ELF linker support,
 the program with global variables can be allocated in ELF file format layout. 
 Meaning the relocation records of global variables is resolved. In addition, 
 llvm-objdump driver is modified for support generate Hex file from ELF.
 With these two tools supported, the program with global variables of existed in 
-section .data and .rodata can be accessed and transfered to Hex file which feed 
+section .data and .rodata can be accessed and transfered to Hex file which feeds  
 to Verilog Cpu0 machine and run on your PC/Laptop.
 
 About lld please refer LLD web site here [#]_ and LLD install requirement on 
@@ -494,7 +494,7 @@ optimization in command (the default is not do it). The other is lld didn't
 implement it at this point. It's reasonable since the 
 lld is in its early stages of development. We didn't dig it more, since the 
 Cpu0 backend tutorial just need a linker to finish Relocation Records Resolve 
-and see how it run on PC.
+and see how it runs on PC.
 
 Remind, llvm-linker is the linker works on IR level linker optimization. 
 Sometime when you got the obj file only (if you have a.o in this case), 
@@ -1474,7 +1474,7 @@ back to caller main() when it meets the instruction "ret $lr" in foo().
   Dynamic linker load bar() from flash to memory
   
 Now the program run at the next instruction of call foo() in main() as 
-:num:`Figure #lld-f9` depicted. When it run 
+:num:`Figure #lld-f9` depicted. When it runs 
 to address 0xd8 "jsub __plt__Z3barv", the control flow will transfer from 
 main through __plt_Z3barv, "Plt bar:" and PLT0 to dynamic linker as 
 :num:`Figure #lld-f9` depicted. Then load and run bar() from flash to memory 

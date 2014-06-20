@@ -356,8 +356,8 @@ Outline of Chapters
 
 The upper half of :num:`Figure #about-f1` is the work flow of computer program 
 generated and executed. IR stands for Intermediate Representation. 
-The lower half is this book work flow of the toolchain extended implementation 
-based on llvm. Except clang, the other blocks need to extended for a new 
+The lower half is this book's work flow of the toolchain extended implementation 
+based on llvm. Except clang, the other blocks need to be extended for a new 
 backend development. The hex is the ascii from '0' to 'f' for 
 hexadecimal value representation (4 bits of binary code representation) since 
 the verilog language machine use it as input file.
@@ -372,8 +372,8 @@ This book include 10,000 lines of source code for
 4. Cpu0 verilog source code. Chapter 12.
 
 With these code, reader can run the generated code from the result of the 
-processes through Cpu0 llvm backend compiler, linker and elf2hex, then see how 
-it run on your computer. 
+steps through Cpu0 llvm backend compiler, linker and elf2hex, then see how 
+it runs on your computer. 
 The pdf and epub are also available in the web. 
 It is a tutorial for llvm backend developer but not for an expert. 
 It also can be a material for those who have compiler and Computer 

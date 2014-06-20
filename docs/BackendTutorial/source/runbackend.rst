@@ -3,9 +3,9 @@
 Run backend
 ===========
 
-Until now, we have a llvm backend to compile C or assembly as the blue part of 
+Until now, we have an llvm backend to compile C or assembly as the blue part of 
 :num:`Figure #runbackend-f1`. If without global variable, the elf obj can be 
-dumped to hex file via ``llvm-objdump -d`` did in Chapter ELF Support.
+dumped to hex file via ``llvm-objdump -d`` which finished in Chapter ELF Support.
 
 .. _runbackend-f1: 
 .. figure:: ../Fig/runbackend/1.png
@@ -30,19 +30,20 @@ see the Cpu0 instructions execution result.
 Verilog of CPU0
 ------------------
 
-Verilog language is an IEEE standard in IC design. There are a lot of book and 
+Verilog language is an IEEE standard in IC design. There are a lot of books and 
 documents for this language. Web site [#]_ has a pdf [#]_ in this. 
 Example code lbdex/cpu0_verilog/cpu0.v is the 
 cpu0 design in Verilog. In Appendix A, we have downloaded and installed Icarus 
-Verilog tool both on iMac and Linux. The cpu0.v and cpu0Is.v is a simple design 
-with only few hundreds lines of code. 
+Verilog tool both on iMac and Linux. The cpu0.v and cpu0Is.v are simple design 
+with only few hundreds lines of code totally. 
 Alough it has not the pipeline features, we can assume the 
 cpu0 backend code run on the pipeline machine because the pipeline version  
-use the same machine instructions. Verilog is C like language in syntex and 
+use the same machine instructions. Verilog is a C like language in syntex and 
 this book is a compiler book, so we list the cpu0.v as well as the building 
-command directly as below. We expect 
-readers can understand the Verilog code just with a little patient and no need 
-further explanation. According computer architecture, there are two type of I/O. 
+command directly as below. 
+We expect readers can understand the Verilog code just with a little patient 
+and no further explanation needed. 
+According computer architecture, there are two type of I/O. 
 One is memory mapped I/O, the other is instruction I/O. 
 Cpu0 use memory mapped I/O where memory address 0x80000 as the output port. 
 When meet the instruction **"st $ra, cx($rb)"**, where cx($rb) is 
@@ -103,13 +104,13 @@ at 0x6ffc because assuming cpu0.v use 0x7000 bytes of memory.
 .. rubric:: lbdex/InputFiles/build-run_backend.sh
 .. literalinclude:: ../lbdex/InputFiles/build-run_backend.sh
 
-Let's run Chapter11_2/ with ``llvm-objdump -d`` for input files 
-ch_run_backend.cpp to generate the hex file of inputing to cpu0Is Verilog 
+Let's run Chapter11_2/ with ``llvm-objdump -d`` for input file 
+ch_run_backend.cpp to generate the hex file, then feed it to cpu0Is Verilog 
 simulator to get the output result as below. 
 Remind ch_run_backend.cpp have to be compiled with option 
 ``clang -target mips-unknown-linux-gnu`` since the example code ch9_3.cpp which 
-use the vararg need to compile with this option. Others example code is no 
-difference for this option and default option. 
+uses the vararg needs to be compiled with this option. Other example codes have 
+no differences between this option and default option. 
 
 
 .. code-block:: bash
@@ -217,20 +218,22 @@ get the result as below,
   RET to PC < 0, finished!
 
 
-As above result, cpu0.v dump the memory first after read input cpu0.hex. 
-Next, it run instructions from address 0 and print each destination 
+As above result, cpu0.v dumps the memory first after reads input file cpu0.hex. 
+Next, it runs instructions from address 0 and print each destination 
 register value in the fourth column. 
 The first column is the nano seconds of timing. The second 
 is instruction address. The third is instruction content. 
-We have checked many example code is correct by print the variable with 
-print_integer().
+Now, most example codes depicted in the previous chapters are verified by 
+print the variable with print_integer().
 
-This chapter shows Verilog PC output by display the I/O memory mapped address but
-didn't implementing the output hardware interface or port. 
+This chapter shows Verilog PC output by displays the integer value located at 
+I/O memory mapped address directly. 
+Since the cpu0.v machine is created by Verilog language, it suppose can run on
+real FPGA device. 
 The real output hardware 
 interface/port is hardware output device dependent, such as RS232, speaker, 
 LED, .... You should implement the I/O interface/port when you want to program 
-FPGA and wire I/O device to the I/O port.
+FPGA and wire I/O device to the I/O port. 
 
 
 .. [#] http://www.ece.umd.edu/courses/enee359a/
