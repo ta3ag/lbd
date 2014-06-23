@@ -279,7 +279,7 @@ this book can be found `here <http://jonathan2251.github.io/lbd/LLVMBackendTutor
 As you progress from one chapter to the next, you will incrementally build the 
 backend's functionality.
 
-Since Cpu0 is a simple RISC CPU for educational purpose, it make the Cpu0 llvm 
+Since Cpu0 is a simple RISC CPU for educational purpose, it makes the Cpu0 llvm 
 backend code simple too and easy to learning. In addition, Cpu0 supply the 
 Verilog source code that you can run on your PC or FPGA platform when you go to 
 chapter Run backend.
@@ -303,7 +303,7 @@ Finally, this book is not a compiler book in concept. It is for those readers
 have interested in extend compiler toolchain to support a new CPU based on llvm 
 structure. To program 
 on Linux OS, you program or write a driver without knowing every details. 
-For example in a specific USB device driver programm on Linux plateform, he 
+For example in a specific USB device driver program on Linux plateform, he 
 or she will try to understand the USB spec., linux USB subsystem and common 
 device driver working model and api. 
 In the same way, to extend functions from a large software like llvm umbrella 
@@ -311,9 +311,9 @@ project, you should find a way to reach the goal and ignore the details not on
 your way. 
 Try to understand in details of every line of source code is not realistic if 
 your project is an extended function from a well defined software structure. 
-It only make sense in rewriting the whole software structure.
+It only makes sense in rewriting the whole software structure.
 Of course, if there are more llvm backend book or documents, then 
-readers got the chance to know more about llvm by reading book or documents. 
+readers have the chance to know more about llvm by reading book or documents. 
 
 
 Prerequisites
@@ -360,13 +360,13 @@ The lower half is this book's work flow of the toolchain extended implementation
 based on llvm. Except clang, the other blocks need to be extended for a new 
 backend development. The hex is the ascii from '0' to 'f' for 
 hexadecimal value representation (4 bits of binary code representation) since 
-the verilog language machine use it as input file.
+the verilog language machine uses it as input file.
 
 This book include 10,000 lines of source code for
 
 1. Step-by-step, create an llvm backend for the Cpu0 which beginning from a 
    CPU design for school teaching purpose in system programming. Chapter 2 to 
-   12.
+   11.
 2. ELF linker for Cpu0 which extended from lld. Chapter 13.
 3. elf2hex extended from llvm-objump. Chapter 13.
 4. Cpu0 verilog source code. Chapter 12.
