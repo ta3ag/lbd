@@ -625,10 +625,10 @@ follows,
 
                        Cpu0AsmPrinter 
 
-Now, it's time to work with AsmPrinter. According section 
+Now, it's time to work with AsmPrinter. According 
 "section Target Registration" [#]_, we can register our AsmPrinter when we need 
 it by the dynamic register mechanism as the following function of 
-LLVMInitializeCpu0AsmPrinter(),
+LLVMInitializeCpu0AsmPrinter().
 
 .. rubric:: lbdex/Chapter3_2/Cpu0AsmPrinter.h
 .. literalinclude:: ../../../lib/Target/Cpu0/Cpu0AsmPrinter.h
